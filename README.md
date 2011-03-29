@@ -5,6 +5,50 @@ A javascript text differencing implementation.
 Based on the algorithm proposed in
 ["An O(ND) Difference Algorithm and its Variations" (Myers, 1986)](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927).
 
+## API
+
+* JsDiff.diffChars(oldStr, newStr)
+    Diffs two blocks of text, comparing character by character.
+
+    Returns a list of change objects (See below).
+
+* JsDiff.diffWords(oldStr, newStr)
+    Diffs two blocks of text, comparing word by word.
+
+    Returns a list of change objects (See below).
+
+* JsDiff.diffLines(oldStr, newStr)
+    Diffs two blocks of text, comparing line by line.
+
+    Returns a list of change objects (See below).
+
+* JsDiff.diffCss(oldStr, newStr)
+    Diffs two blocks of text, comparing CSS tokens.
+
+    Returns a list of change objects (See below).
+
+* JsDiff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)
+    Creates a unified diff patch.
+
+    Parameters:
+    * fileName : String to be output in the filename sections of the patch
+    * oldStr : Original string value
+    * newStr : New string value
+    * oldHeader : Additional information to include in the old file header
+    * newHeader : Additional information to include in thew new file header
+
+* convertChangesToXML(changes)
+    Converts a list of changes to a serialized XML format
+
+### Change Objects
+Many of the methods above return change objects. These objects are consist of the following fields:
+
+* value: Text content
+* added: True if the value was inserted into the new string
+* removed: True of the value was removed from the old string
+
+Note that some cases may omit a particular flag field. Comparison on the flag fields should always be done in a truthy or falsy manner.
+
 ## License
 
 Software License Agreement (BSD License)
