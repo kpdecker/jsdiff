@@ -9,7 +9,7 @@ Based on the algorithm proposed in
 
 Software License Agreement (BSD License)
 
-Copyright (c) 2009-2011, Kevin Decker <kpdecker@gmail.com>
+Copyright (c) 2009-2011, Kevin Decker kpdecker@gmail.com
 
 All rights reserved.
 
