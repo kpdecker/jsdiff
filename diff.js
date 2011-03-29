@@ -270,6 +270,6 @@ var JsDiff = (function() {
   };
 })();
 
-if (typeof exports !== "undefined") {
-    exports = JsDiff;
+if (typeof module !== "undefined") {
+    module.exports = JsDiff;
 }
