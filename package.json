@@ -1,37 +1,37 @@
 {
-    "name": "diff",
-    "version": "1.0.0",
-    "description": "A javascript text diff implementation.",
-    "keywords": [
-        "diff",
-        "javascript"
-    ],
-    "maintainers": [
-        {
-            "name": "Kevin Decker",
-            "email": "kpdecker@gmail.com",
-            "web": "http://incaseofstairs.com"
-        }
-    ],
-    "bugs": {
-        "mail": "kpdecker@gmail.com",
-        "web": "http://github.com/kpdecker/jsdiff/issues"
-    },
-    "licenses": [
-        {
-            "type": "BSD",
-            "url": "http://github.com/kpdecker/jsdiff/blob/master/LICENSE"
-        }
-    ],
-    "repositories": [
-        {
-            "type": "git",
-            "url": "git://github.com/kpdecker/jsdiff.git"
-        }
-    ],
-    "engines" : { "node" : ">=0.1.9" },
-    "main": "./diff",
-    "scripts": {
-        "test": "expresso test/*"
+  "name": "diff",
+  "version": "1.0.1",
+  "description": "A javascript text diff implementation.",
+  "keywords": [
+    "diff",
+    "javascript"
+  ],
+  "maintainers": [
+    "Kevin Decker <kpdecker@gmail.com> (http://incaseofstairs.com)"
+  ],
+  "bugs": {
+    "email": "kpdecker@gmail.com",
+    "url": "http://github.com/kpdecker/jsdiff/issues"
+  },
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "http://github.com/kpdecker/jsdiff/blob/master/LICENSE"
     }
+  ],
+  "repositories": [
+    {
+      "type": "git",
+      "url": "git://github.com/kpdecker/jsdiff.git"
+    }
+  ],
+  "engines": {
+    "node": ">=0.1.9"
+  },
+  "main": "./diff",
+  "scripts": {
+    "test": "expresso test/*"
+  },
+  "dependencies": {},
+  "devDependencies": {}
 }
