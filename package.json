@@ -31,5 +31,7 @@
     ],
     "engines" : { "node" : ">=0.1.9" },
     "main": "./diff",
-    "test": "expresso test/*"
+    "scripts": {
+        "test": "expresso test/*"
+    }
 }
