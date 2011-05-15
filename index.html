@@ -14,6 +14,8 @@
 	<label><input type="radio" name="diff_type" value="diffLines"> Lines</label>
 </div>
 
+<a href="https://github.com/kpdecker/jsdiff" class="source">github.com/kpdecker/jsdiff</a>
+
 <table>
 	<tr>
 		<td contenteditable="true" id="a">restaurant</td>
@@ -43,9 +45,6 @@ function changed() {
 		if (diff[i].removed) {
 			node = document.createElement('del');
 			node.appendChild(document.createTextNode(diff[i].value));
-//			if (window.diffType == 'diffLines') {
-//				node.appendChild(document.createTextNode('\n'));
-//			}
 		} else if (diff[i].added) {
 			node = document.createElement('ins');
 			node.appendChild(document.createTextNode(diff[i].value));
