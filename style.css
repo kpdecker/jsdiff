@@ -19,9 +19,6 @@ table {
 	table-layout: fixed;
 	width: 100%;
 }
-thead, thead tr, thead td {
-	height: 1.5em;
-}
 td {
 	width: 33%;
 	vertical-align: top;
@@ -33,14 +30,6 @@ h1 {
 	display: inline;
 	font-size: 100%;
 }
-pre, textarea {
-	height: 99%;
-	width: 99%;
-	margin: auto;
-	font: 1em monospace;
-	text-align: left;
-	white-space: pre-wrap;
-}
 del {
 	text-decoration: none;
 	color: #b30000;
@@ -50,24 +39,6 @@ ins {
 	background: #eaf2c2;
 	color: #406619;
 	text-decoration: none;
-}
-del.key {
-	border: 1px solid #f8a4a4;
-	border-bottom-width: 0;
-}
-ins.key {
-	border: 1px solid #a3ce4c;
-	border-top-width: 0;
-}
-
-span {
-	color: #b2b2b2;
-}
-del span {
-	color: #dfb2b2;
-}
-ins span {
-	color: #c2ccb8;
 }
 
 #settings {
@@ -80,17 +51,6 @@ ins span {
 }
 #settings label {
 	margin-left: 1em;
-}
-
-.footer {
-	position: absolute;
-	padding: .2em .5em;
-	right: 10px;
-	bottom: 0;
-}
-
-.error {
-	color: #600;
 }
 
 [contentEditable] {
