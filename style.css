@@ -1,0 +1,117 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+html, body {
+	background: #EEE;
+	font: 12px sans-serif;
+}
+body {
+	padding-top: 1.8em;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+html, body, table, tbody, tr, td {
+	height: 100%
+}
+table {
+	table-layout: fixed;
+	width: 100%;
+}
+thead, thead tr, thead td {
+	height: 1.5em;
+}
+td {
+	width: 33%;
+	vertical-align: top;
+	font: 1em monospace;
+	text-align: left;
+	white-space: pre-wrap;
+}
+h1 {
+	display: inline;
+	font-size: 100%;
+}
+pre, textarea {
+	height: 99%;
+	width: 99%;
+	margin: auto;
+	font: 1em monospace;
+	text-align: left;
+	white-space: pre-wrap;
+}
+del {
+	text-decoration: none;
+	color: #b30000;
+	background: #fadad7;
+}
+ins {
+	background: #eaf2c2;
+	color: #406619;
+	text-decoration: none;
+}
+del.key {
+	border: 1px solid #f8a4a4;
+	border-bottom-width: 0;
+}
+ins.key {
+	border: 1px solid #a3ce4c;
+	border-top-width: 0;
+}
+
+span {
+	color: #b2b2b2;
+}
+del span {
+	color: #dfb2b2;
+}
+ins span {
+	color: #c2ccb8;
+}
+
+#settings {
+	position: absolute;
+	top: 0;
+	left: 5px;
+	right: 5px;
+	height: 2em;
+	line-height: 2em;
+}
+#settings label {
+	margin-left: 1em;
+}
+
+.footer {
+	position: absolute;
+	padding: .2em .5em;
+	right: 10px;
+	bottom: 0;
+}
+
+.error {
+	color: #600;
+}
+
+[contentEditable] {
+	background: #F9F9F9;
+	border-top: 1px solid #BBB;
+	border-left: 1px solid #D9D9D9;
+	border-right: 1px solid #D9D9D9;
+	border-bottom: 1px solid #DDD;
+	padding: 3px 4px;
+	border-radius: 4px;
+	-webkit-user-modify: read-write-plaintext-only;
+	outline: none;
+}
+[contentEditable]:focus {
+	background: #FFF;
+	border-color: #6699cc;
+	box-shadow: 0 0 4px #2175c9;
+}
+
+@-moz-document url-prefix() {
+	body {
+		height: 99%; /* Hide scroll bar in Firefox */
+	}
+}
