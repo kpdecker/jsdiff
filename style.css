@@ -21,6 +21,8 @@ table {
 }
 td {
 	width: 33%;
+	padding: 3px 4px;
+	border: 1px solid transparent;
 	vertical-align: top;
 	font: 1em monospace;
 	text-align: left;
@@ -53,13 +55,15 @@ ins {
 	margin-left: 1em;
 }
 
+.source {
+	position: absolute;
+	right: 1%;
+	top: .2em;
+}
+
 [contentEditable] {
 	background: #F9F9F9;
-	border-top: 1px solid #BBB;
-	border-left: 1px solid #D9D9D9;
-	border-right: 1px solid #D9D9D9;
-	border-bottom: 1px solid #DDD;
-	padding: 3px 4px;
+	border-color: #BBB #D9D9D9 #DDD;
 	border-radius: 4px;
 	-webkit-user-modify: read-write-plaintext-only;
 	outline: none;
