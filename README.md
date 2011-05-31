@@ -57,8 +57,7 @@ Many of the methods above return change objects. These objects are consist of th
 
 Note that some cases may omit a particular flag field. Comparison on the flag fields should always be done in a truthy or falsy manner.
 
-## Example
-[maxogden](https://github.com/maxogden) has put together an excellent [example application](http://bl.ocks.org/893372).
+## [Example](http://nv.github.com/jsdiff)
 
 ## License
 
