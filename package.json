@@ -19,12 +19,10 @@
       "url": "http://github.com/kpdecker/jsdiff/blob/master/LICENSE"
     }
   ],
-  "repositories": [
-    {
-      "type": "git",
-      "url": "git://github.com/kpdecker/jsdiff.git"
-    }
-  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kpdecker/jsdiff.git"
+  },
   "engines": {
     "node": ">=0.1.9"
   },
