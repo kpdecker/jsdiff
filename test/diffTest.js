@@ -1,7 +1,7 @@
 const VERBOSE = false;
 
 var assert = require('assert'),
-  diff = require('diff');
+  diff = require('../diff');
 
 function log() {
   VERBOSE && console.log.apply(console, arguments);
@@ -9,13 +9,13 @@ function log() {
 
 exports['Whitespace diff'] = function() {
     diffResult = diff.diffWords("New Value", "New  ValueMoreData");
-    assert.eql(
+    assert.equal(
         "New  <ins>ValueMoreData</ins><del>Value</del>",
         diff.convertChangesToXML(diffResult),
         "Single whitespace diffResult Value");
 
     diffResult = diff.diffWords("New Value  ", "New  ValueMoreData ");
-    assert.eql(
+    assert.equal(
         "New  <ins>ValueMoreData</ins><del>Value</del> ",
         diff.convertChangesToXML(diffResult),
         "Multiple whitespace diffResult Value");
@@ -24,22 +24,22 @@ exports['Whitespace diff'] = function() {
 // Diff on word boundary
 exports['Word Diff'] = function() {
   diffResult = diff.diffWords("New :Value:Test", "New  ValueMoreData ");
-  assert.eql(
+  assert.equal(
     "New  <ins>ValueMoreData </ins><del>:Value:Test</del>",
     diff.convertChangesToXML(diffResult),
     "Nonmatching word boundary diffResult Value");
   diffResult = diff.diffWords("New Value:Test", "New  Value:MoreData ");
-  assert.eql(
+  assert.equal(
     "New  Value:<ins>MoreData </ins><del>Test</del>",
     diff.convertChangesToXML(diffResult),
     "Word boundary diffResult Value");
   diffResult = diff.diffWords("New Value-Test", "New  Value:MoreData ");
-  assert.eql(
+  assert.equal(
     "New  Value<ins>:MoreData </ins><del>-Test</del>",
     diff.convertChangesToXML(diffResult),
     "Uninque boundary diffResult Value");
   diffResult = diff.diffWords("New Value", "New  Value:MoreData ");
-  assert.eql(
+  assert.equal(
     "New  Value<ins>:MoreData </ins>",
     diff.convertChangesToXML(diffResult),
     "Word boundary diffResult Value");
@@ -48,17 +48,17 @@ exports['Word Diff'] = function() {
 // Diff without changes
 exports['Diff without changes'] = function() {
   diffResult = diff.diffWords("New Value", "New Value");
-  assert.eql(
+  assert.equal(
     "New Value",
     diff.convertChangesToXML(diffResult),
     "No changes diffResult Value");
   diffResult = diff.diffWords("New Value", "New  Value");
-  assert.eql(
+  assert.equal(
     "New  Value",
     diff.convertChangesToXML(diffResult),
     "No changes whitespace diffResult Value");
   diffResult = diff.diffWords("", "");
-  assert.eql(
+  assert.equal(
     "",
     diff.convertChangesToXML(diffResult),
     "Empty no changes diffResult Value");
@@ -67,13 +67,13 @@ exports['Diff without changes'] = function() {
 // Empty diffs
 exports['Empty diffs'] = function() {
   diffResult = diff.diffWords("New Value", "");
-  assert.eql(1, diffResult.length, "Empty diff result length");
-  assert.eql(
+  assert.equal(1, diffResult.length, "Empty diff result length");
+  assert.equal(
     "<del>New Value</del>",
     diff.convertChangesToXML(diffResult),
     "Empty diffResult Value");
   diffResult = diff.diffWords("", "New Value");
-  assert.eql(
+  assert.equal(
     "<ins>New Value</ins>",
     diff.convertChangesToXML(diffResult),
     "Empty diffResult Value");
@@ -81,7 +81,7 @@ exports['Empty diffs'] = function() {
 
 // With without anchor (the Heckel algorithm error case)
 diffResult = diff.diffWords("New Value New Value", "Value Value New New");
-assert.eql(
+assert.equal(
   "<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>",
   diff.convertChangesToXML(diffResult),
   "No anchor diffResult Value");
@@ -91,7 +91,7 @@ exports['CSS diffs'] = function() {
   diffResult = diff.diffCss(
     ".test,#value .test{margin-left:50px;margin-right:-40px}",
     ".test2, #value2 .test {\nmargin-top:50px;\nmargin-right:-400px;\n}");
-  assert.eql(
+  assert.equal(
     "<ins>.test2</ins><del>.test</del>,<del>#value</del> <ins>#value2 </ins>.test<ins> </ins>{<ins>\n"
     + "margin-top</ins><del>margin-left</del>:50px;<ins>\n</ins>"
     + "margin-right:<ins>-400px;\n</ins><del>-40px</del>}",
@@ -104,14 +104,14 @@ exports['Line diffs'] = function() {
   diffResult = diff.diffLines(
     "line\nold value\nline",
     "line\nnew value\nline");
-  assert.eql(
+  assert.equal(
     "line\n<ins>new value\n</ins><del>old value\n</del>line",
     diff.convertChangesToXML(diffResult),
     "Line diffResult Value");
   diffResult = diff.diffLines(
     "line\nvalue\nline",
     "line\nvalue\nline");
-  assert.eql(
+  assert.equal(
     "line\nvalue\nline",
     diff.convertChangesToXML(diffResult),
     "Line same diffResult Value");
@@ -120,7 +120,7 @@ exports['Line diffs'] = function() {
     "line\nvalue\nline");
   log("diffResult", diffResult);
   log("diffResult", diff.convertChangesToXML(diffResult));
-  assert.eql(
+  assert.equal(
     "line\n<ins>value\n</ins><del>value \n</del>line",
     diff.convertChangesToXML(diffResult),
     "Line whitespace diffResult Value");
@@ -354,8 +354,8 @@ exports['Large Test'] = function() {
   }
 
   log("diffResult remove length: " + removeCount);
-  assert.eql(largeTest.replace(/s+/g, ""), removeChanges.join("").replace(/s+/g, ""), "New Diff results match");
-  assert.eql(largeNewValue.replace(/s+/g, ""), addChanges.join("").replace(/s+/g, ""), "Old Diff results match");
+  assert.equal(largeTest.replace(/s+/g, ""), removeChanges.join("").replace(/s+/g, ""), "New Diff results match");
+  assert.equal(largeNewValue.replace(/s+/g, ""), addChanges.join("").replace(/s+/g, ""), "Old Diff results match");
 };
 
 exports['Patch'] = function() {
@@ -485,7 +485,7 @@ exports['Patch'] = function() {
     + "\\ No newline at end of file\n";
 
   diffResult = diff.createPatch("testFileName", oldFile, newFile, "Old Header", "New Header");
-  assert.eql(
+  assert.equal(
     expectedResult,
     diffResult,
     "Patch diffResult Value");
@@ -497,7 +497,7 @@ exports['Patch'] = function() {
     + "+++ testFileName\tNew Header\n"
     + "\\ No newline at end of file\n";
   diffResult = diff.createPatch("testFileName", oldFile, oldFile, "Old Header", "New Header");
-  assert.eql(
+  assert.equal(
     expectedResult,
     diffResult,
     "Patch same diffResult Value");
