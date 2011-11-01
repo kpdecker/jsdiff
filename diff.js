@@ -179,8 +179,8 @@ var JsDiff = (function() {
       
       ret.push("Index: " + fileName);
       ret.push("===================================================================");
-      ret.push("--- " + fileName + "\t" + oldHeader);
-      ret.push("+++ " + fileName + "\t" + newHeader);
+      ret.push("--- " + fileName + (typeof oldHeader === "undefined" ? "" : "\t" + oldHeader));
+      ret.push("+++ " + fileName + (typeof newHeader === "undefined" ? "" : "\t" + newHeader));
       
       var diff = LineDiff.diff(oldStr, newStr);
       diff.push({value: "", lines: []});   // Append an empty value to make cleanup easier
