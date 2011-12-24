@@ -1,7 +1,7 @@
 const VERBOSE = false;
 
 var assert = require('assert'),
-  diff = require('diff');
+  diff = require('../diff');
 
 function log() {
   VERBOSE && console.log.apply(console, arguments);
