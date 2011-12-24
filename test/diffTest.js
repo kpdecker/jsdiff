@@ -1,7 +1,7 @@
 const VERBOSE = false;
 
 var assert = require('assert'),
-  diff = require('../diff');
+    diff = require('../diff');
 
 function log() {
   VERBOSE && console.log.apply(console, arguments);
@@ -126,6 +126,88 @@ exports['Line diffs'] = function() {
     "line\n<ins>value\n</ins><del>value \n</del>line",
     diff.convertChangesToXML(diffResult),
     "Line whitespace diffResult Value");
+};
+
+// Patch creation with diff at EOF
+exports['lastLineChanged'] = function() {
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,3 +1,4 @@\n'
+    + ' line2\n'
+    + ' line3\n'
+    + '+line4\n'
+    + ' line5\n',
+    diff.createPatch('test', 'line2\nline3\nline5\n', 'line2\nline3\nline4\nline5\n', 'header1', 'header2'));
+
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,3 +1,4 @@\n'
+    + ' line2\n'
+    + ' line3\n'
+    + ' line4\n'
+    + '+line5\n',
+    diff.createPatch('test', 'line2\nline3\nline4\n', 'line2\nline3\nline4\nline5\n', 'header1', 'header2'));
+
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,4 +1,4 @@\n'
+    + ' line1\n'
+    + ' line2\n'
+    + ' line3\n'
+    + '+line4\n'
+    + '\\ No newline at end of file\n'
+    + '-line4\n',
+    diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline4', 'header1', 'header2'));
+
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,4 +1,4 @@\n'
+    + ' line1\n'
+    + ' line2\n'
+    + ' line3\n'
+    + '+line4\n'
+    + '-line4\n'
+    + '\\ No newline at end of file\n',
+    diff.createPatch('test', 'line1\nline2\nline3\nline4', 'line1\nline2\nline3\nline4\n', 'header1', 'header2'));
+
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,4 +1,4 @@\n'
+    + ' line1\n'
+    + ' line2\n'
+    + ' line3\n'
+    + '+line44\n'
+    + '-line4\n',
+    diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\n', 'header1', 'header2'));
+
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,4 +1,5 @@\n'
+    + ' line1\n'
+    + ' line2\n'
+    + ' line3\n'
+    + '+line44\n'
+    + '+line5\n'
+    + '-line4\n',
+    diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\nline5\n', 'header1', 'header2'));
 };
 
 exports['Large Test'] = function() {
