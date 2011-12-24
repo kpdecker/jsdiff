@@ -154,25 +154,17 @@ var JsDiff = (function() {
   
   var WordDiff = new fbDiff(true);
   WordDiff.tokenize = function(value) {
-    return removeEmpty(value.split(/(\s+|\b)/g));
+    return removeEmpty(value.split(/(\s+|\b)/));
   };
   
   var CssDiff = new fbDiff(true);
   CssDiff.tokenize = function(value) {
-    return removeEmpty(value.split(/([{}:;,]|\s+)/g));
+    return removeEmpty(value.split(/([{}:;,]|\s+)/));
   };
   
   var LineDiff = new fbDiff();
   LineDiff.tokenize = function(value) {
-    var values = value.split(/\n/g),
-        ret = [];
-    for (var i = 0; i < values.length-1; i++) {
-      ret.push(values[i] + "\n");
-    }
-    if (values.length) {
-      ret.push(values[values.length-1]);
-    }
-    return ret;
+    return value.split(/^/m);
   };
   
   return {
@@ -187,8 +179,8 @@ var JsDiff = (function() {
 
       ret.push("Index: " + fileName);
       ret.push("===================================================================");
-      ret.push("--- " + fileName + "\t" + oldHeader);
-      ret.push("+++ " + fileName + "\t" + newHeader);
+      ret.push("--- " + fileName + (typeof oldHeader === "undefined" ? "" : "\t" + oldHeader));
+      ret.push("+++ " + fileName + (typeof newHeader === "undefined" ? "" : "\t" + newHeader));
 
       var diff = LineDiff.diff(oldStr, newStr);
       if (!diff[diff.length-1].value) {
