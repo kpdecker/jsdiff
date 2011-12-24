@@ -184,22 +184,26 @@ var JsDiff = (function() {
 
     createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
       var ret = [];
-      
+
       ret.push("Index: " + fileName);
       ret.push("===================================================================");
       ret.push("--- " + fileName + "\t" + oldHeader);
       ret.push("+++ " + fileName + "\t" + newHeader);
-      
+
       var diff = LineDiff.diff(oldStr, newStr);
       diff.push({value: "", lines: []});   // Append an empty value to make cleanup easier
-      
+
+      function contextLines(lines) {
+        return lines.map(function(entry) { return ' ' + entry; });
+      }
+
       var oldRangeStart = 0, newRangeStart = 0, curRange = [],
           oldLine = 1, newLine = 1;
       for (var i = 0; i < diff.length; i++) {
         var current = diff[i],
             lines = current.lines || current.value.replace(/\n$/, "").split("\n");
         current.lines = lines;
-        
+
         if (current.added || current.removed) {
           if (!oldRangeStart) {
             var prev = diff[i-1];
@@ -207,9 +211,9 @@ var JsDiff = (function() {
             newRangeStart = newLine;
             
             if (prev) {
-              curRange.push.apply(curRange, prev.lines.slice(-4).map(function(entry) { return " " + entry; }));
-              oldRangeStart -= 4;
-              newRangeStart -= 4;
+              curRange = contextLines(prev.lines.slice(-4));
+              oldRangeStart -= curRange.length;
+              newRangeStart -= curRange.length;
             }
           }
           curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?"+":"-") + entry; }));
@@ -220,9 +224,10 @@ var JsDiff = (function() {
           }
         } else {
           if (oldRangeStart) {
+            // Close out any changes that have been output (or join overlapping)
             if (lines.length <= 8 && i < diff.length-1) {
-              // Overlapping 
-              curRange.push.apply(curRange, lines.map(function(entry) { return " " + entry; }));
+              // Overlapping
+              curRange.push.apply(curRange, contextLines(lines));
             } else {
               // end the range and output
               var contextSize = Math.min(lines.length, 4);
@@ -231,7 +236,7 @@ var JsDiff = (function() {
                   + " +" + newRangeStart + "," + (newLine-newRangeStart+contextSize)
                   + " @@");
               ret.push.apply(ret, curRange);
-              ret.push.apply(ret, lines.slice(0, contextSize).map(function(entry) { return " " + entry; }));
+              ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
 
               oldRangeStart = 0;  newRangeStart = 0; curRange = [];
             }
