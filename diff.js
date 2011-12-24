@@ -191,6 +191,9 @@ var JsDiff = (function() {
       ret.push("+++ " + fileName + "\t" + newHeader);
 
       var diff = LineDiff.diff(oldStr, newStr);
+      if (!diff[diff.length-1].value) {
+        diff.pop();   // Remove trailing newline add
+      }
       diff.push({value: "", lines: []});   // Append an empty value to make cleanup easier
 
       function contextLines(lines) {
@@ -217,6 +220,14 @@ var JsDiff = (function() {
             }
           }
           curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?"+":"-") + entry; }));
+
+          // Figure out if this is the last line for the given file and missing NL
+          if (!/\n$/.test(current.value)
+              && (i === diff.length-2
+                || (i === diff.length-3 && current.added === !diff[diff.length-2].added))) {
+            curRange.push('\\ No newline at end of file');
+          }
+
           if (current.added) {
             newLine += lines.length;
           } else {
@@ -245,11 +256,8 @@ var JsDiff = (function() {
           newLine += lines.length;
         }
       }
-      if (diff.length > 1 && !/\n$/.test(diff[diff.length-2].value)) {
-        ret.push("\\ No newline at end of file\n");
-      }
-      
-      return ret.join("\n");
+
+      return ret.join('\n') + '\n';
     },
 
     convertChangesToXML: function(changes){
