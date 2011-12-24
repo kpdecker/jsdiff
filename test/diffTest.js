@@ -80,11 +80,13 @@ exports['Empty diffs'] = function() {
 };
 
 // With without anchor (the Heckel algorithm error case)
-diffResult = diff.diffWords("New Value New Value", "Value Value New New");
-assert.eql(
-  "<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>",
-  diff.convertChangesToXML(diffResult),
-  "No anchor diffResult Value");
+exports['No anchor'] = function() {
+  diffResult = diff.diffWords("New Value New Value", "Value Value New New");
+  assert.eql(
+    "<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>",
+    diff.convertChangesToXML(diffResult),
+    "No anchor diffResult Value");
+};
 
 // CSS Diff
 exports['CSS diffs'] = function() {
