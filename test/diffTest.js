@@ -163,6 +163,35 @@ exports['lastLineChanged'] = function() {
     + ' line1\n'
     + ' line2\n'
     + ' line3\n'
+    + '+line44\n'
+    + '-line4\n',
+    diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\n', 'header1', 'header2'));
+
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,4 +1,5 @@\n'
+    + ' line1\n'
+    + ' line2\n'
+    + ' line3\n'
+    + '+line44\n'
+    + '+line5\n'
+    + '-line4\n',
+    diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\nline5\n', 'header1', 'header2'));
+};
+
+exports['EOFNL'] = function() {
+  assert.eql(
+    'Index: test\n'
+    + '===================================================================\n'
+    + '--- test\theader1\n'
+    + '+++ test\theader2\n'
+    + '@@ -1,4 +1,4 @@\n'
+    + ' line1\n'
+    + ' line2\n'
+    + ' line3\n'
     + '+line4\n'
     + '\\ No newline at end of file\n'
     + '-line4\n',
@@ -188,26 +217,27 @@ exports['lastLineChanged'] = function() {
     + '--- test\theader1\n'
     + '+++ test\theader2\n'
     + '@@ -1,4 +1,4 @@\n'
-    + ' line1\n'
+    + '+line1\n'
+    + '-line11\n'
     + ' line2\n'
     + ' line3\n'
-    + '+line44\n'
-    + '-line4\n',
-    diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\n', 'header1', 'header2'));
+    + ' line4\n'
+    + '\\ No newline at end of file\n',
+    diff.createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2'));
 
   assert.eql(
     'Index: test\n'
     + '===================================================================\n'
     + '--- test\theader1\n'
     + '+++ test\theader2\n'
-    + '@@ -1,4 +1,5 @@\n'
-    + ' line1\n'
+    + '@@ -1,5 +1,5 @@\n'
+    + '+line1\n'
+    + '-line11\n'
     + ' line2\n'
     + ' line3\n'
-    + '+line44\n'
-    + '+line5\n'
-    + '-line4\n',
-    diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\nline5\n', 'header1', 'header2'));
+    + ' line4\n'
+    + ' line4\n',
+    diff.createPatch('test', 'line11\nline2\nline3\nline4\nline4\nline4\nline4', 'line1\nline2\nline3\nline4\nline4\nline4\nline4', 'header1', 'header2'));
 };
 
 exports['Large Test'] = function() {
@@ -571,15 +601,13 @@ exports['Patch'] = function() {
   diffResult = diff.createPatch("testFileName", oldFile, newFile, "Old Header", "New Header");
   assert.eql(
     expectedResult,
-    diffResult,
-    "Patch diffResult Value");
+    diffResult);
 
   expectedResult =
     "Index: testFileName\n"
     + "===================================================================\n"
     + "--- testFileName\tOld Header\n"
-    + "+++ testFileName\tNew Header\n"
-    + "\\ No newline at end of file\n";
+    + "+++ testFileName\tNew Header\n";
   diffResult = diff.createPatch("testFileName", oldFile, oldFile, "Old Header", "New Header");
   assert.eql(
     expectedResult,

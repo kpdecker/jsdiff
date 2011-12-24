@@ -199,6 +199,16 @@ var JsDiff = (function() {
       function contextLines(lines) {
         return lines.map(function(entry) { return ' ' + entry; });
       }
+      function eofNL(curRange, i, current) {
+        var last = diff[diff.length-2],
+            isLast = i === diff.length-2,
+            isLastOfType = i === diff.length-3 && (current.added === !last.added || current.removed === !last.removed);
+
+        // Figure out if this is the last line for the given file and missing NL
+        if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
+          curRange.push('\\ No newline at end of file');
+        }
+      }
 
       var oldRangeStart = 0, newRangeStart = 0, curRange = [],
           oldLine = 1, newLine = 1;
@@ -220,13 +230,7 @@ var JsDiff = (function() {
             }
           }
           curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?"+":"-") + entry; }));
-
-          // Figure out if this is the last line for the given file and missing NL
-          if (!/\n$/.test(current.value)
-              && (i === diff.length-2
-                || (i === diff.length-3 && current.added === !diff[diff.length-2].added))) {
-            curRange.push('\\ No newline at end of file');
-          }
+          eofNL(curRange, i, current);
 
           if (current.added) {
             newLine += lines.length;
@@ -236,7 +240,7 @@ var JsDiff = (function() {
         } else {
           if (oldRangeStart) {
             // Close out any changes that have been output (or join overlapping)
-            if (lines.length <= 8 && i < diff.length-1) {
+            if (lines.length <= 8 && i < diff.length-2) {
               // Overlapping
               curRange.push.apply(curRange, contextLines(lines));
             } else {
@@ -248,6 +252,9 @@ var JsDiff = (function() {
                   + " @@");
               ret.push.apply(ret, curRange);
               ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
+              if (lines.length <= 4) {
+                eofNL(ret, i, current);
+              }
 
               oldRangeStart = 0;  newRangeStart = 0; curRange = [];
             }
