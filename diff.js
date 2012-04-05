@@ -278,6 +278,15 @@ var JsDiff = (function() {
         }
       }
       return ret.join("");
+    },
+    
+    convertChangesToDMP: function(changes){
+      var ret = [], change;
+      for ( var i = 0; i < changes.length; i++) {
+        change = changes[i];
+        ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
+      }
+      return ret;
     }
   };
 })();
