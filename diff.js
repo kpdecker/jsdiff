@@ -278,7 +278,7 @@ var JsDiff = (function() {
         }
       }
       return ret.join("");
-    }
+    },
     
     convertChangesToDMP: function(changes){
       var ret = [], change;

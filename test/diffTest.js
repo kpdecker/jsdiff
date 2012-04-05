@@ -614,3 +614,12 @@ exports['Patch'] = function() {
     diffResult,
     "Patch same diffResult Value");
 };
+
+exports['convertToDMP'] = function() {
+    diffResult = diff.diffWords("New Value  ", "New  ValueMoreData ");
+
+    assert.deepEqual(
+        [[0,'New  '],[1,'ValueMoreData'],[-1,'Value'],[0,' ']],
+        diff.convertChangesToDMP(diffResult),
+        "DMP conversion of diffResult");
+};
