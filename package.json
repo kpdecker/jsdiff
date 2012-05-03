@@ -28,8 +28,10 @@
   },
   "main": "./diff",
   "scripts": {
-    "test": "expresso test/*"
+    "test": "node_modules/.bin/expresso test/*"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "expresso": "~0.9"
+  }
 }
