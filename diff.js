@@ -90,11 +90,11 @@ var JsDiff = (function() {
             // and does not pass the bounds of the diff graph
             if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
               basePath = clonePath(removePath);
-              this.pushComponent(basePath.components, oldString[oldPos], undefined, true);
+              this.pushComponent(basePath.components, oldString.charAt(oldPos), undefined, true);
             } else {
               basePath = clonePath(addPath);
               basePath.newPos++;
-              this.pushComponent(basePath.components, newString[basePath.newPos], true, undefined);
+              this.pushComponent(basePath.components, newString.charAt(basePath.newPos), true, undefined);
             }
 
             var oldPos = this.extractCommon(basePath, newString, oldString, diagonalPath);
@@ -124,11 +124,11 @@ var JsDiff = (function() {
             oldLen = oldString.length,
             newPos = basePath.newPos,
             oldPos = newPos - diagonalPath;
-        while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
+        while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString.charAt(newPos+1), oldString.charAt(oldPos+1))) {
           newPos++;
           oldPos++;
           
-          this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
+          this.pushComponent(basePath.components, newString.charAt(newPos), undefined, undefined);
         }
         basePath.newPos = newPos;
         return oldPos;
