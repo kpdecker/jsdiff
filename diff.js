@@ -1,4 +1,4 @@
-/* See license.txt for terms of usage */
+/* See LICENSE file for terms of use */
 
 /*
  * Text diff implementation.
