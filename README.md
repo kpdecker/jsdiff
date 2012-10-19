@@ -47,6 +47,11 @@ or
     * oldHeader : Additional information to include in the old file header
     * newHeader : Additional information to include in thew new file header
 
+* JsDiff.applyPatch(oldStr, diffStr)
+    Applies a unified diff patch.
+
+    Return a string containing new version of provided data.
+
 * convertChangesToXML(changes)
     Converts a list of changes to a serialized XML format
 
