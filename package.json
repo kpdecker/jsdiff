@@ -1,6 +1,6 @@
 {
   "name": "diff",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A javascript text diff implementation.",
   "keywords": [
     "diff",
@@ -34,5 +34,6 @@
   "devDependencies": {
     "mocha": "~1.6",
     "should": "~1.2"
-  }
+  },
+  "optionalDependencies": {}
 }
