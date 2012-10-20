@@ -37,7 +37,6 @@ var JsDiff = (function() {
     return n;
   }
 
-
   var fbDiff = function(ignoreWhitespace) {
     this.ignoreWhitespace = ignoreWhitespace;
   };
@@ -127,7 +126,7 @@ var JsDiff = (function() {
         while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
           newPos++;
           oldPos++;
-          
+
           this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
         }
         basePath.newPos = newPos;
@@ -149,24 +148,24 @@ var JsDiff = (function() {
         return value;
       }
   };
-  
+
   var CharDiff = new fbDiff();
-  
+
   var WordDiff = new fbDiff(true);
   WordDiff.tokenize = function(value) {
     return removeEmpty(value.split(/(\s+|\b)/));
   };
-  
+
   var CssDiff = new fbDiff(true);
   CssDiff.tokenize = function(value) {
     return removeEmpty(value.split(/([{}:;,]|\s+)/));
   };
-  
+
   var LineDiff = new fbDiff();
   LineDiff.tokenize = function(value) {
     return value.split(/^/m);
   };
-  
+
   return {
     diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
     diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
@@ -214,7 +213,7 @@ var JsDiff = (function() {
             var prev = diff[i-1];
             oldRangeStart = oldLine;
             newRangeStart = newLine;
-            
+
             if (prev) {
               curRange = contextLines(prev.lines.slice(-4));
               oldRangeStart -= curRange.length;
