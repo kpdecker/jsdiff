@@ -193,7 +193,7 @@ var JsDiff = (function() {
       function eofNL(curRange, i, current) {
         var last = diff[diff.length-2],
             isLast = i === diff.length-2,
-            isLastOfType = i === diff.length-3 && (current.added === !last.added || current.removed === !last.removed);
+            isLastOfType = i === diff.length-3 && (current.added !== last.added || current.removed !== last.removed);
 
         // Figure out if this is the last line for the given file and missing NL
         if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
@@ -263,6 +263,7 @@ var JsDiff = (function() {
       var diff = [];
       var remEOFNL = false,
           addEOFNL = false;
+
       for (var i = (diffstr[0][0]=="I"?4:0); i < diffstr.length; i++) {
         if(diffstr[i][0] == "@") {
           var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
@@ -273,22 +274,22 @@ var JsDiff = (function() {
             newlength:meh[4],
             newlines:[]
           });
-        } else
-        if(diffstr[i][0] == "+") {
+        } else if(diffstr[i][0] == '+') {
           diff[0].newlines.push(diffstr[i].substr(1));
-        } else
-        if(diffstr[i][0] == "-") {
+        } else if(diffstr[i][0] == '-') {
           diff[0].oldlines.push(diffstr[i].substr(1));
-        } else
-        if(diffstr[i][0] == " ") {
+        } else if(diffstr[i][0] == ' ') {
           diff[0].newlines.push(diffstr[i].substr(1));
           diff[0].oldlines.push(diffstr[i].substr(1));
-        } else
-        if(diffstr[i][0] == "\\") {
-          if(diffstr[i-1][0] == "+") remEOFNL = true;
-          if(diffstr[i-1][0] == "-") addEOFNL = true;
+        } else if(diffstr[i][0] == '\\') {
+          if (diffstr[i-1][0] == '+') {
+            remEOFNL = true;
+          } else if(diffstr[i-1][0] == '-') {
+            addEOFNL = true;
+          }
         }
-      };
+      }
+
       var str = oldStr.split("\n");
       for (var i = diff.length - 1; i >= 0; i--) {
         var d = diff[i];
@@ -296,12 +297,18 @@ var JsDiff = (function() {
           if(str[d.start-1+j] != d.oldlines[j]) {
             return false;
           }
-        };
+        }
         Array.prototype.splice.apply(str,[d.start-1,+d.oldlength].concat(d.newlines));
       }
-      if(remEOFNL) while(str[str.length-1]=="") str.pop();
-      else if(addEOFNL) str.push("");
-      return str.join("\n");
+
+      if (remEOFNL) {
+        while (!str[str.length-1]) {
+          str.pop();
+        }
+      } else if (addEOFNL) {
+        str.push('');
+      }
+      return str.join('\n');
     },
 
     convertChangesToXML: function(changes){
