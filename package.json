@@ -28,10 +28,11 @@
   },
   "main": "./diff",
   "scripts": {
-    "test": "node_modules/.bin/expresso test/*"
+    "test": "node_modules/.bin/mocha test/*.js"
   },
   "dependencies": {},
   "devDependencies": {
-    "expresso": "~0.9"
+    "mocha": "~1.6",
+    "should": "~1.2"
   }
 }
