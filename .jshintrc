@@ -1,35 +1,41 @@
+/*dotfiles node, mocha*/
 {
-  "predef": [
-    "describe", "it", "before", "after", "beforeEach", "afterEach"
-  ],
-
   "node": true,
   "es5": true,
   "esnext": true,
   "browser": false,
-  "jquery": false,
-
   "bitwise": true,
   "curly": true,
   "eqeqeq": true,
-  "evil": false,
   "forin": true,
-  "immed": true,
+  "immed": false,
   "latedef": false,
-  "laxbreak": true,
   "newcap": true,
   "noarg": true,
-  "noempty": false,
-  "nonew": true,
+  "noempty": true,
+  "nonew": false,
   "plusplus": false,
+  "quotmark": "single",
+  "regexp": false,
   "undef": true,
+  "unused": true,
   "strict": false,
+  "trailing": true,
+  "maxparams": 4,
+  "asi": false,
+  "boss": false,
+  "expr": true,
+  "laxbreak": true,
+  "loopfunc": true,
   "shadow": true,
-  "trailing": false,
-  "globalstrict": true,
   "nonstandard": true,
-  "white": false,
-  "indent": 2,
-
-  "onevar": false
+  "onevar": false,
+  "predef": [
+    "describe",
+    "it",
+    "before",
+    "after",
+    "beforeEach",
+    "afterEach"
+  ]
 }

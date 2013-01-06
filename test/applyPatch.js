@@ -173,7 +173,7 @@ describe('#applyPatch', function() {
       + 'value\n'
       + 'context\n'
       + 'context';
-    var newFile = 
+    var newFile =
       'new value\n'
       + 'new value 2\n'
       + 'context\n'

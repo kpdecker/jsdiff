@@ -2,19 +2,20 @@
 
 /*
  * Text diff implementation.
- * 
+ *
  * This library supports the following APIS:
  * JsDiff.diffChars: Character by character diff
  * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
  * JsDiff.diffLines: Line based diff
- * 
+ *
  * JsDiff.diffCss: Diff targeted at CSS content
- * 
+ *
  * These methods are based on the implementation proposed in
  * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 var JsDiff = (function() {
+  /*jshint maxparams: 5*/
   function clonePath(path) {
     return { newPos: path.newPos, components: path.components.slice(0) };
   }
@@ -29,21 +30,21 @@ var JsDiff = (function() {
   }
   function escapeHTML(s) {
     var n = s;
-    n = n.replace(/&/g, "&amp;");
-    n = n.replace(/</g, "&lt;");
-    n = n.replace(/>/g, "&gt;");
-    n = n.replace(/"/g, "&quot;");
+    n = n.replace(/&/g, '&amp;');
+    n = n.replace(/</g, '&lt;');
+    n = n.replace(/>/g, '&gt;');
+    n = n.replace(/"/g, '&quot;');
 
     return n;
   }
 
-  var fbDiff = function(ignoreWhitespace) {
+  var Diff = function(ignoreWhitespace) {
     this.ignoreWhitespace = ignoreWhitespace;
   };
-  fbDiff.prototype = {
+  Diff.prototype = {
       diff: function(oldString, newString) {
         // Handle the identity case (this is due to unrolling editLength == 0
-        if (newString == oldString) {
+        if (newString === oldString) {
           return [{ value: newString }];
         }
         if (!newString) {
@@ -138,7 +139,7 @@ var JsDiff = (function() {
         if (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right)) {
           return true;
         } else {
-          return left == right;
+          return left === right;
         }
       },
       join: function(left, right) {
@@ -149,19 +150,19 @@ var JsDiff = (function() {
       }
   };
 
-  var CharDiff = new fbDiff();
+  var CharDiff = new Diff();
 
-  var WordDiff = new fbDiff(true);
+  var WordDiff = new Diff(true);
   WordDiff.tokenize = function(value) {
     return removeEmpty(value.split(/(\s+|\b)/));
   };
 
-  var CssDiff = new fbDiff(true);
+  var CssDiff = new Diff(true);
   CssDiff.tokenize = function(value) {
     return removeEmpty(value.split(/([{}:;,]|\s+)/));
   };
 
-  var LineDiff = new fbDiff();
+  var LineDiff = new Diff();
   LineDiff.tokenize = function(value) {
     return value.split(/^/m);
   };
@@ -176,16 +177,16 @@ var JsDiff = (function() {
     createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
       var ret = [];
 
-      ret.push("Index: " + fileName);
-      ret.push("===================================================================");
-      ret.push("--- " + fileName + (typeof oldHeader === "undefined" ? "" : "\t" + oldHeader));
-      ret.push("+++ " + fileName + (typeof newHeader === "undefined" ? "" : "\t" + newHeader));
+      ret.push('Index: ' + fileName);
+      ret.push('===================================================================');
+      ret.push('--- ' + fileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
+      ret.push('+++ ' + fileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
 
       var diff = LineDiff.diff(oldStr, newStr);
       if (!diff[diff.length-1].value) {
         diff.pop();   // Remove trailing newline add
       }
-      diff.push({value: "", lines: []});   // Append an empty value to make cleanup easier
+      diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
       function contextLines(lines) {
         return lines.map(function(entry) { return ' ' + entry; });
@@ -205,7 +206,7 @@ var JsDiff = (function() {
           oldLine = 1, newLine = 1;
       for (var i = 0; i < diff.length; i++) {
         var current = diff[i],
-            lines = current.lines || current.value.replace(/\n$/, "").split("\n");
+            lines = current.lines || current.value.replace(/\n$/, '').split('\n');
         current.lines = lines;
 
         if (current.added || current.removed) {
@@ -220,7 +221,7 @@ var JsDiff = (function() {
               newRangeStart -= curRange.length;
             }
           }
-          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?"+":"-") + entry; }));
+          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?'+':'-') + entry; }));
           eofNL(curRange, i, current);
 
           if (current.added) {
@@ -238,9 +239,9 @@ var JsDiff = (function() {
               // end the range and output
               var contextSize = Math.min(lines.length, 4);
               ret.push(
-                  "@@ -" + oldRangeStart + "," + (oldLine-oldRangeStart+contextSize)
-                  + " +" + newRangeStart + "," + (newLine-newRangeStart+contextSize)
-                  + " @@");
+                  '@@ -' + oldRangeStart + ',' + (oldLine-oldRangeStart+contextSize)
+                  + ' +' + newRangeStart + ',' + (newLine-newRangeStart+contextSize)
+                  + ' @@');
               ret.push.apply(ret, curRange);
               ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
               if (lines.length <= 4) {
@@ -259,13 +260,13 @@ var JsDiff = (function() {
     },
 
     applyPatch: function(oldStr, uniDiff) {
-      var diffstr = uniDiff.split("\n");
+      var diffstr = uniDiff.split('\n');
       var diff = [];
       var remEOFNL = false,
           addEOFNL = false;
 
-      for (var i = (diffstr[0][0]=="I"?4:0); i < diffstr.length; i++) {
-        if(diffstr[i][0] == "@") {
+      for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
+        if(diffstr[i][0] === '@') {
           var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
           diff.unshift({
             start:meh[3],
@@ -274,27 +275,27 @@ var JsDiff = (function() {
             newlength:meh[4],
             newlines:[]
           });
-        } else if(diffstr[i][0] == '+') {
+        } else if(diffstr[i][0] === '+') {
           diff[0].newlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] == '-') {
+        } else if(diffstr[i][0] === '-') {
           diff[0].oldlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] == ' ') {
+        } else if(diffstr[i][0] === ' ') {
           diff[0].newlines.push(diffstr[i].substr(1));
           diff[0].oldlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] == '\\') {
-          if (diffstr[i-1][0] == '+') {
+        } else if(diffstr[i][0] === '\\') {
+          if (diffstr[i-1][0] === '+') {
             remEOFNL = true;
-          } else if(diffstr[i-1][0] == '-') {
+          } else if(diffstr[i-1][0] === '-') {
             addEOFNL = true;
           }
         }
       }
 
-      var str = oldStr.split("\n");
+      var str = oldStr.split('\n');
       for (var i = diff.length - 1; i >= 0; i--) {
         var d = diff[i];
         for (var j = 0; j < d.oldlength; j++) {
-          if(str[d.start-1+j] != d.oldlines[j]) {
+          if(str[d.start-1+j] !== d.oldlines[j]) {
             return false;
           }
         }
@@ -316,20 +317,20 @@ var JsDiff = (function() {
       for ( var i = 0; i < changes.length; i++) {
         var change = changes[i];
         if (change.added) {
-          ret.push("<ins>");
+          ret.push('<ins>');
         } else if (change.removed) {
-          ret.push("<del>");
+          ret.push('<del>');
         }
 
         ret.push(escapeHTML(change.value));
 
         if (change.added) {
-          ret.push("</ins>");
+          ret.push('</ins>');
         } else if (change.removed) {
-          ret.push("</del>");
+          ret.push('</del>');
         }
       }
-      return ret.join("");
+      return ret.join('');
     },
 
     // See: http://code.google.com/p/google-diff-match-patch/wiki/API
@@ -344,6 +345,6 @@ var JsDiff = (function() {
   };
 })();
 
-if (typeof module !== "undefined") {
+if (typeof module !== 'undefined') {
     module.exports = JsDiff;
 }

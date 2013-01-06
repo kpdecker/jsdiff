@@ -1,11 +1,6 @@
 const VERBOSE = false;
 
-var assert = require('assert'),
-    diff = require('../diff');
-
-function log() {
-  VERBOSE && console.log.apply(console, arguments);
-}
+var diff = require('../diff');
 
 describe('#diffWords', function() {
   it('should diff whitespace', function() {
