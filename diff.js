@@ -168,6 +168,8 @@ var JsDiff = (function() {
   };
 
   return {
+    Diff: Diff,
+
     diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
     diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
     diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
