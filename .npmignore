@@ -1,0 +1,5 @@
+test/
+.jshintrc
+.travis.yml
+index.html
+style.css
