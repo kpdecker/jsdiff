@@ -35,5 +35,8 @@
     "mocha": "~1.6",
     "should": "~1.2"
   },
-  "optionalDependencies": {}
+  "optionalDependencies": {},
+  "files": [
+    "diff.js"
+  ]
 }
