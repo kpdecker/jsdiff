@@ -153,7 +153,8 @@ var JsDiff = (function() {
   var CharDiff = new Diff();
 
   var WordDiff = new Diff(true);
-  WordDiff.tokenize = function(value) {
+  var WordWithSpaceDiff = new Diff();
+  WordDiff.tokenize = WordWithSpaceDiff.tokenize = function(value) {
     return removeEmpty(value.split(/(\s+|\b)/));
   };
 
@@ -172,6 +173,7 @@ var JsDiff = (function() {
 
     diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
     diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
+    diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
     diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
 
     diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
