@@ -57,6 +57,18 @@ describe('#diffWords', function() {
   });
 });
 
+describe('#diffWordsWithSpace', function() {
+  it('should diff whitespace', function() {
+    var diffResult = diff.diffWordsWithSpace('New Value', 'New  ValueMoreData');
+    diff.convertChangesToXML(diffResult).should.equal('New<ins>  ValueMoreData</ins><del> Value</del>');
+  });
+
+  it('should diff multiple whitespace values', function() {
+    var diffResult = diff.diffWordsWithSpace('New Value  ', 'New  ValueMoreData ');
+    diff.convertChangesToXML(diffResult).should.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
+  });
+});
+
 // CSS Diff
 describe('#diffCss', function() {
   it('should diff css', function() {
