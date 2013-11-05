@@ -1,10 +1,10 @@
 require('colors')
 var jsdiff = require('../diff');
 
-var one = 'beep boop'
-var other = 'beep boob blah'
+var one = 'beep boop';
+var other = 'beep boob blah';
 
-var diff = jsdiff.diffChars(one, other)
+var diff = jsdiff.diffChars(one, other);
 
 diff.forEach(function(part){
   // green for additions, red for deletions
@@ -14,4 +14,4 @@ diff.forEach(function(part){
   process.stderr.write(part.value[color]);
 });
 
-console.log()
+console.log();

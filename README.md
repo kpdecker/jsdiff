@@ -59,16 +59,16 @@ Note that some cases may omit a particular flag field. Comparison on the flag fi
 
 ## Examples
 
-Using in Node
+Basic example in Node
 
 ```js
 require('colors')
 var jsdiff = require('diff');
 
-var one = 'beep boop'
-var other = 'beep boob blah'
+var one = 'beep boop';
+var other = 'beep boob blah';
 
-var diff = jsdiff.diffChars(one, other)
+var diff = jsdiff.diffChars(one, other);
 
 diff.forEach(function(part){
   // green for additions, red for deletions
@@ -83,6 +83,35 @@ console.log()
 Running the above program should yield
 
 <img src="images/node_example.png" alt="Node Example">
+
+Basic example in a web page
+
+```html
+<pre id="display"></pre>
+<script src="diff.js"></script>
+<script>
+var one = 'beep boop';
+var other = 'beep boob blah';
+
+var diff = JsDiff.diffChars(one, other);
+
+diff.forEach(function(part){
+  // green for additions, red for deletions
+  // grey for common parts
+  var color = part.added ? 'green' :
+    part.removed ? 'red' : 'grey';
+  var span = document.createElement('span');
+  span.style.color = color;
+  span.appendChild(document
+    .createTextNode(part.value));
+  display.appendChild(span);
+});
+</script>
+```
+
+Open the above .html file in a browser and you should see
+
+<img src="images/web_example.png" alt="Node Example">
 
 * [Full online demo](http://kpdecker.github.com/jsdiff)
 
