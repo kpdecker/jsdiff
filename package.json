@@ -33,7 +33,8 @@
   "dependencies": {},
   "devDependencies": {
     "mocha": "~1.6",
-    "should": "~1.2"
+    "should": "~1.2",
+    "colors": "~0.6.2"
   },
   "optionalDependencies": {},
   "files": [

@@ -17,54 +17,103 @@ or
 
 ## API
 
-* JsDiff.diffChars(oldStr, newStr)
-    Diffs two blocks of text, comparing character by character.
+* `JsDiff.diffChars(oldStr, newStr)` - diffs two blocks of text, comparing character by character.
 
     Returns a list of change objects (See below).
 
-* JsDiff.diffWords(oldStr, newStr)
-    Diffs two blocks of text, comparing word by word.
+* `JsDiff.diffWords(oldStr, newStr)` - diffs two blocks of text, comparing word by word.
 
     Returns a list of change objects (See below).
 
-* JsDiff.diffLines(oldStr, newStr)
-    Diffs two blocks of text, comparing line by line.
+* `JsDiff.diffLines(oldStr, newStr)` - diffs two blocks of text, comparing line by line.
 
     Returns a list of change objects (See below).
 
-* JsDiff.diffCss(oldStr, newStr)
-    Diffs two blocks of text, comparing CSS tokens.
+* `JsDiff.diffCss(oldStr, newStr)` - diffs two blocks of text, comparing CSS tokens.
 
     Returns a list of change objects (See below).
 
-* JsDiff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)
-    Creates a unified diff patch.
+* `JsDiff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 
     Parameters:
-    * fileName : String to be output in the filename sections of the patch
-    * oldStr : Original string value
-    * newStr : New string value
-    * oldHeader : Additional information to include in the old file header
-    * newHeader : Additional information to include in thew new file header
+    * `fileName` : String to be output in the filename sections of the patch
+    * `oldStr` : Original string value
+    * `newStr` : New string value
+    * `oldHeader` : Additional information to include in the old file header
+    * `newHeader` : Additional information to include in thew new file header
 
-* JsDiff.applyPatch(oldStr, diffStr)
-    Applies a unified diff patch.
+* `JsDiff.applyPatch(oldStr, diffStr)` - applies a unified diff patch.
 
     Return a string containing new version of provided data.
 
-* convertChangesToXML(changes)
-    Converts a list of changes to a serialized XML format
+* `convertChangesToXML(changes)` - converts a list of changes to a serialized XML format
 
 ### Change Objects
 Many of the methods above return change objects. These objects are consist of the following fields:
 
-* value: Text content
-* added: True if the value was inserted into the new string
-* removed: True of the value was removed from the old string
+* `value`: Text content
+* `added`: True if the value was inserted into the new string
+* `removed`: True of the value was removed from the old string
 
 Note that some cases may omit a particular flag field. Comparison on the flag fields should always be done in a truthy or falsy manner.
 
-## [Example](http://kpdecker.github.com/jsdiff)
+## Examples
+
+Basic example in Node
+
+```js
+require('colors')
+var jsdiff = require('diff');
+
+var one = 'beep boop';
+var other = 'beep boob blah';
+
+var diff = jsdiff.diffChars(one, other);
+
+diff.forEach(function(part){
+  // green for additions, red for deletions
+  // grey for common parts
+  var color = part.added ? 'green' :
+    part.removed ? 'red' : 'grey';
+  process.stderr.write(part.value[color]);
+});
+
+console.log()
+```
+Running the above program should yield
+
+<img src="images/node_example.png" alt="Node Example">
+
+Basic example in a web page
+
+```html
+<pre id="display"></pre>
+<script src="diff.js"></script>
+<script>
+var one = 'beep boop';
+var other = 'beep boob blah';
+
+var diff = JsDiff.diffChars(one, other);
+
+diff.forEach(function(part){
+  // green for additions, red for deletions
+  // grey for common parts
+  var color = part.added ? 'green' :
+    part.removed ? 'red' : 'grey';
+  var span = document.createElement('span');
+  span.style.color = color;
+  span.appendChild(document
+    .createTextNode(part.value));
+  display.appendChild(span);
+});
+</script>
+```
+
+Open the above .html file in a browser and you should see
+
+<img src="images/web_example.png" alt="Node Example">
+
+**[Full online demo](http://kpdecker.github.com/jsdiff)**
 
 ## License
 
