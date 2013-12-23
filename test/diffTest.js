@@ -103,6 +103,13 @@ describe('#diffLines', function() {
       'line\nvalue\nline');
     diff.convertChangesToXML(diffResult).should.equal('line\n<ins>value\n</ins><del>value \n</del>line');
   });
+
+  it('should handle windows line endings', function() {
+    var diffResult = diff.diffLines(
+      'line\r\nold value \r\nline',
+      'line\r\nnew value\r\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\r\n<ins>new value\r\n</ins><del>old value \r\n</del>line');
+  });
 });
 
 describe('convertToDMP', function() {

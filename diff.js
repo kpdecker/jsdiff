@@ -165,7 +165,20 @@ var JsDiff = (function() {
 
   var LineDiff = new Diff();
   LineDiff.tokenize = function(value) {
-    return value.split(/^/m);
+    var retLines = [];
+    var lines = value.split(/^/m);
+
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var lastLine = lines[i - 1];
+
+      if(line == '\n' && lastLine && lastLine.indexOf('\r') == lastLine.length - 1)
+        retLines[retLines.length - 1] += '\n';
+      else if(line)
+        retLines.push(line);
+    }
+
+    return retLines;
   };
 
   return {
