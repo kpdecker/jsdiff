@@ -1,7 +1,6 @@
 /*dotfiles node, mocha*/
 {
   "node": true,
-  "es5": true,
   "esnext": true,
   "browser": false,
   "bitwise": true,
