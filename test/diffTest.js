@@ -112,6 +112,22 @@ describe('#diffLines', function() {
   });
 });
 
+describe('#diffJson', function () {
+  it('should ignore trailing comma on the previous line when the property has been removed', function() {
+    var diffResult = diff.diffJson(
+      {a: 123, b: 456, c: 789},
+      {a: 123, b: 456});
+    diff.convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<del>  &quot;c&quot;: 789\n</del>}');
+  });
+
+  it('should ignore the missing trailing comma on the last line when a property has been added after it', function() {
+    var diffResult = diff.diffJson(
+      {a: 123, b: 456},
+      {a: 123, b: 456, c: 789});
+    diff.convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<ins>  &quot;c&quot;: 789\n</ins>}');
+  });
+});
+
 describe('convertToDMP', function() {
   it('should output diff-match-patch format', function() {
     var diffResult = diff.diffWords('New Value  ', 'New  ValueMoreData ');

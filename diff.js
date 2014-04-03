@@ -127,8 +127,11 @@ var JsDiff = (function() {
         while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
           newPos++;
           oldPos++;
-
-          this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
+          var value = newString[newPos];
+          if (this.useLongestToken && oldString[oldPos].length > value.length) {
+            value = oldString[oldPos];
+          }
+          this.pushComponent(basePath.components, value, undefined, undefined);
         }
         basePath.newPos = newPos;
         return oldPos;
@@ -183,6 +186,52 @@ var JsDiff = (function() {
     return retLines;
   };
 
+  JsonDiff = new Diff();
+  JsonDiff.useLongestToken = true;
+  JsonDiff.tokenize = LineDiff.tokenize;
+  JsonDiff.equals = function(left, right) {
+    return LineDiff.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
+  };
+
+  function canonicalize(obj, stack) {
+    stack = stack || [];
+
+    var i;
+
+    for (var i = 0 ; i < stack.length ; i += 1) {
+      if (stack[i] === obj) {
+        return obj;
+      }
+    }
+
+    var canonicalizedObj;
+
+    if ('[object Array]' == {}.toString.call(obj)) {
+      stack.push(obj);
+      canonicalizedObj = new Array(obj.length);
+      for (i = 0 ; i < obj.length ; i += 1) {
+        canonicalizedObj[i] = canonicalize(obj[i], stack);
+      }
+      stack.pop();
+    } else if (typeof obj === 'object' && obj !== null) {
+      stack.push(obj);
+      canonicalizedObj = {};
+      var sortedKeys = [];
+      for (var key in obj) {
+        sortedKeys.push(key);
+      }
+      sortedKeys.sort();
+      for (i = 0 ; i < sortedKeys.length ; i += 1) {
+        var key = sortedKeys[i];
+        canonicalizedObj[key] = canonicalize(obj[key], stack);
+      }
+      stack.pop();
+    } else {
+      canonicalizedObj = obj;
+    }
+    return canonicalizedObj;
+  }
+
   return {
     Diff: Diff,
 
@@ -190,6 +239,13 @@ var JsDiff = (function() {
     diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
     diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
     diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
+
+    diffJson: function(oldObj, newObj) {
+      return JsonDiff.diff(
+        JSON.stringify(canonicalize(oldObj), undefined, "  "),
+        JSON.stringify(canonicalize(newObj), undefined, "  ")
+      );
+    },
 
     diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
 
