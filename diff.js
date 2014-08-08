@@ -242,8 +242,8 @@ var JsDiff = (function() {
 
     diffJson: function(oldObj, newObj) {
       return JsonDiff.diff(
-        JSON.stringify(canonicalize(oldObj), undefined, "  "),
-        JSON.stringify(canonicalize(newObj), undefined, "  ")
+        typeof oldObj === 'string' ? oldObj : JSON.stringify(canonicalize(oldObj), undefined, "  "),
+        typeof newObj === 'string' ? newObj : JSON.stringify(canonicalize(newObj), undefined, "  ")
       );
     },
 

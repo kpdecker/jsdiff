@@ -112,7 +112,29 @@ describe('#diffLines', function() {
   });
 });
 
-describe('#diffJson', function () {
+describe('#diffJson', function() {
+  it('should accept objects', function() {
+    diff.diffJson(
+      {a: 123, b: 456, c: 789},
+      {a: 123, b: 456}
+    ).should.eql([
+      { value: '{\n  "a": 123,\n  "b": 456,\n', added: undefined, removed: undefined },
+      { value: '  "c": 789\n', added: undefined, removed: true },
+      { value: '}', added: undefined, removed: undefined }
+    ]);
+  });
+
+  it('should accept already stringified JSON', function() {
+    diff.diffJson(
+      JSON.stringify({a: 123, b: 456, c: 789}, undefined, "  "),
+      JSON.stringify({a: 123, b: 456}, undefined, "  ")
+    ).should.eql([
+      { value: '{\n  "a": 123,\n  "b": 456,\n', added: undefined, removed: undefined },
+      { value: '  "c": 789\n', added: undefined, removed: true },
+      { value: '}', added: undefined, removed: undefined }
+    ]);
+  });
+
   it('should ignore trailing comma on the previous line when the property has been removed', function() {
     var diffResult = diff.diffJson(
       {a: 123, b: 456, c: 789},
