@@ -193,6 +193,8 @@ var JsDiff = (function() {
     return LineDiff.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
   };
 
+  var objectPrototypeToString = Object.prototype.toString;
+
   function canonicalize(obj, stack) {
     stack = stack || [];
 
@@ -206,7 +208,7 @@ var JsDiff = (function() {
 
     var canonicalizedObj;
 
-    if ('[object Array]' == {}.toString.call(obj)) {
+    if ('[object Array]' === objectPrototypeToString.call(obj)) {
       stack.push(obj);
       canonicalizedObj = new Array(obj.length);
       for (i = 0 ; i < obj.length ; i += 1) {
