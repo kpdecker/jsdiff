@@ -124,6 +124,17 @@ describe('#diffJson', function() {
     ]);
   });
 
+  it('should accept objects with nested structures', function() {
+    diff.diffJson(
+      {a: 123, b: 456, c: [1, 2, {foo: 'bar'}, 4]},
+      {a: 123, b: 456, c: [1, {foo: 'bar'}, 4]}
+    ).should.eql([
+      { value: '{\n  "a": 123,\n  "b": 456,\n  "c": [\n    1,\n', added: undefined, removed: undefined },
+      { value: '    2,\n', added: undefined, removed: true },
+      { value: '    {\n      "foo": "bar"\n    },\n    4\n  ]\n}', added: undefined, removed: undefined }
+    ]);
+  });
+
   it('should accept already stringified JSON', function() {
     diff.diffJson(
       JSON.stringify({a: 123, b: 456, c: 789}, undefined, "  "),
