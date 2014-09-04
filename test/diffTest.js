@@ -159,6 +159,17 @@ describe('#diffJson', function() {
       {a: 123, b: 456, c: 789});
     diff.convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<ins>  &quot;c&quot;: 789\n</ins>}');
   });
+
+  it('should throw an error if one of the objects being diffed has a circular reference', function() {
+    var circular = {foo: 123};
+    circular.bar = circular;
+    (function () {
+      diff.diffJson(
+        circular,
+        {foo: 123, bar: {}}
+      );
+    }).should.throw('Converting circular structure to JSON');
+  });
 });
 
 describe('convertToDMP', function() {
