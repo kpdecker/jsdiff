@@ -197,14 +197,17 @@ var JsDiff = (function() {
 
   var objectPrototypeToString = Object.prototype.toString;
 
-  function canonicalize(obj, stack) {
+  // This function handles the presence of circular references by bailing out when encountering an
+  // object that is already on the "stack" of items being processed.
+  function canonicalize(obj, stack, replacementStack) {
     stack = stack || [];
+    replacementStack = replacementStack || [];
 
     var i;
 
     for (var i = 0 ; i < stack.length ; i += 1) {
       if (stack[i] === obj) {
-        return obj;
+        return replacementStack[i];
       }
     }
 
@@ -213,13 +216,16 @@ var JsDiff = (function() {
     if ('[object Array]' === objectPrototypeToString.call(obj)) {
       stack.push(obj);
       canonicalizedObj = new Array(obj.length);
+      replacementStack.push(canonicalizedObj);
       for (i = 0 ; i < obj.length ; i += 1) {
-        canonicalizedObj[i] = canonicalize(obj[i], stack);
+        canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack);
       }
       stack.pop();
+      replacementStack.pop();
     } else if (typeof obj === 'object' && obj !== null) {
       stack.push(obj);
       canonicalizedObj = {};
+      replacementStack.push(canonicalizedObj);
       var sortedKeys = [];
       for (var key in obj) {
         sortedKeys.push(key);
@@ -227,14 +233,15 @@ var JsDiff = (function() {
       sortedKeys.sort();
       for (i = 0 ; i < sortedKeys.length ; i += 1) {
         var key = sortedKeys[i];
-        canonicalizedObj[key] = canonicalize(obj[key], stack);
+        canonicalizedObj[key] = canonicalize(obj[key], stack, replacementStack);
       }
       stack.pop();
+      replacementStack.pop();
     } else {
       canonicalizedObj = obj;
     }
     return canonicalizedObj;
-  }
+  };
 
   return {
     Diff: Diff,
@@ -420,7 +427,9 @@ var JsDiff = (function() {
         ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
       }
       return ret;
-    }
+    },
+
+    canonicalize: canonicalize
   };
 })();
 
