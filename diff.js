@@ -187,6 +187,8 @@ var JsDiff = (function() {
   };
 
   JsonDiff = new Diff();
+  // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
+  // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
   JsonDiff.useLongestToken = true;
   JsonDiff.tokenize = LineDiff.tokenize;
   JsonDiff.equals = function(left, right) {
