@@ -25,9 +25,7 @@
       var other = new Array(arr.length);
 
       for (var i = 0, n = arr.length; i < n; i++) {
-        if (i in arr) {
-          other[i] = mapper.call(that, arr[i], i, arr);
-        }
+        other[i] = mapper.call(that, arr[i], i, arr);
       }
       return other;
     }
