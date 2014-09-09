@@ -17,6 +17,18 @@
 (function(global, undefined) {
   var JsDiff = (function() {
     /*jshint maxparams: 5*/
+    function map(arr, mapper, that) {
+      if (Array.prototype.map) {
+        return Array.prototype.map.call(arr, mapper, that);
+      }
+
+      var other = new Array(arr.length);
+
+      for (var i = 0, n = arr.length; i < n; i++) {
+        other[i] = mapper.call(that, arr[i], i, arr);
+      }
+      return other;
+    }
     function clonePath(path) {
       return { newPos: path.newPos, components: path.components.slice(0) };
     }
@@ -209,7 +221,7 @@
         diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
         function contextLines(lines) {
-          return lines.map(function(entry) { return ' ' + entry; });
+          return map(lines, function(entry) { return ' ' + entry; });
         }
         function eofNL(curRange, i, current) {
           var last = diff[diff.length-2],
@@ -241,7 +253,7 @@
                 newRangeStart -= curRange.length;
               }
             }
-            curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?'+':'-') + entry; }));
+            curRange.push.apply(curRange, map(lines, function(entry) { return (current.added?'+':'-') + entry; }));
             eofNL(curRange, i, current);
 
             if (current.added) {
