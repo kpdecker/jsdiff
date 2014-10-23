@@ -69,6 +69,19 @@ describe('#diffWordsWithSpace', function() {
   });
 });
 
+describe('#diffSentences', function() {
+
+  it('Should diff Sentences', function() {
+    var diffResult = diff.diffSentences('New Value.', 'New ValueMoreData.');
+    diff.convertChangesToXML(diffResult).should.equal('<ins>New ValueMoreData.</ins><del>New Value.</del>');
+  });
+
+  it('should diff only the last sentence', function() {
+    var diffResult = diff.diffSentences('Here im. Rock you like old man.', 'Here im. Rock you like hurricane.');
+    diff.convertChangesToXML(diffResult).should.equal('Here im. <ins>Rock you like hurricane.</ins><del>Rock you like old man.</del>');
+  });
+});
+
 // CSS Diff
 describe('#diffCss', function() {
   it('should diff css', function() {
