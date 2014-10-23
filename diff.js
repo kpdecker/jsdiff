@@ -196,13 +196,19 @@
       return retLines;
     };
 
-    return {
-      Diff: Diff,
+    var SentenceDiff = new Diff();
+    SentenceDiff.tokenize = function (value) {
+      return removeEmpty(value.split(/(\S.+?[.!?])(?=\s+|$)/));
+    };
+
+  return {
+    Diff: Diff,
 
       diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
       diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
       diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
       diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
+      diffSentences: function(oldStr, newStr) { return SentenceDiff.diff(oldStr, newStr); },
 
       diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
 
