@@ -1,0 +1,13 @@
+{
+  "name": "jsdiff",
+  "repo": "kpdecker/jsdiff",
+  "description": "A javascript text diff implementation.",
+  "keywords": [
+    "diff",
+    "text"
+  ],
+  "version": "1.0.8",
+  "scripts": [ "diff.js" ],
+  "main":  "diff.js",
+  "license": "BSD"
+}
