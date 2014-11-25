@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.0.8...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.1.0...master)
+
+## v1.1.0 - November 25th, 2014
+- [#33](https://github.com/kpdecker/jsdiff/pull/33) - AMD and global exports ([@ovcharik](https://api.github.com/users/ovcharik))
+- [#32](https://github.com/kpdecker/jsdiff/pull/32) - Add support for component ([@vmariano](https://api.github.com/users/vmariano))
+- [#31](https://github.com/kpdecker/jsdiff/pull/31) - Don't rely on Array.prototype.map ([@papandreou](https://api.github.com/users/papandreou))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.0.8...v1.1.0)
 
 ## v1.0.8 - December 22nd, 2013
 - [#24](https://github.com/kpdecker/jsdiff/pull/24) - Handle windows newlines on non windows machines. ([@benogle](https://api.github.com/users/benogle))
