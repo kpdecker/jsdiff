@@ -123,6 +123,76 @@ describe('#diffLines', function() {
   });
 });
 
+describe('#diffJson', function() {
+  it('should accept objects', function() {
+    diff.diffJson(
+      {a: 123, b: 456, c: 789},
+      {a: 123, b: 456}
+    ).should.eql([
+      { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
+      { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
+      { count: 1, value: '}' }
+    ]);
+  });
+  it('should accept objects with different order', function() {
+    diff.diffJson(
+      {a: 123, b: 456, c: 789},
+      {b: 456, a: 123}
+    ).should.eql([
+      { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
+      { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
+      { count: 1, value: '}' }
+    ]);
+  });
+
+  it('should accept objects with nested structures', function() {
+    diff.diffJson(
+      {a: 123, b: 456, c: [1, 2, {foo: 'bar'}, 4]},
+      {a: 123, b: 456, c: [1, {foo: 'bar'}, 4]}
+    ).should.eql([
+      { count: 5, value: '{\n  "a": 123,\n  "b": 456,\n  "c": [\n    1,\n' },
+      { count: 1, value: '    2,\n', added: undefined, removed: true },
+      { count: 6, value: '    {\n      "foo": "bar"\n    },\n    4\n  ]\n}' }
+    ]);
+  });
+
+  it('should accept already stringified JSON', function() {
+    diff.diffJson(
+      JSON.stringify({a: 123, b: 456, c: 789}, undefined, '  '),
+      JSON.stringify({a: 123, b: 456}, undefined, '  ')
+    ).should.eql([
+      { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
+      { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
+      { count: 1, value: '}' }
+    ]);
+  });
+
+  it('should ignore trailing comma on the previous line when the property has been removed', function() {
+    var diffResult = diff.diffJson(
+      {a: 123, b: 456, c: 789},
+      {a: 123, b: 456});
+    diff.convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<del>  &quot;c&quot;: 789\n</del>}');
+  });
+
+  it('should ignore the missing trailing comma on the last line when a property has been added after it', function() {
+    var diffResult = diff.diffJson(
+      {a: 123, b: 456},
+      {a: 123, b: 456, c: 789});
+    diff.convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<ins>  &quot;c&quot;: 789\n</ins>}');
+  });
+
+  it('should throw an error if one of the objects being diffed has a circular reference', function() {
+    var circular = {foo: 123};
+    circular.bar = circular;
+    (function () {
+      diff.diffJson(
+        circular,
+        {foo: 123, bar: {}}
+      );
+    }).should.throw('Converting circular structure to JSON');
+  });
+});
+
 describe('convertToDMP', function() {
   it('should output diff-match-patch format', function() {
     var diffResult = diff.diffWords('New Value  ', 'New  ValueMoreData ');

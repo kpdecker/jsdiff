@@ -51,7 +51,7 @@
       return n;
     }
 
-    function buildValues(components, newString, oldString) {
+    function buildValues(components, newString, oldString, useLongestToken) {
       var componentPos = 0,
           componentLen = components.length,
           newPos = 0,
@@ -60,7 +60,17 @@
       for (; componentPos < componentLen; componentPos++) {
         var component = components[componentPos];
         if (!component.removed) {
-          component.value = newString.slice(newPos, newPos + component.count).join('');
+          if (!component.added && useLongestToken) {
+            var value = newString.slice(newPos, newPos + component.count);
+            value = map(value, function(value, i) {
+              var oldValue = oldString[oldPos + i];
+              return oldValue.length > value.length ? oldValue : value;
+            });
+
+            component.value = value.join('');
+          } else {
+            component.value = newString.slice(newPos, newPos + component.count).join('');
+          }
           newPos += component.count;
 
           // Common case
@@ -141,7 +151,7 @@
 
               // If we have hit the end of both strings, then we are done
               if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
-                return buildValues(basePath.components, newString, oldString);
+                return buildValues(basePath.components, newString, oldString, this.useLongestToken);
               } else {
                 // Otherwise track this path as a potential candidate and continue.
                 bestPath[diagonalPath] = basePath;
@@ -228,8 +238,65 @@
       return removeEmpty(value.split(/(\S.+?[.!?])(?=\s+|$)/));
     };
 
-  return {
-    Diff: Diff,
+    var JsonDiff = new Diff();
+    // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
+    // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
+    JsonDiff.useLongestToken = true;
+    JsonDiff.tokenize = LineDiff.tokenize;
+    JsonDiff.equals = function(left, right) {
+      return LineDiff.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
+    };
+
+    var objectPrototypeToString = Object.prototype.toString;
+
+    // This function handles the presence of circular references by bailing out when encountering an
+    // object that is already on the "stack" of items being processed.
+    function canonicalize(obj, stack, replacementStack) {
+      stack = stack || [];
+      replacementStack = replacementStack || [];
+
+      var i;
+
+      for (var i = 0 ; i < stack.length ; i += 1) {
+        if (stack[i] === obj) {
+          return replacementStack[i];
+        }
+      }
+
+      var canonicalizedObj;
+
+      if ('[object Array]' === objectPrototypeToString.call(obj)) {
+        stack.push(obj);
+        canonicalizedObj = new Array(obj.length);
+        replacementStack.push(canonicalizedObj);
+        for (i = 0 ; i < obj.length ; i += 1) {
+          canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack);
+        }
+        stack.pop();
+        replacementStack.pop();
+      } else if (typeof obj === 'object' && obj !== null) {
+        stack.push(obj);
+        canonicalizedObj = {};
+        replacementStack.push(canonicalizedObj);
+        var sortedKeys = [];
+        for (var key in obj) {
+          sortedKeys.push(key);
+        }
+        sortedKeys.sort();
+        for (i = 0 ; i < sortedKeys.length ; i += 1) {
+          var key = sortedKeys[i];
+          canonicalizedObj[key] = canonicalize(obj[key], stack, replacementStack);
+        }
+        stack.pop();
+        replacementStack.pop();
+      } else {
+        canonicalizedObj = obj;
+      }
+      return canonicalizedObj;
+    }
+
+    return {
+      Diff: Diff,
 
       diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
       diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
@@ -238,6 +305,12 @@
       diffSentences: function(oldStr, newStr) { return SentenceDiff.diff(oldStr, newStr); },
 
       diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
+      diffJson: function(oldObj, newObj) {
+        return JsonDiff.diff(
+          typeof oldObj === 'string' ? oldObj : JSON.stringify(canonicalize(oldObj), undefined, '  '),
+          typeof newObj === 'string' ? newObj : JSON.stringify(canonicalize(newObj), undefined, '  ')
+        );
+      },
 
       createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
         var ret = [];
@@ -406,7 +479,9 @@
           ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
         }
         return ret;
-      }
+      },
+
+      canonicalize: canonicalize
     };
   })();
 
