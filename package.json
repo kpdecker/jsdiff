@@ -28,13 +28,14 @@
   },
   "main": "./diff",
   "scripts": {
-    "test": "node_modules/.bin/mocha test/*.js"
+    "test": "istanbul cover node_modules/.bin/_mocha test/*.js"
   },
   "dependencies": {},
   "devDependencies": {
+    "colors": "~0.6.2",
+    "istanbul": "^0.3.2",
     "mocha": "~1.6",
-    "should": "~1.2",
-    "colors": "~0.6.2"
+    "should": "~1.2"
   },
   "optionalDependencies": {},
   "files": [

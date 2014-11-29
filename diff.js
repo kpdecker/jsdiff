@@ -17,6 +17,7 @@
 (function(global, undefined) {
   var JsDiff = (function() {
     /*jshint maxparams: 5*/
+    /*istanbul ignore next*/
     function map(arr, mapper, that) {
       if (Array.prototype.map) {
         return Array.prototype.map.call(arr, mapper, that);
@@ -112,7 +113,7 @@
           // Seed editLength = 0, i.e. the content starts with the same values
           var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
           if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
-            // Identity
+            // Identity per the equality and tokenizer
             return [{value: newString}];
           }
 
@@ -485,6 +486,7 @@
     };
   })();
 
+  /*istanbul ignore next */
   if (typeof module !== 'undefined') {
       module.exports = JsDiff;
   }
