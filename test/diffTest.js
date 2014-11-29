@@ -58,6 +58,73 @@ describe('#diffWords', function() {
   });
 });
 
+describe('#diffWords - async', function() {
+  it('should diff whitespace', function(done) {
+    diff.diffWords('New Value', 'New  ValueMoreData', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del>');
+      done();
+    });
+  });
+
+  it('should diff multiple whitespace values', function(done) {
+    diff.diffWords('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del> ');
+      done();
+    });
+  });
+
+  // Diff on word boundary
+  it('should diff on word boundaries', function(done) {
+    diff.diffWords('New :Value:Test', 'New  ValueMoreData ', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData </ins><del>:Value:Test</del>');
+      done();
+    });
+  });
+
+  // Diff without changes
+  it('should handle identity', function(done) {
+    diff.diffWords('New Value', 'New Value', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('New Value');
+      done();
+    });
+  });
+  it('should handle empty', function(done) {
+    diff.diffWords('', '', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('');
+      done();
+    });
+  });
+  it('should diff has identical content', function(done) {
+    diff.diffWords('New Value', 'New  Value', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('New  Value');
+      done();
+    });
+  });
+
+  // Empty diffs
+  it('should diff empty new content', function(done) {
+    diff.diffWords('New Value', '', function(err, diffResult) {
+      diffResult.length.should.equal(1);
+      diff.convertChangesToXML(diffResult).should.equal('<del>New Value</del>');
+      done();
+    });
+  });
+  it('should diff empty old content', function(done) {
+    diff.diffWords('', 'New Value', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('<ins>New Value</ins>');
+      done();
+    });
+  });
+
+  // With without anchor (the Heckel algorithm error case)
+  it('should diff when there is no anchor value', function(done) {
+    diff.diffWords('New Value New Value', 'Value Value New New', function(err, diffResult) {
+      diff.convertChangesToXML(diffResult).should.equal('<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>');
+      done();
+    });
+  });
+});
+
 describe('#diffWordsWithSpace', function() {
   it('should diff whitespace', function() {
     var diffResult = diff.diffWordsWithSpace('New Value', 'New  ValueMoreData');
@@ -72,7 +139,7 @@ describe('#diffWordsWithSpace', function() {
 
 describe('#diffChars', function() {
   it('Should diff chars', function() {
-    var diffResult = diff.diffSentences('New Value.', 'New ValueMoreData.');
+    var diffResult = diff.diffChars('New Value.', 'New ValueMoreData.');
     diff.convertChangesToXML(diffResult).should.equal('New Value<ins>MoreData</ins>.');
   });
 });

@@ -91,16 +91,27 @@
       this.ignoreWhitespace = ignoreWhitespace;
     };
     Diff.prototype = {
-        diff: function(oldString, newString) {
+        diff: function(oldString, newString, callback) {
+          var self = this;
+
+          function done(value) {
+            if (callback) {
+              setTimeout(function() { callback(undefined, value); }, 0);
+              return true;
+            } else {
+              return value;
+            }
+          }
+
           // Handle the identity case (this is due to unrolling editLength == 0
           if (newString === oldString) {
-            return [{ value: newString }];
+            return done([{ value: newString }]);
           }
           if (!newString) {
-            return [{ value: oldString, removed: true }];
+            return done([{ value: oldString, removed: true }]);
           }
           if (!oldString) {
-            return [{ value: newString, added: true }];
+            return done([{ value: newString, added: true }]);
           }
 
           newString = this.tokenize(newString);
@@ -114,10 +125,11 @@
           var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
           if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
             // Identity per the equality and tokenizer
-            return [{value: newString.join('')}];
+            return done([{value: newString.join('')}]);
           }
 
-          for (var editLength = 1; editLength <= maxEditLength; editLength++) {
+          // Main worker method. checks all permutations of a given edit length for acceptance.
+          function execEditLength() {
             for (var diagonalPath = -1*editLength; diagonalPath <= editLength; diagonalPath+=2) {
               var basePath;
               var addPath = bestPath[diagonalPath-1],
@@ -141,21 +153,50 @@
               // and does not pass the bounds of the diff graph
               if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
                 basePath = clonePath(removePath);
-                this.pushComponent(basePath.components, undefined, true);
+                self.pushComponent(basePath.components, undefined, true);
               } else {
                 basePath = addPath;   // No need to clone, we've pulled it from the list
                 basePath.newPos++;
-                this.pushComponent(basePath.components, true, undefined);
+                self.pushComponent(basePath.components, true, undefined);
               }
 
-              var oldPos = this.extractCommon(basePath, newString, oldString, diagonalPath);
+              var oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
 
               // If we have hit the end of both strings, then we are done
               if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
-                return buildValues(basePath.components, newString, oldString, this.useLongestToken);
+                return done(buildValues(basePath.components, newString, oldString, self.useLongestToken));
               } else {
                 // Otherwise track this path as a potential candidate and continue.
                 bestPath[diagonalPath] = basePath;
+              }
+            }
+
+            editLength++;
+          }
+
+          // Performs the length of edit iteration. Is a bit fugly as this has to support the 
+          // sync and async mode which is never fun. Loops over execEditLength until a value
+          // is produced.
+          var editLength = 1;
+          if (callback) {
+            (function exec() {
+              setTimeout(function() {
+                // This should not happen, but we want to be safe.
+                /*istanbul ignore next */
+                if (editLength > maxEditLength) {
+                  return callback();
+                }
+
+                if (!execEditLength()) {
+                  exec();
+                }
+              }, 0);
+            })();
+          } else {
+            while(editLength <= maxEditLength) {
+              var ret = execEditLength();
+              if (ret) {
+                return ret;
               }
             }
           }
@@ -299,17 +340,18 @@
     return {
       Diff: Diff,
 
-      diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
-      diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
-      diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
-      diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
-      diffSentences: function(oldStr, newStr) { return SentenceDiff.diff(oldStr, newStr); },
+      diffChars: function(oldStr, newStr, callback) { return CharDiff.diff(oldStr, newStr, callback); },
+      diffWords: function(oldStr, newStr, callback) { return WordDiff.diff(oldStr, newStr, callback); },
+      diffWordsWithSpace: function(oldStr, newStr, callback) { return WordWithSpaceDiff.diff(oldStr, newStr, callback); },
+      diffLines: function(oldStr, newStr, callback) { return LineDiff.diff(oldStr, newStr, callback); },
+      diffSentences: function(oldStr, newStr, callback) { return SentenceDiff.diff(oldStr, newStr, callback); },
 
-      diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
-      diffJson: function(oldObj, newObj) {
+      diffCss: function(oldStr, newStr, callback) { return CssDiff.diff(oldStr, newStr, callback); },
+      diffJson: function(oldObj, newObj, callback) {
         return JsonDiff.diff(
           typeof oldObj === 'string' ? oldObj : JSON.stringify(canonicalize(oldObj), undefined, '  '),
-          typeof newObj === 'string' ? newObj : JSON.stringify(canonicalize(newObj), undefined, '  ')
+          typeof newObj === 'string' ? newObj : JSON.stringify(canonicalize(newObj), undefined, '  '),
+          callback
         );
       },
 
