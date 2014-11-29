@@ -27,24 +27,27 @@ describe('#diffWords', function() {
   });
 
   // Diff without changes
-  exports['Diff without changes'] = function() {
+  it('should handle identity', function() {
     var diffResult = diff.diffWords('New Value', 'New Value');
     diff.convertChangesToXML(diffResult).should.equal('New Value');
-
-    diffResult = diff.diffWords('New Value', 'New  Value');
-    diff.convertChangesToXML(diffResult).should.equal('New  Value');
-
-    diffResult = diff.diffWords('', '');
+  });
+  it('should handle empty', function() {
+    var diffResult = diff.diffWords('', '');
     diff.convertChangesToXML(diffResult).should.equal('');
-  };
+  });
+  it('should diff has identical content', function() {
+    var diffResult = diff.diffWords('New Value', 'New  Value');
+    diff.convertChangesToXML(diffResult).should.equal('New  Value');
+  });
 
   // Empty diffs
-  it('should diff empty content', function() {
+  it('should diff empty new content', function() {
     var diffResult = diff.diffWords('New Value', '');
     diffResult.length.should.equal(1);
     diff.convertChangesToXML(diffResult).should.equal('<del>New Value</del>');
-
-    diffResult = diff.diffWords('', 'New Value');
+  });
+  it('should diff empty old content', function() {
+    var diffResult = diff.diffWords('', 'New Value');
     diff.convertChangesToXML(diffResult).should.equal('<ins>New Value</ins>');
   });
 
@@ -52,11 +55,6 @@ describe('#diffWords', function() {
   it('should diff when there is no anchor value', function() {
     var diffResult = diff.diffWords('New Value New Value', 'Value Value New New');
     diff.convertChangesToXML(diffResult).should.equal('<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>');
-  });
-
-  it('should diff has identical content', function() {
-    var diffResult = diff.diffWords('New Value', 'New  Value');
-    diff.convertChangesToXML(diffResult).should.equal('New  Value');
   });
 });
 
