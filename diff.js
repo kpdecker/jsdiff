@@ -51,6 +51,31 @@
       return n;
     }
 
+    function buildValues(components, newString, oldString) {
+      var componentPos = 0,
+          componentLen = components.length,
+          newPos = 0,
+          oldPos = 0;
+
+      for (; componentPos < componentLen; componentPos++) {
+        var component = components[componentPos];
+        if (!component.removed) {
+          component.value = newString.slice(newPos, newPos + component.count).join('');
+          newPos += component.count;
+
+          // Common case
+          if (!component.added) {
+            oldPos += component.count;
+          }
+        } else {
+          component.value = oldString.slice(oldPos, oldPos + component.count).join('');
+          oldPos += component.count;
+        }
+      }
+
+      return components;
+    }
+
     var Diff = function(ignoreWhitespace) {
       this.ignoreWhitespace = ignoreWhitespace;
     };
@@ -74,10 +99,11 @@
           var maxEditLength = newLen + oldLen;
           var bestPath = [{ newPos: -1, components: [] }];
 
-          // Seed editLength = 0
+          // Seed editLength = 0, i.e. the content starts with the same values
           var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
           if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
-            return bestPath[0].components;
+            // Identity
+            return [{value: newString}];
           }
 
           for (var editLength = 1; editLength <= maxEditLength; editLength++) {
@@ -94,6 +120,7 @@
               var canAdd = addPath && addPath.newPos+1 < newLen;
               var canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
               if (!canAdd && !canRemove) {
+                // If this path is a terminal then prune
                 bestPath[diagonalPath] = undefined;
                 continue;
               }
@@ -103,60 +130,60 @@
               // and does not pass the bounds of the diff graph
               if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
                 basePath = clonePath(removePath);
-                this.pushComponent(basePath.components, oldString[oldPos], undefined, true);
+                this.pushComponent(basePath.components, undefined, true);
               } else {
-                basePath = clonePath(addPath);
+                basePath = addPath;   // No need to clone, we've pulled it from the list
                 basePath.newPos++;
-                this.pushComponent(basePath.components, newString[basePath.newPos], true, undefined);
+                this.pushComponent(basePath.components, true, undefined);
               }
 
               var oldPos = this.extractCommon(basePath, newString, oldString, diagonalPath);
 
+              // If we have hit the end of both strings, then we are done
               if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
-                return basePath.components;
+                return buildValues(basePath.components, newString, oldString);
               } else {
+                // Otherwise track this path as a potential candidate and continue.
                 bestPath[diagonalPath] = basePath;
               }
             }
           }
         },
 
-        pushComponent: function(components, value, added, removed) {
+        pushComponent: function(components, added, removed) {
           var last = components[components.length-1];
           if (last && last.added === added && last.removed === removed) {
             // We need to clone here as the component clone operation is just
             // as shallow array clone
-            components[components.length-1] =
-              {value: this.join(last.value, value), added: added, removed: removed };
+            components[components.length-1] = {count: last.count + 1, added: added, removed: removed };
           } else {
-            components.push({value: value, added: added, removed: removed });
+            components.push({count: 1, added: added, removed: removed });
           }
         },
         extractCommon: function(basePath, newString, oldString, diagonalPath) {
           var newLen = newString.length,
               oldLen = oldString.length,
               newPos = basePath.newPos,
-              oldPos = newPos - diagonalPath;
+              oldPos = newPos - diagonalPath,
+
+              commonCount = 0;
           while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
             newPos++;
             oldPos++;
-
-            this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
+            commonCount++;
           }
+
+          if (commonCount) {
+            basePath.components.push({count: commonCount});
+          }
+
           basePath.newPos = newPos;
           return oldPos;
         },
 
         equals: function(left, right) {
           var reWhitespace = /\S/;
-          if (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right)) {
-            return true;
-          } else {
-            return left === right;
-          }
-        },
-        join: function(left, right) {
-          return left + right;
+          return left === right || (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
         },
         tokenize: function(value) {
           return value;
@@ -186,7 +213,7 @@
             lastLine = lines[i - 1];
 
         // Merge lines that may contain windows new lines
-        if (line == '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
+        if (line === '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
           retLines[retLines.length - 1] += '\n';
         } else if (line) {
           retLines.push(line);
@@ -381,6 +408,7 @@
       module.exports = JsDiff;
   }
   else if (typeof define === 'function') {
+    /*global define */
     define([], function() { return JsDiff; });
   }
   else if (typeof global.JsDiff === 'undefined') {
