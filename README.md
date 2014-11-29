@@ -17,19 +17,31 @@ or
 
 ## API
 
-* `JsDiff.diffChars(oldStr, newStr)` - diffs two blocks of text, comparing character by character.
+* `JsDiff.diffChars(oldStr, newStr[, callback])` - diffs two blocks of text, comparing character by character.
 
     Returns a list of change objects (See below).
 
-* `JsDiff.diffWords(oldStr, newStr)` - diffs two blocks of text, comparing word by word.
+* `JsDiff.diffWords(oldStr, newStr[, callback])` - diffs two blocks of text, comparing word by word, ignoring whitespace.
 
     Returns a list of change objects (See below).
 
-* `JsDiff.diffLines(oldStr, newStr)` - diffs two blocks of text, comparing line by line.
+* `JsDiff.diffWordsWithSpace(oldStr, newStr[, callback])` - diffs two blocks of text, comparing word by word, treating whitespace as significant.
 
     Returns a list of change objects (See below).
 
-* `JsDiff.diffCss(oldStr, newStr)` - diffs two blocks of text, comparing CSS tokens.
+* `JsDiff.diffLines(oldStr, newStr[, callback])` - diffs two blocks of text, comparing line by line.
+
+    Returns a list of change objects (See below).
+
+* `JsDiff.diffSentences(oldStr, newStr[, callback])` - diffs two blocks of text, comparing sentence by sentence.
+
+    Returns a list of change objects (See below).
+
+* `JsDiff.diffCss(oldStr, newStr[, callback])` - diffs two blocks of text, comparing CSS tokens.
+
+    Returns a list of change objects (See below).
+
+* `JsDiff.diffJson(oldObj, newObj[, callback])` - diffs two JSON objects, comparing the fields defined on each. The order of fields, etc does not matter in this comparison.
 
     Returns a list of change objects (See below).
 
@@ -47,6 +59,9 @@ or
     Return a string containing new version of provided data.
 
 * `convertChangesToXML(changes)` - converts a list of changes to a serialized XML format
+
+
+All methods above which accept the optional callback method will run in sync mode when that parameter is omitted and in async mode when supplied. This allows for larger diffs without blocking the event loop.
 
 ### Change Objects
 Many of the methods above return change objects. These objects are consist of the following fields:
