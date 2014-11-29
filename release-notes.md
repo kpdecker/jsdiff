@@ -2,7 +2,16 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.1.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.0...master)
+
+## v1.2.0 - November 29th, 2014
+- [#37](https://github.com/kpdecker/jsdiff/pull/37) - Add support for sentences. ([@vmariano](https://api.github.com/users/vmariano))
+- [#28](https://github.com/kpdecker/jsdiff/pull/28) - Implemented diffJson ([@papandreou](https://api.github.com/users/papandreou))
+- [#27](https://github.com/kpdecker/jsdiff/issues/27) - Slow to execute over diffs with a large number of changes ([@termi](https://api.github.com/users/termi))
+- Allow for optional async diffing - 19385b9
+- Fix diffChars implementation - eaa44ed
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.1.0...v1.2.0)
 
 ## v1.1.0 - November 25th, 2014
 - [#33](https://github.com/kpdecker/jsdiff/pull/33) - AMD and global exports ([@ovcharik](https://api.github.com/users/ovcharik))
