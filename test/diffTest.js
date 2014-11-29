@@ -53,6 +53,11 @@ describe('#diffWords', function() {
     var diffResult = diff.diffWords('New Value New Value', 'Value Value New New');
     diff.convertChangesToXML(diffResult).should.equal('<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>');
   });
+
+  it('should diff has identical content', function() {
+    var diffResult = diff.diffWords('New Value', 'New  Value');
+    diff.convertChangesToXML(diffResult).should.equal('New  Value');
+  });
 });
 
 describe('#diffWordsWithSpace', function() {

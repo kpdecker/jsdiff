@@ -114,7 +114,7 @@
           var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
           if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
             // Identity per the equality and tokenizer
-            return [{value: newString}];
+            return [{value: newString.join('')}];
           }
 
           for (var editLength = 1; editLength <= maxEditLength; editLength++) {
