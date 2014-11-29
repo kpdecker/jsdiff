@@ -1,5 +1,3 @@
-const VERBOSE = false;
-
 var diff = require('../diff');
 
 describe('#diffWords', function() {
