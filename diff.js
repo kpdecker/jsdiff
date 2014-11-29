@@ -85,10 +85,10 @@
           if (newString === oldString) {
             return [{ value: newString }];
           }
-          if (!newString) {
+          if (!newString && newString !== '') {
             return [{ value: oldString, removed: true }];
           }
-          if (!oldString) {
+          if (!oldString && oldString !== '') {
             return [{ value: newString, added: true }];
           }
 
