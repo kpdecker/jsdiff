@@ -70,8 +70,15 @@ describe('#diffWordsWithSpace', function() {
   });
 });
 
-describe('#diffSentences', function() {
+describe('#diffChars', function() {
+  it('Should diff chars', function() {
+    var diffResult = diff.diffSentences('New Value.', 'New ValueMoreData.');
+    diff.convertChangesToXML(diffResult).should.equal('New Value<ins>MoreData</ins>.');
+  });
+});
 
+
+describe('#diffSentences', function() {
   it('Should diff Sentences', function() {
     var diffResult = diff.diffSentences('New Value.', 'New ValueMoreData.');
     diff.convertChangesToXML(diffResult).should.equal('<ins>New ValueMoreData.</ins><del>New Value.</del>');
