@@ -196,9 +196,7 @@
           var reWhitespace = /\S/;
           return left === right || (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
         },
-        tokenize: function(value) {
-          return value;
-        }
+        tokenize: undefined
     };
 
     var CharDiff = new Diff();
