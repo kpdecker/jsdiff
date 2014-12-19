@@ -529,8 +529,12 @@
   })();
 
   /*istanbul ignore next */
-  if (typeof module !== 'undefined') {
-      module.exports = JsDiff;
+  if (typeof exports !== 'undefined') {
+    /* node.js export */
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = JsDiff;
+    }
+    exports.JsDiff = JsDiff;
   }
   else if (typeof define === 'function') {
     /*global define */
