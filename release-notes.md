@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.1...master)
+
+## v1.2.1 - December 26th, 2014
+- [#41](https://github.com/kpdecker/jsdiff/pull/41) - change condition of using node export system. ([@ironhee](https://api.github.com/users/ironhee))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.0...v1.2.1)
 
 ## v1.2.0 - November 29th, 2014
 - [#37](https://github.com/kpdecker/jsdiff/pull/37) - Add support for sentences. ([@vmariano](https://api.github.com/users/vmariano))
