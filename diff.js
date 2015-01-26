@@ -532,7 +532,7 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = JsDiff;
   }
-  else if (typeof define === 'function') {
+  else if (typeof define === 'function' && define.amd) {
     /*global define */
     define([], function() { return JsDiff; });
   }
