@@ -1,9 +1,9 @@
 {
-    "name": "jsdiff",
-    "version": "1.2.1",
-    "main": [
-        "diff.js"
-    ],
-    "dependencies": {},
-    "ignore": []
+  "name": "jsdiff",
+  "version": "1.2.2",
+  "main": [
+    "diff.js"
+  ],
+  "dependencies": {},
+  "ignore": []
 }
