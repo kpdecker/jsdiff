@@ -2,7 +2,13 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.1...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.2...master)
+
+## v1.2.2 - January 26th, 2015
+- [#45](https://github.com/kpdecker/jsdiff/pull/45) - Fix AMD module loading ([@pedrocarrico](https://api.github.com/users/pedrocarrico))
+- [#43](https://github.com/kpdecker/jsdiff/pull/43) - added a bower file ([@nbrustein](https://api.github.com/users/nbrustein))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.1...v1.2.2)
 
 ## v1.2.1 - December 26th, 2014
 - [#41](https://github.com/kpdecker/jsdiff/pull/41) - change condition of using node export system. ([@ironhee](https://api.github.com/users/ironhee))
