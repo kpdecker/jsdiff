@@ -15,6 +15,7 @@
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 (function(global, undefined) {
+
   var JsDiff = (function() {
     /*jshint maxparams: 5*/
     /*istanbul ignore next*/
@@ -114,8 +115,8 @@
             return done([{ value: newString, added: true }]);
           }
 
-          newString = this.tokenize(newString);
-          oldString = this.tokenize(oldString);
+          newString = this.tokenize(newString, !!self.ignoreTrim);
+          oldString = this.tokenize(oldString, !!self.ignoreTrim);
 
           var newLen = newString.length, oldLen = oldString.length;
           var maxEditLength = newLen + oldLen;
@@ -174,7 +175,7 @@
             editLength++;
           }
 
-          // Performs the length of edit iteration. Is a bit fugly as this has to support the 
+          // Performs the length of edit iteration. Is a bit fugly as this has to support the
           // sync and async mode which is never fun. Loops over execEditLength until a value
           // is produced.
           var editLength = 1;
@@ -256,7 +257,11 @@
     };
 
     var LineDiff = new Diff();
-    LineDiff.tokenize = function(value) {
+
+    var TrimmedLineDiff = new Diff();
+    TrimmedLineDiff.ignoreTrim = true;
+
+    LineDiff.tokenize = TrimmedLineDiff.tokenize = function(value, ignoreTrim) {
       var retLines = [],
           lines = value.split(/^/m);
 
@@ -268,12 +273,13 @@
         if (line === '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
           retLines[retLines.length - 1] += '\n';
         } else if (line) {
-          retLines.push(line);
+          retLines.push(ignoreTrim ? line.trim() + '\n' : line);
         }
       }
 
       return retLines;
     };
+
 
     var SentenceDiff = new Diff();
     SentenceDiff.tokenize = function (value) {
@@ -344,6 +350,8 @@
       diffWords: function(oldStr, newStr, callback) { return WordDiff.diff(oldStr, newStr, callback); },
       diffWordsWithSpace: function(oldStr, newStr, callback) { return WordWithSpaceDiff.diff(oldStr, newStr, callback); },
       diffLines: function(oldStr, newStr, callback) { return LineDiff.diff(oldStr, newStr, callback); },
+      diffTrimmedLines: function(oldStr, newStr, callback) { return TrimmedLineDiff.diff(oldStr, newStr, callback); },
+
       diffSentences: function(oldStr, newStr, callback) { return SentenceDiff.diff(oldStr, newStr, callback); },
 
       diffCss: function(oldStr, newStr, callback) { return CssDiff.diff(oldStr, newStr, callback); },
