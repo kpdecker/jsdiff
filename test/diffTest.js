@@ -200,6 +200,36 @@ describe('#diffLines', function() {
   });
 });
 
+// Line Diff
+describe('#TrimmedLineDiff', function() {
+  it('should diff lines', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\nold value\nline',
+      'line\nnew value\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\n<ins>new value\n</ins><del>old value\n</del>line');
+  });
+  it('should the same lines in diff', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\nvalue\nline',
+      'line\nvalue\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\nvalue\nline');
+  });
+
+  it('should ignore shorespace', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\nvalue \nline',
+      'line\nvalue\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\nvalue\nline');
+  });
+
+  it('should handle windows line endings', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\r\nold value \r\nline',
+      'line\r\nnew value\r\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\r\n<ins>new value\r\n</ins><del>old value\r\n</del>line');
+  });
+});
+
 describe('#diffJson', function() {
   it('should accept objects', function() {
     diff.diffJson(

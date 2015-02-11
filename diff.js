@@ -115,8 +115,8 @@
             return done([{ value: newString, added: true }]);
           }
 
-          newString = this.tokenize(newString, !!self.ignoreTrim);
-          oldString = this.tokenize(oldString, !!self.ignoreTrim);
+          newString = this.tokenize(newString);
+          oldString = this.tokenize(oldString);
 
           var newLen = newString.length, oldLen = oldString.length;
           var maxEditLength = newLen + oldLen;
@@ -261,19 +261,31 @@
     var TrimmedLineDiff = new Diff();
     TrimmedLineDiff.ignoreTrim = true;
 
-    LineDiff.tokenize = TrimmedLineDiff.tokenize = function(value, ignoreTrim) {
+    LineDiff.tokenize = TrimmedLineDiff.tokenize = function(value) {
       var retLines = [],
           lines = value.split(/^/m);
-
       for(var i = 0; i < lines.length; i++) {
         var line = lines[i],
             lastLine = lines[i - 1];
 
         // Merge lines that may contain windows new lines
-        if (line === '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
-          retLines[retLines.length - 1] += '\n';
+        if (line === '\n' && lastLine && lastLine[lastLine.length - 1]) {
+          if(this.ignoreTrim){
+            retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0,-1) + '\r\n';
+          }
+          else{
+            retLines[retLines.length - 1] += '\n';
+          }
         } else if (line) {
-          retLines.push(ignoreTrim ? line.trim() + '\n' : line);
+          if(this.ignoreTrim){
+
+            line = line.trim();
+            //add a newline unless this is the last line.
+            if(!(i + 1 === lines.length)){
+              line += '\n';
+            }
+          }
+          retLines.push(line);
         }
       }
 
