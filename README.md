@@ -33,7 +33,7 @@ or
 
     Returns a list of change objects (See below).
 
-* `JsDiff.TrimmedLineDiff(oldStr, newStr[, callback])` - diffs two blocks of text, comparing line by line, ignoring leading and trailing whitespace.
+* `JsDiff.diffTrimmedLines(oldStr, newStr[, callback])` - diffs two blocks of text, comparing line by line, ignoring leading and trailing whitespace.
 
     Returns a list of change objects (See below).
 

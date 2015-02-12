@@ -266,11 +266,14 @@
           lines = value.split(/^/m);
       for(var i = 0; i < lines.length; i++) {
         var line = lines[i],
-            lastLine = lines[i - 1];
+            lastLine = lines[i - 1],
+            lastLineLastChar = lastLine ? lastLine[lastLine.length - 1] : '';
 
         // Merge lines that may contain windows new lines
-        if (line === '\n' && lastLine && lastLine[lastLine.length - 1]) {
-          if(this.ignoreTrim){
+        if (line === '\n' && lastLine &&
+          (lastLineLastChar === '\r' || lastLineLastChar === '\n')) {
+          if(this.ignoreTrim || lastLineLastChar === '\n'){
+            //to avoid merging to \n\n, remove \n and add \r\n.
             retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0,-1) + '\r\n';
           }
           else{
@@ -278,7 +281,6 @@
           }
         } else if (line) {
           if(this.ignoreTrim){
-
             line = line.trim();
             //add a newline unless this is the last line.
             if(!(i + 1 === lines.length)){
