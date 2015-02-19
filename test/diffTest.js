@@ -185,7 +185,7 @@ describe('#diffLines', function() {
     diff.convertChangesToXML(diffResult).should.equal('line\nvalue\nline');
   });
 
-  it('should handle shorespace', function() {
+  it('should handle leading and trailing whitespace', function() {
     var diffResult = diff.diffLines(
       'line\nvalue \nline',
       'line\nvalue\nline');
@@ -200,7 +200,7 @@ describe('#diffLines', function() {
   });
 });
 
-// Line Diff
+// Trimmed Line Diff
 describe('#TrimmedLineDiff', function() {
   it('should diff lines', function() {
     var diffResult = diff.diffTrimmedLines(
@@ -215,7 +215,7 @@ describe('#TrimmedLineDiff', function() {
     diff.convertChangesToXML(diffResult).should.equal('line\nvalue\nline');
   });
 
-  it('should ignore shorespace', function() {
+  it('should ignore leading and trailing whitespace', function() {
     var diffResult = diff.diffTrimmedLines(
       'line\nvalue \nline',
       'line\nvalue\nline');
