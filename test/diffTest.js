@@ -185,7 +185,7 @@ describe('#diffLines', function() {
     diff.convertChangesToXML(diffResult).should.equal('line\nvalue\nline');
   });
 
-  it('should handle shorespace', function() {
+  it('should handle leading and trailing whitespace', function() {
     var diffResult = diff.diffLines(
       'line\nvalue \nline',
       'line\nvalue\nline');
@@ -197,6 +197,36 @@ describe('#diffLines', function() {
       'line\r\nold value \r\nline',
       'line\r\nnew value\r\nline');
     diff.convertChangesToXML(diffResult).should.equal('line\r\n<ins>new value\r\n</ins><del>old value \r\n</del>line');
+  });
+});
+
+// Trimmed Line Diff
+describe('#TrimmedLineDiff', function() {
+  it('should diff lines', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\nold value\nline',
+      'line\nnew value\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\n<ins>new value\n</ins><del>old value\n</del>line');
+  });
+  it('should the same lines in diff', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\nvalue\nline',
+      'line\nvalue\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\nvalue\nline');
+  });
+
+  it('should ignore leading and trailing whitespace', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\nvalue \nline',
+      'line\nvalue\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\nvalue\nline');
+  });
+
+  it('should handle windows line endings', function() {
+    var diffResult = diff.diffTrimmedLines(
+      'line\r\nold value \r\nline',
+      'line\r\nnew value\r\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\r\n<ins>new value\r\n</ins><del>old value\r\n</del>line');
   });
 });
 

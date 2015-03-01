@@ -33,6 +33,10 @@ or
 
     Returns a list of change objects (See below).
 
+* `JsDiff.diffTrimmedLines(oldStr, newStr[, callback])` - diffs two blocks of text, comparing line by line, ignoring leading and trailing whitespace.
+
+    Returns a list of change objects (See below).
+
 * `JsDiff.diffSentences(oldStr, newStr[, callback])` - diffs two blocks of text, comparing sentence by sentence.
 
     Returns a list of change objects (See below).
@@ -166,4 +170,3 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/kpdecker/jsdiff/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-

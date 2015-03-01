@@ -15,6 +15,7 @@
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 (function(global, undefined) {
+
   var JsDiff = (function() {
     /*jshint maxparams: 5*/
     /*istanbul ignore next*/
@@ -174,7 +175,7 @@
             editLength++;
           }
 
-          // Performs the length of edit iteration. Is a bit fugly as this has to support the 
+          // Performs the length of edit iteration. Is a bit fugly as this has to support the
           // sync and async mode which is never fun. Loops over execEditLength until a value
           // is produced.
           var editLength = 1;
@@ -256,24 +257,41 @@
     };
 
     var LineDiff = new Diff();
-    LineDiff.tokenize = function(value) {
+
+    var TrimmedLineDiff = new Diff();
+    TrimmedLineDiff.ignoreTrim = true;
+
+    LineDiff.tokenize = TrimmedLineDiff.tokenize = function(value) {
       var retLines = [],
           lines = value.split(/^/m);
-
       for(var i = 0; i < lines.length; i++) {
         var line = lines[i],
-            lastLine = lines[i - 1];
+            lastLine = lines[i - 1],
+            lastLineLastChar = lastLine ? lastLine[lastLine.length - 1] : '';
 
         // Merge lines that may contain windows new lines
-        if (line === '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
-          retLines[retLines.length - 1] += '\n';
+        if (line === '\n' && (lastLineLastChar === '\r' || lastLineLastChar === '\n')) {
+          if (this.ignoreTrim || lastLineLastChar === '\n'){
+            //to avoid merging to \n\n, remove \n and add \r\n.
+            retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0,-1) + '\r\n';
+          } else {
+            retLines[retLines.length - 1] += '\n';
+          }
         } else if (line) {
+          if (this.ignoreTrim) {
+            line = line.trim();
+            //add a newline unless this is the last line.
+            if (i < lines.length - 1) {
+              line += '\n';
+            }
+          }
           retLines.push(line);
         }
       }
 
       return retLines;
     };
+
 
     var SentenceDiff = new Diff();
     SentenceDiff.tokenize = function (value) {
@@ -344,6 +362,8 @@
       diffWords: function(oldStr, newStr, callback) { return WordDiff.diff(oldStr, newStr, callback); },
       diffWordsWithSpace: function(oldStr, newStr, callback) { return WordWithSpaceDiff.diff(oldStr, newStr, callback); },
       diffLines: function(oldStr, newStr, callback) { return LineDiff.diff(oldStr, newStr, callback); },
+      diffTrimmedLines: function(oldStr, newStr, callback) { return TrimmedLineDiff.diff(oldStr, newStr, callback); },
+
       diffSentences: function(oldStr, newStr, callback) { return SentenceDiff.diff(oldStr, newStr, callback); },
 
       diffCss: function(oldStr, newStr, callback) { return CssDiff.diff(oldStr, newStr, callback); },
@@ -447,7 +467,7 @@
             addEOFNL = false;
 
         for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
-          if(diffstr[i][0] === '@') {
+          if (diffstr[i][0] === '@') {
             var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
             diff.unshift({
               start:meh[3],
@@ -456,17 +476,17 @@
               newlength:meh[4],
               newlines:[]
             });
-          } else if(diffstr[i][0] === '+') {
+          } else if (diffstr[i][0] === '+') {
             diff[0].newlines.push(diffstr[i].substr(1));
-          } else if(diffstr[i][0] === '-') {
+          } else if (diffstr[i][0] === '-') {
             diff[0].oldlines.push(diffstr[i].substr(1));
-          } else if(diffstr[i][0] === ' ') {
+          } else if (diffstr[i][0] === ' ') {
             diff[0].newlines.push(diffstr[i].substr(1));
             diff[0].oldlines.push(diffstr[i].substr(1));
-          } else if(diffstr[i][0] === '\\') {
+          } else if (diffstr[i][0] === '\\') {
             if (diffstr[i-1][0] === '+') {
               remEOFNL = true;
-            } else if(diffstr[i-1][0] === '-') {
+            } else if (diffstr[i-1][0] === '-') {
               addEOFNL = true;
             }
           }
@@ -476,7 +496,7 @@
         for (var i = diff.length - 1; i >= 0; i--) {
           var d = diff[i];
           for (var j = 0; j < d.oldlength; j++) {
-            if(str[d.start-1+j] !== d.oldlines[j]) {
+            if (str[d.start-1+j] !== d.oldlines[j]) {
               return false;
             }
           }
