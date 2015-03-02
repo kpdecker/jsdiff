@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.2...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.0...master)
+
+## v1.3.0 - March 2nd, 2015
+- [#47](https://github.com/kpdecker/jsdiff/pull/47) - Adding Diff Trimmed Lines ([@JamesGould123](https://api.github.com/users/JamesGould123))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.2.2...v1.3.0)
 
 ## v1.2.2 - January 26th, 2015
 - [#45](https://github.com/kpdecker/jsdiff/pull/45) - Fix AMD module loading ([@pedrocarrico](https://api.github.com/users/pedrocarrico))
