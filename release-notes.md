@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.1...master)
+
+## v1.3.1 - March 13th, 2015
+- [#52](https://github.com/kpdecker/jsdiff/pull/52) - Fix for #51 Wrong result of JsDiff.diffLines ([@felicienfrancois](https://api.github.com/users/felicienfrancois))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.0...v1.3.1)
 
 ## v1.3.0 - March 2nd, 2015
 - [#47](https://github.com/kpdecker/jsdiff/pull/47) - Adding Diff Trimmed Lines ([@JamesGould123](https://api.github.com/users/JamesGould123))
