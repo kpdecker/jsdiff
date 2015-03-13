@@ -270,13 +270,8 @@
             lastLineLastChar = lastLine ? lastLine[lastLine.length - 1] : '';
 
         // Merge lines that may contain windows new lines
-        if (line === '\n' && (lastLineLastChar === '\r' || lastLineLastChar === '\n')) {
-          if (this.ignoreTrim || lastLineLastChar === '\n'){
-            //to avoid merging to \n\n, remove \n and add \r\n.
+        if (line === '\n' && lastLineLastChar === '\r') {
             retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0,-1) + '\r\n';
-          } else {
-            retLines[retLines.length - 1] += '\n';
-          }
         } else if (line) {
           if (this.ignoreTrim) {
             line = line.trim();
