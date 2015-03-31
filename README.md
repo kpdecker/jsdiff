@@ -13,6 +13,10 @@ Based on the algorithm proposed in
 
 or
 
+    bower install jsdiff
+
+or
+
     git clone git://github.com/kpdecker/jsdiff.git
 
 ## API
