@@ -458,10 +458,16 @@
       applyPatch: function(oldStr, uniDiff) {
         var diffstr = uniDiff.split('\n');
         var diff = [];
-        var remEOFNL = false,
+        var i = 0,
+            remEOFNL = false,
             addEOFNL = false;
 
-        for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
+        // Skip to the first change chunk
+        while (i < diffstr.length && !/^@@/.test(diffstr[i])) {
+          i++;
+        }
+
+        for (; i < diffstr.length; i++) {
           if (diffstr[i][0] === '@') {
             var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
             diff.unshift({

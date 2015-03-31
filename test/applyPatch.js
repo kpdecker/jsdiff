@@ -269,4 +269,24 @@ describe('#applyPatch', function() {
       + '+++ testFileName\tNew Header\n';
     diff.applyPatch(oldFile, diffFile).should.equal(oldFile);
   });
+
+  it('should apply patches that lack an index header', function() {
+    diff.applyPatch(
+        'line2\n'+
+        'line3\n'+
+        'line5\n',
+
+        '--- test\theader1\n'
+        + '+++ test\theader2\n'
+        + '@@ -1,3 +1,4 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + '+line4\n'
+        + ' line5\n')
+      .should.equal(
+        'line2\n'
+        + 'line3\n'
+        + 'line4\n'
+        + 'line5\n');
+  });
 });
