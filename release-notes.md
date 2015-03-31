@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.1...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.2...master)
+
+## v1.3.2 - March 30th, 2015
+- [#53](https://github.com/kpdecker/jsdiff/pull/53) - Updated README.MD with Bower installation instructions ([@ofbriggs](https://api.github.com/users/ofbriggs))
+- [#49](https://github.com/kpdecker/jsdiff/issues/49) - Cannot read property 'oldlines' of undefined ([@nwtn](https://api.github.com/users/nwtn))
+- [#44](https://github.com/kpdecker/jsdiff/issues/44) - invalid-meta jsdiff is missing "main" entry in bower.json
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.1...v1.3.2)
 
 ## v1.3.1 - March 13th, 2015
 - [#52](https://github.com/kpdecker/jsdiff/pull/52) - Fix for #51 Wrong result of JsDiff.diffLines ([@felicienfrancois](https://api.github.com/users/felicienfrancois))
