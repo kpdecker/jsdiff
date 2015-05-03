@@ -370,13 +370,15 @@
         );
       },
 
-      createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
+      createTwoFilesPatch: function(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader) {
         var ret = [];
 
-        ret.push('Index: ' + fileName);
+        if (oldFileName == newFileName) {
+          ret.push('Index: ' + oldFileName);
+	}
         ret.push('===================================================================');
-        ret.push('--- ' + fileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
-        ret.push('+++ ' + fileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
+        ret.push('--- ' + oldFileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
+        ret.push('+++ ' + newFileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
 
         var diff = LineDiff.diff(oldStr, newStr);
         if (!diff[diff.length-1].value) {
@@ -453,6 +455,10 @@
         }
 
         return ret.join('\n') + '\n';
+      },
+
+      createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
+        return JsDiff.createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader);
       },
 
       applyPatch: function(oldStr, uniDiff) {
