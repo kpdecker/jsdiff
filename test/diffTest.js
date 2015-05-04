@@ -1,4 +1,5 @@
-var diff = require('../diff');
+var diff = require('../diff'),
+    should = require('should');
 
 describe('#diffWords', function() {
   it('should diff whitespace', function() {
@@ -61,6 +62,7 @@ describe('#diffWords', function() {
 describe('#diffWords - async', function() {
   it('should diff whitespace', function(done) {
     diff.diffWords('New Value', 'New  ValueMoreData', function(err, diffResult) {
+      should(err).not.exist;
       diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del>');
       done();
     });
@@ -68,6 +70,7 @@ describe('#diffWords - async', function() {
 
   it('should diff multiple whitespace values', function(done) {
     diff.diffWords('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
+      should(err).not.exist;
       diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del> ');
       done();
     });
@@ -76,6 +79,7 @@ describe('#diffWords - async', function() {
   // Diff on word boundary
   it('should diff on word boundaries', function(done) {
     diff.diffWords('New :Value:Test', 'New  ValueMoreData ', function(err, diffResult) {
+      should(err).not.exist;
       diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData </ins><del>:Value:Test</del>');
       done();
     });
@@ -84,18 +88,21 @@ describe('#diffWords - async', function() {
   // Diff without changes
   it('should handle identity', function(done) {
     diff.diffWords('New Value', 'New Value', function(err, diffResult) {
+      should(err).not.exist;
       diff.convertChangesToXML(diffResult).should.equal('New Value');
       done();
     });
   });
   it('should handle empty', function(done) {
     diff.diffWords('', '', function(err, diffResult) {
+      should(err).not.exist;
       diff.convertChangesToXML(diffResult).should.equal('');
       done();
     });
   });
   it('should diff has identical content', function(done) {
     diff.diffWords('New Value', 'New  Value', function(err, diffResult) {
+      should(err).not.exist;
       diff.convertChangesToXML(diffResult).should.equal('New  Value');
       done();
     });
@@ -198,7 +205,7 @@ describe('#diffLines', function() {
       'line\r\nnew value\r\nline');
     diff.convertChangesToXML(diffResult).should.equal('line\r\n<ins>new value\r\n</ins><del>old value \r\n</del>line');
   });
-  
+
   it('should handle empty lines', function() {
     var diffResult = diff.diffLines(
       'line\n\nold value \n\nline',
@@ -298,12 +305,12 @@ describe('#diffJson', function() {
   it('should throw an error if one of the objects being diffed has a circular reference', function() {
     var circular = {foo: 123};
     circular.bar = circular;
-    (function () {
+    (function() {
       diff.diffJson(
         circular,
         {foo: 123, bar: {}}
       );
-    }).should.throw('Converting circular structure to JSON');
+    }.should['throw']('Converting circular structure to JSON'));
   });
 });
 
@@ -312,6 +319,6 @@ describe('convertToDMP', function() {
     var diffResult = diff.diffWords('New Value  ', 'New  ValueMoreData ');
 
     diff.convertChangesToDMP(diffResult).should.eql(
-        [[0,'New  '],[1,'ValueMoreData'],[-1,'Value'],[0,' ']]);
+        [[0, 'New  '], [1, 'ValueMoreData'], [-1, 'Value'], [0, ' ']]);
   });
 });
