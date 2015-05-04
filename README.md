@@ -53,14 +53,19 @@ or
 
     Returns a list of change objects (See below).
 
-* `JsDiff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
+* `JsDiff.createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 
     Parameters:
-    * `fileName` : String to be output in the filename sections of the patch
+    * `oldFileName` : String to be output in the filename section of the patch for the removals
+    * `newFileName` : String to be output in the filename section of the patch for the additions
     * `oldStr` : Original string value
     * `newStr` : New string value
     * `oldHeader` : Additional information to include in the old file header
     * `newHeader` : Additional information to include in thew new file header
+
+* `JsDiff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
+
+    Just like JsDiff.createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
 * `JsDiff.applyPatch(oldStr, diffStr)` - applies a unified diff patch.
 
