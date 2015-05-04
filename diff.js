@@ -15,6 +15,7 @@
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 (function(global, undefined) {
+  var objectPrototypeToString = Object.prototype.toString;
 
   var JsDiff = (function() {
     /*jshint maxparams: 5*/
@@ -88,9 +89,9 @@
       return components;
     }
 
-    var Diff = function(ignoreWhitespace) {
+    function Diff(ignoreWhitespace) {
       this.ignoreWhitespace = ignoreWhitespace;
-    };
+    }
     Diff.prototype = {
         diff: function(oldString, newString, callback) {
           var self = this;
@@ -119,6 +120,7 @@
           oldString = this.tokenize(oldString);
 
           var newLen = newString.length, oldLen = oldString.length;
+          var editLength = 1;
           var maxEditLength = newLen + oldLen;
           var bestPath = [{ newPos: -1, components: [] }];
 
@@ -131,17 +133,17 @@
 
           // Main worker method. checks all permutations of a given edit length for acceptance.
           function execEditLength() {
-            for (var diagonalPath = -1*editLength; diagonalPath <= editLength; diagonalPath+=2) {
+            for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
               var basePath;
-              var addPath = bestPath[diagonalPath-1],
-                  removePath = bestPath[diagonalPath+1];
-              oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
+              var addPath = bestPath[diagonalPath - 1],
+                  removePath = bestPath[diagonalPath + 1],
+                  oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
               if (addPath) {
                 // No one else is going to attempt to use this value, clear it
-                bestPath[diagonalPath-1] = undefined;
+                bestPath[diagonalPath - 1] = undefined;
               }
 
-              var canAdd = addPath && addPath.newPos+1 < newLen;
+              var canAdd = addPath && addPath.newPos + 1 < newLen;
               var canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
               if (!canAdd && !canRemove) {
                 // If this path is a terminal then prune
@@ -161,10 +163,10 @@
                 self.pushComponent(basePath.components, true, undefined);
               }
 
-              var oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
+              oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
 
               // If we have hit the end of both strings, then we are done
-              if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
+              if (basePath.newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
                 return done(buildValues(basePath.components, newString, oldString, self.useLongestToken));
               } else {
                 // Otherwise track this path as a potential candidate and continue.
@@ -178,7 +180,6 @@
           // Performs the length of edit iteration. Is a bit fugly as this has to support the
           // sync and async mode which is never fun. Loops over execEditLength until a value
           // is produced.
-          var editLength = 1;
           if (callback) {
             (function exec() {
               setTimeout(function() {
@@ -192,9 +193,9 @@
                   exec();
                 }
               }, 0);
-            })();
+            }());
           } else {
-            while(editLength <= maxEditLength) {
+            while (editLength <= maxEditLength) {
               var ret = execEditLength();
               if (ret) {
                 return ret;
@@ -204,11 +205,11 @@
         },
 
         pushComponent: function(components, added, removed) {
-          var last = components[components.length-1];
+          var last = components[components.length - 1];
           if (last && last.added === added && last.removed === removed) {
             // We need to clone here as the component clone operation is just
             // as shallow array clone
-            components[components.length-1] = {count: last.count + 1, added: added, removed: removed };
+            components[components.length - 1] = {count: last.count + 1, added: added, removed: removed };
           } else {
             components.push({count: 1, added: added, removed: removed });
           }
@@ -220,7 +221,7 @@
               oldPos = newPos - diagonalPath,
 
               commonCount = 0;
-          while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
+          while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
             newPos++;
             oldPos++;
             commonCount++;
@@ -264,18 +265,18 @@
     LineDiff.tokenize = TrimmedLineDiff.tokenize = function(value) {
       var retLines = [],
           lines = value.split(/^/m);
-      for(var i = 0; i < lines.length; i++) {
+      for (var i = 0; i < lines.length; i++) {
         var line = lines[i],
             lastLine = lines[i - 1],
             lastLineLastChar = lastLine ? lastLine[lastLine.length - 1] : '';
 
         // Merge lines that may contain windows new lines
         if (line === '\n' && lastLineLastChar === '\r') {
-            retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0,-1) + '\r\n';
+            retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0, -1) + '\r\n';
         } else if (line) {
           if (this.ignoreTrim) {
             line = line.trim();
-            //add a newline unless this is the last line.
+            // add a newline unless this is the last line.
             if (i < lines.length - 1) {
               line += '\n';
             }
@@ -289,7 +290,7 @@
 
 
     var SentenceDiff = new Diff();
-    SentenceDiff.tokenize = function (value) {
+    SentenceDiff.tokenize = function(value) {
       return removeEmpty(value.split(/(\S.+?[.!?])(?=\s+|$)/));
     };
 
@@ -301,8 +302,6 @@
     JsonDiff.equals = function(left, right) {
       return LineDiff.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
     };
-
-    var objectPrototypeToString = Object.prototype.toString;
 
     // This function handles the presence of circular references by bailing out when encountering an
     // object that is already on the "stack" of items being processed.
@@ -375,27 +374,30 @@
 
         if (oldFileName == newFileName) {
           ret.push('Index: ' + oldFileName);
-	}
+        }
         ret.push('===================================================================');
         ret.push('--- ' + oldFileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
         ret.push('+++ ' + newFileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
 
         var diff = LineDiff.diff(oldStr, newStr);
-        if (!diff[diff.length-1].value) {
+        if (!diff[diff.length - 1].value) {
           diff.pop();   // Remove trailing newline add
         }
         diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
+        // Formats a given set of lines for printing as context lines in a patch
         function contextLines(lines) {
           return map(lines, function(entry) { return ' ' + entry; });
         }
+
+        // Outputs the no newline at end of file warning if needed
         function eofNL(curRange, i, current) {
-          var last = diff[diff.length-2],
-              isLast = i === diff.length-2,
-              isLastOfType = i === diff.length-3 && (current.added !== last.added || current.removed !== last.removed);
+          var last = diff[diff.length - 2],
+              isLast = i === diff.length - 2,
+              isLastOfType = i === diff.length - 3 && (current.added !== last.added || current.removed !== last.removed);
 
           // Figure out if this is the last line for the given file and missing NL
-          if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
+          if (!(/\n$/.test(current.value)) && (isLast || isLastOfType)) {
             curRange.push('\\ No newline at end of file');
           }
         }
@@ -409,7 +411,7 @@
 
           if (current.added || current.removed) {
             if (!oldRangeStart) {
-              var prev = diff[i-1];
+              var prev = diff[i - 1];
               oldRangeStart = oldLine;
               newRangeStart = newLine;
 
@@ -419,7 +421,9 @@
                 newRangeStart -= curRange.length;
               }
             }
-            curRange.push.apply(curRange, map(lines, function(entry) { return (current.added?'+':'-') + entry; }));
+            curRange.push.apply(curRange, map(lines, function(entry) {
+              return (current.added ? '+' : '-') + entry;
+            }));
             eofNL(curRange, i, current);
 
             if (current.added) {
@@ -430,15 +434,15 @@
           } else {
             if (oldRangeStart) {
               // Close out any changes that have been output (or join overlapping)
-              if (lines.length <= 8 && i < diff.length-2) {
+              if (lines.length <= 8 && i < diff.length - 2) {
                 // Overlapping
                 curRange.push.apply(curRange, contextLines(lines));
               } else {
                 // end the range and output
                 var contextSize = Math.min(lines.length, 4);
                 ret.push(
-                    '@@ -' + oldRangeStart + ',' + (oldLine-oldRangeStart+contextSize)
-                    + ' +' + newRangeStart + ',' + (newLine-newRangeStart+contextSize)
+                    '@@ -' + oldRangeStart + ',' + (oldLine - oldRangeStart + contextSize)
+                    + ' +' + newRangeStart + ',' + (newLine - newRangeStart + contextSize)
                     + ' @@');
                 ret.push.apply(ret, curRange);
                 ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
@@ -446,7 +450,9 @@
                   eofNL(ret, i, current);
                 }
 
-                oldRangeStart = 0;  newRangeStart = 0; curRange = [];
+                oldRangeStart = 0;
+                newRangeStart = 0;
+                curRange = [];
               }
             }
             oldLine += lines.length;
@@ -469,19 +475,19 @@
             addEOFNL = false;
 
         // Skip to the first change chunk
-        while (i < diffstr.length && !/^@@/.test(diffstr[i])) {
+        while (i < diffstr.length && !(/^@@/.test(diffstr[i]))) {
           i++;
         }
 
         for (; i < diffstr.length; i++) {
           if (diffstr[i][0] === '@') {
-            var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
+            var chnukHeader = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
             diff.unshift({
-              start:meh[3],
-              oldlength:meh[2],
-              oldlines:[],
-              newlength:meh[4],
-              newlines:[]
+              start: chnukHeader[3],
+              oldlength: chnukHeader[2],
+              oldlines: [],
+              newlength: chnukHeader[4],
+              newlines: []
             });
           } else if (diffstr[i][0] === '+') {
             diff[0].newlines.push(diffstr[i].substr(1));
@@ -491,27 +497,27 @@
             diff[0].newlines.push(diffstr[i].substr(1));
             diff[0].oldlines.push(diffstr[i].substr(1));
           } else if (diffstr[i][0] === '\\') {
-            if (diffstr[i-1][0] === '+') {
+            if (diffstr[i - 1][0] === '+') {
               remEOFNL = true;
-            } else if (diffstr[i-1][0] === '-') {
+            } else if (diffstr[i - 1][0] === '-') {
               addEOFNL = true;
             }
           }
         }
 
         var str = oldStr.split('\n');
-        for (var i = diff.length - 1; i >= 0; i--) {
+        for (i = diff.length - 1; i >= 0; i--) {
           var d = diff[i];
           for (var j = 0; j < d.oldlength; j++) {
-            if (str[d.start-1+j] !== d.oldlines[j]) {
+            if (str[d.start - 1 + j] !== d.oldlines[j]) {
               return false;
             }
           }
-          Array.prototype.splice.apply(str,[d.start-1,+d.oldlength].concat(d.newlines));
+          Array.prototype.splice.apply(str, [d.start - 1, +d.oldlength].concat(d.newlines));
         }
 
         if (remEOFNL) {
-          while (!str[str.length-1]) {
+          while (!str[str.length - 1]) {
             str.pop();
           }
         } else if (addEOFNL) {
@@ -520,9 +526,9 @@
         return str.join('\n');
       },
 
-      convertChangesToXML: function(changes){
+      convertChangesToXML: function(changes) {
         var ret = [];
-        for ( var i = 0; i < changes.length; i++) {
+        for (var i = 0; i < changes.length; i++) {
           var change = changes[i];
           if (change.added) {
             ret.push('<ins>');
@@ -542,11 +548,21 @@
       },
 
       // See: http://code.google.com/p/google-diff-match-patch/wiki/API
-      convertChangesToDMP: function(changes){
-        var ret = [], change;
-        for ( var i = 0; i < changes.length; i++) {
+      convertChangesToDMP: function(changes) {
+        var ret = [],
+            change,
+            operation;
+        for (var i = 0; i < changes.length; i++) {
           change = changes[i];
-          ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
+          if (change.added) {
+            operation = 1;
+          } else if (change.removed) {
+            operation = -1;
+          } else {
+            operation = 0;
+          }
+
+          ret.push([operation, change.value]);
         }
         return ret;
       },
@@ -556,14 +572,13 @@
   })();
 
   /*istanbul ignore next */
+  /*global module */
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = JsDiff;
-  }
-  else if (typeof define === 'function' && define.amd) {
+  } else if (typeof define === 'function' && define.amd) {
     /*global define */
     define([], function() { return JsDiff; });
-  }
-  else if (typeof global.JsDiff === 'undefined') {
+  } else if (typeof global.JsDiff === 'undefined') {
     global.JsDiff = JsDiff;
   }
-})(this);
+}(this));
