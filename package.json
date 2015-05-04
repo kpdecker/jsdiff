@@ -32,10 +32,10 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "colors": "~0.6.2",
+    "colors": "^1.1.0",
     "istanbul": "^0.3.2",
-    "mocha": "~1.6",
-    "should": "~1.2"
+    "mocha": "^2.2.4",
+    "should": "^6.0.1"
   },
   "optionalDependencies": {},
   "files": [
