@@ -28,7 +28,7 @@
   },
   "main": "./diff",
   "scripts": {
-    "test": "istanbul cover node_modules/.bin/_mocha test/*.js"
+    "test": "istanbul cover node_modules/.bin/_mocha test/*.js && istanbul check-coverage --statements 100 --functions 100 --branches 100 --lines 100 coverage/coverage.json"
   },
   "dependencies": {},
   "devDependencies": {
