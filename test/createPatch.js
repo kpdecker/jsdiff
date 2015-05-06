@@ -39,8 +39,8 @@ describe('#createPatch', function() {
       + ' line1\n'
       + ' line2\n'
       + ' line3\n'
-      + '+line44\n'
-      + '-line4\n');
+      + '-line4\n'
+      + '+line44\n');
 
     diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\nline5\n', 'header1', 'header2').should.equal(
       'Index: test\n'
@@ -51,9 +51,9 @@ describe('#createPatch', function() {
       + ' line1\n'
       + ' line2\n'
       + ' line3\n'
+      + '-line4\n'
       + '+line44\n'
-      + '+line5\n'
-      + '-line4\n');
+      + '+line5\n');
   });
 
   it('should output no newline at end of file message', function() {
@@ -66,9 +66,9 @@ describe('#createPatch', function() {
       + ' line1\n'
       + ' line2\n'
       + ' line3\n'
+      + '-line4\n'
       + '+line4\n'
-      + '\\ No newline at end of file\n'
-      + '-line4\n');
+      + '\\ No newline at end of file\n');
 
     diff.createPatch('test', 'line1\nline2\nline3\nline4', 'line1\nline2\nline3\nline4\n', 'header1', 'header2').should.equal(
       'Index: test\n'
@@ -79,9 +79,9 @@ describe('#createPatch', function() {
       + ' line1\n'
       + ' line2\n'
       + ' line3\n'
-      + '+line4\n'
       + '-line4\n'
-      + '\\ No newline at end of file\n');
+      + '\\ No newline at end of file\n'
+      + '+line4\n');
 
     diff.createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2').should.equal(
       'Index: test\n'
@@ -89,8 +89,8 @@ describe('#createPatch', function() {
       + '--- test\theader1\n'
       + '+++ test\theader2\n'
       + '@@ -1,4 +1,4 @@\n'
-      + '+line1\n'
       + '-line11\n'
+      + '+line1\n'
       + ' line2\n'
       + ' line3\n'
       + ' line4\n'
@@ -102,8 +102,8 @@ describe('#createPatch', function() {
       + '--- test\theader1\n'
       + '+++ test\theader2\n'
       + '@@ -1,5 +1,5 @@\n'
-      + '+line1\n'
       + '-line11\n'
+      + '+line1\n'
       + ' line2\n'
       + ' line3\n'
       + ' line4\n'
@@ -429,9 +429,9 @@ describe('#createPatch', function() {
       + '--- testFileName\tOld Header\n'
       + '+++ testFileName\tNew Header\n'
       + '@@ -1,5 +1,6 @@\n'
+      + '-value\n'
       + '+new value\n'
       + '+new value 2\n'
-      + '-value\n'
       + ' context\n'
       + ' context\n'
       + ' context\n'
@@ -465,9 +465,9 @@ describe('#createPatch', function() {
       + ' context\n'
       + ' context\n'
       + ' context\n'
+      + '-value\n'
       + '+new value\n'
       + '+new value 2\n'
-      + '-value\n'
       + ' context\n'
       + ' context\n'
       + '\\ No newline at end of file\n';

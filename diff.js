@@ -128,6 +128,15 @@
       } else {
         component.value = oldString.slice(oldPos, oldPos + component.count).join('');
         oldPos += component.count;
+
+        // Reverse add and remove so removes are output first to match common convention
+        // The diffing algorithm is tied to add then remove output and this is the simplest
+        // route to get the desired output with minimal overhead.
+        if (componentPos && components[componentPos - 1].added) {
+          var tmp = components[componentPos - 1];
+          components[componentPos - 1] = components[componentPos];
+          components[componentPos] = tmp;
+        }
       }
     }
 
@@ -188,8 +197,8 @@
             bestPath[diagonalPath - 1] = undefined;
           }
 
-          var canAdd = addPath && addPath.newPos + 1 < newLen;
-          var canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
+          var canAdd = addPath && addPath.newPos + 1 < newLen,
+              canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
           if (!canAdd && !canRemove) {
             // If this path is a terminal then prune
             bestPath[diagonalPath] = undefined;
@@ -390,7 +399,7 @@
       function eofNL(curRange, i, current) {
         var last = diff[diff.length - 2],
             isLast = i === diff.length - 2,
-            isLastOfType = i === diff.length - 3 && (current.added !== last.added || current.removed !== last.removed);
+            isLastOfType = i === diff.length - 3 && current.added !== last.added;
 
         // Figure out if this is the last line for the given file and missing NL
         if (!(/\n$/.test(current.value)) && (isLast || isLastOfType)) {

@@ -4,24 +4,24 @@ var diff = require('../diff'),
 describe('#diffWords', function() {
   it('should diff whitespace', function() {
     var diffResult = diff.diffWords('New Value', 'New  ValueMoreData');
-    diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del>');
+    diff.convertChangesToXML(diffResult).should.equal('New  <del>Value</del><ins>ValueMoreData</ins>');
   });
 
   it('should diff multiple whitespace values', function() {
     var diffResult = diff.diffWords('New Value  ', 'New  ValueMoreData ');
-    diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del> ');
+    diff.convertChangesToXML(diffResult).should.equal('New  <del>Value</del><ins>ValueMoreData</ins> ');
   });
 
   // Diff on word boundary
   it('should diff on word boundaries', function() {
     var diffResult = diff.diffWords('New :Value:Test', 'New  ValueMoreData ');
-    diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData </ins><del>:Value:Test</del>');
+    diff.convertChangesToXML(diffResult).should.equal('New  <del>:Value:Test</del><ins>ValueMoreData </ins>');
 
     diffResult = diff.diffWords('New Value:Test', 'New  Value:MoreData ');
-    diff.convertChangesToXML(diffResult).should.equal('New  Value:<ins>MoreData </ins><del>Test</del>');
+    diff.convertChangesToXML(diffResult).should.equal('New  Value:<del>Test</del><ins>MoreData </ins>');
 
     diffResult = diff.diffWords('New Value-Test', 'New  Value:MoreData ');
-    diff.convertChangesToXML(diffResult).should.equal('New  Value<ins>:MoreData </ins><del>-Test</del>');
+    diff.convertChangesToXML(diffResult).should.equal('New  Value<del>-Test</del><ins>:MoreData </ins>');
 
     diffResult = diff.diffWords('New Value', 'New  Value:MoreData ');
     diff.convertChangesToXML(diffResult).should.equal('New  Value<ins>:MoreData </ins>');
@@ -55,7 +55,7 @@ describe('#diffWords', function() {
   // With without anchor (the Heckel algorithm error case)
   it('should diff when there is no anchor value', function() {
     var diffResult = diff.diffWords('New Value New Value', 'Value Value New New');
-    diff.convertChangesToXML(diffResult).should.equal('<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>');
+    diff.convertChangesToXML(diffResult).should.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
   });
 });
 
@@ -63,7 +63,7 @@ describe('#diffWords - async', function() {
   it('should diff whitespace', function(done) {
     diff.diffWords('New Value', 'New  ValueMoreData', function(err, diffResult) {
       should(err).not.exist;
-      diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del>');
+      diff.convertChangesToXML(diffResult).should.equal('New  <del>Value</del><ins>ValueMoreData</ins>');
       done();
     });
   });
@@ -71,7 +71,7 @@ describe('#diffWords - async', function() {
   it('should diff multiple whitespace values', function(done) {
     diff.diffWords('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
       should(err).not.exist;
-      diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData</ins><del>Value</del> ');
+      diff.convertChangesToXML(diffResult).should.equal('New  <del>Value</del><ins>ValueMoreData</ins> ');
       done();
     });
   });
@@ -80,7 +80,7 @@ describe('#diffWords - async', function() {
   it('should diff on word boundaries', function(done) {
     diff.diffWords('New :Value:Test', 'New  ValueMoreData ', function(err, diffResult) {
       should(err).not.exist;
-      diff.convertChangesToXML(diffResult).should.equal('New  <ins>ValueMoreData </ins><del>:Value:Test</del>');
+      diff.convertChangesToXML(diffResult).should.equal('New  <del>:Value:Test</del><ins>ValueMoreData </ins>');
       done();
     });
   });
@@ -126,7 +126,7 @@ describe('#diffWords - async', function() {
   // With without anchor (the Heckel algorithm error case)
   it('should diff when there is no anchor value', function(done) {
     diff.diffWords('New Value New Value', 'Value Value New New', function(err, diffResult) {
-      diff.convertChangesToXML(diffResult).should.equal('<ins>Value</ins><del>New</del> Value New <ins>New</ins><del>Value</del>');
+      diff.convertChangesToXML(diffResult).should.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
       done();
     });
   });
@@ -135,7 +135,7 @@ describe('#diffWords - async', function() {
 describe('#diffWordsWithSpace', function() {
   it('should diff whitespace', function() {
     var diffResult = diff.diffWordsWithSpace('New Value', 'New  ValueMoreData');
-    diff.convertChangesToXML(diffResult).should.equal('New<ins>  ValueMoreData</ins><del> Value</del>');
+    diff.convertChangesToXML(diffResult).should.equal('New<del> Value</del><ins>  ValueMoreData</ins>');
   });
 
   it('should diff multiple whitespace values', function() {
@@ -155,12 +155,12 @@ describe('#diffChars', function() {
 describe('#diffSentences', function() {
   it('Should diff Sentences', function() {
     var diffResult = diff.diffSentences('New Value.', 'New ValueMoreData.');
-    diff.convertChangesToXML(diffResult).should.equal('<ins>New ValueMoreData.</ins><del>New Value.</del>');
+    diff.convertChangesToXML(diffResult).should.equal('<del>New Value.</del><ins>New ValueMoreData.</ins>');
   });
 
   it('should diff only the last sentence', function() {
     var diffResult = diff.diffSentences('Here im. Rock you like old man.', 'Here im. Rock you like hurricane.');
-    diff.convertChangesToXML(diffResult).should.equal('Here im. <ins>Rock you like hurricane.</ins><del>Rock you like old man.</del>');
+    diff.convertChangesToXML(diffResult).should.equal('Here im. <del>Rock you like old man.</del><ins>Rock you like hurricane.</ins>');
   });
 });
 
@@ -171,9 +171,9 @@ describe('#diffCss', function() {
       '.test,#value .test{margin-left:50px;margin-right:-40px}',
       '.test2, #value2 .test {\nmargin-top:50px;\nmargin-right:-400px;\n}');
     diff.convertChangesToXML(diffResult).should.equal(
-      '<ins>.test2</ins><del>.test</del>,<del>#value</del> <ins>#value2 </ins>.test<ins> </ins>{<ins>\n'
-      + 'margin-top</ins><del>margin-left</del>:50px;<ins>\n</ins>'
-      + 'margin-right:<ins>-400px;\n</ins><del>-40px</del>}');
+      '<del>.test</del><ins>.test2</ins>,<del>#value</del> <ins>#value2 </ins>.test<ins> </ins>{'
+      + '<del>margin-left</del><ins>\nmargin-top</ins>:50px;<ins>\n</ins>'
+      + 'margin-right:<del>-40px</del><ins>-400px;\n</ins>}');
   });
 });
 
@@ -183,7 +183,7 @@ describe('#diffLines', function() {
     var diffResult = diff.diffLines(
       'line\nold value\nline',
       'line\nnew value\nline');
-    diff.convertChangesToXML(diffResult).should.equal('line\n<ins>new value\n</ins><del>old value\n</del>line');
+    diff.convertChangesToXML(diffResult).should.equal('line\n<del>old value\n</del><ins>new value\n</ins>line');
   });
   it('should the same lines in diff', function() {
     var diffResult = diff.diffLines(
@@ -196,21 +196,21 @@ describe('#diffLines', function() {
     var diffResult = diff.diffLines(
       'line\nvalue \nline',
       'line\nvalue\nline');
-    diff.convertChangesToXML(diffResult).should.equal('line\n<ins>value\n</ins><del>value \n</del>line');
+    diff.convertChangesToXML(diffResult).should.equal('line\n<del>value \n</del><ins>value\n</ins>line');
   });
 
   it('should handle windows line endings', function() {
     var diffResult = diff.diffLines(
       'line\r\nold value \r\nline',
       'line\r\nnew value\r\nline');
-    diff.convertChangesToXML(diffResult).should.equal('line\r\n<ins>new value\r\n</ins><del>old value \r\n</del>line');
+    diff.convertChangesToXML(diffResult).should.equal('line\r\n<del>old value \r\n</del><ins>new value\r\n</ins>line');
   });
 
   it('should handle empty lines', function() {
     var diffResult = diff.diffLines(
       'line\n\nold value \n\nline',
       'line\n\nnew value\n\nline');
-    diff.convertChangesToXML(diffResult).should.equal('line\n\n<ins>new value\n</ins><del>old value \n</del>\nline');
+    diff.convertChangesToXML(diffResult).should.equal('line\n\n<del>old value \n</del><ins>new value\n</ins>\nline');
   });
 
   it('should handle empty input', function() {
@@ -227,7 +227,7 @@ describe('#TrimmedLineDiff', function() {
     var diffResult = diff.diffTrimmedLines(
       'line\nold value\nline',
       'line\nnew value\nline');
-    diff.convertChangesToXML(diffResult).should.equal('line\n<ins>new value\n</ins><del>old value\n</del>line');
+    diff.convertChangesToXML(diffResult).should.equal('line\n<del>old value\n</del><ins>new value\n</ins>line');
   });
   it('should the same lines in diff', function() {
     var diffResult = diff.diffTrimmedLines(
@@ -247,7 +247,7 @@ describe('#TrimmedLineDiff', function() {
     var diffResult = diff.diffTrimmedLines(
       'line\r\nold value \r\nline',
       'line\r\nnew value\r\nline');
-    diff.convertChangesToXML(diffResult).should.equal('line\r\n<ins>new value\r\n</ins><del>old value\r\n</del>line');
+    diff.convertChangesToXML(diffResult).should.equal('line\r\n<del>old value\r\n</del><ins>new value\r\n</ins>line');
   });
 });
 
@@ -326,6 +326,6 @@ describe('convertToDMP', function() {
     var diffResult = diff.diffWords('New Value  ', 'New  ValueMoreData ');
 
     diff.convertChangesToDMP(diffResult).should.eql(
-        [[0, 'New  '], [1, 'ValueMoreData'], [-1, 'Value'], [0, ' ']]);
+        [[0, 'New  '], [-1, 'Value'], [1, 'ValueMoreData'], [0, ' ']]);
   });
 });
