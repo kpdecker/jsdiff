@@ -322,7 +322,7 @@
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i],
           lastLine = lines[i - 1],
-          lastLineLastChar = lastLine ? lastLine[lastLine.length - 1] : '';
+          lastLineLastChar = lastLine && lastLine[lastLine.length - 1];
 
       // Merge lines that may contain windows new lines
       if (line === '\n' && lastLineLastChar === '\r') {
@@ -342,6 +342,28 @@
     return retLines;
   };
 
+  var PatchDiff = new Diff();
+  PatchDiff.tokenize = function(value) {
+    var ret = [],
+        linesAndNewlines = value.split(/(\n|\r\n)/);
+
+    // Ignore the final empty token that occurs if the string ends with a new line
+    if (!linesAndNewlines[linesAndNewlines.length - 1]) {
+      linesAndNewlines.pop();
+    }
+
+    // Merge the content and line separators into single tokens
+    for (var i = 0; i < linesAndNewlines.length; i++) {
+      var line = linesAndNewlines[i];
+
+      if (i % 2) {
+        ret[ret.length - 1] += line;
+      } else {
+        ret.push(line);
+      }
+    }
+    return ret;
+  };
 
   var SentenceDiff = new Diff();
   SentenceDiff.tokenize = function(value) {
@@ -387,7 +409,7 @@
       ret.push('--- ' + oldFileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
       ret.push('+++ ' + newFileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
 
-      var diff = LineDiff.diff(oldStr, newStr);
+      var diff = PatchDiff.diff(oldStr, newStr);
       diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
       // Formats a given set of lines for printing as context lines in a patch

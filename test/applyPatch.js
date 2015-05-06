@@ -305,4 +305,12 @@ describe('#applyPatch', function() {
         + ' line5\n')
       .should.equal(false);
   });
+
+  it('should work with unicode newline characters', function() {
+    var oldtext = 'AAAAAAAAAAAAAAAA\n\n';
+    var newtext = 'AAAAAAAAAAAAAAAA\nBBBBBB' + String.fromCharCode(0x2028) + '\nCCCCCCCCCCCCCCCCCC\n\n';
+
+    var diffed = diff.createPatch('test', oldtext, newtext);
+    diff.applyPatch(oldtext, diffed).should.equal(newtext);
+  });
 });
