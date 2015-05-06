@@ -379,9 +379,6 @@
       ret.push('+++ ' + newFileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
 
       var diff = LineDiff.diff(oldStr, newStr);
-      if (!diff[diff.length - 1].value) {
-        diff.pop();   // Remove trailing newline add
-      }
       diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
       // Formats a given set of lines for printing as context lines in a patch

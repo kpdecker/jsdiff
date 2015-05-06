@@ -485,4 +485,14 @@ describe('#createPatch', function() {
     var diffResult = diff.createPatch('testFileName', oldFile, oldFile, 'Old Header', 'New Header');
     diffResult.should.equal(expectedResult);
   });
+
+  it('should safely handle empty inputs', function() {
+    var expectedResult =
+      'Index: testFileName\n'
+      + '===================================================================\n'
+      + '--- testFileName\n'
+      + '+++ testFileName\n';
+    var diffResult = diff.createPatch('testFileName', '', '');
+    diffResult.should.equal(expectedResult);
+  });
 });
