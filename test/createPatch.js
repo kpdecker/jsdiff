@@ -486,6 +486,16 @@ describe('#createPatch', function() {
     diffResult.should.equal(expectedResult);
   });
 
+  it('should omit headers if undefined', function() {
+    var expectedResult =
+      'Index: testFileName\n'
+      + '===================================================================\n'
+      + '--- testFileName\n'
+      + '+++ testFileName\n';
+    var diffResult = diff.createPatch('testFileName', oldFile, oldFile);
+    diffResult.should.equal(expectedResult);
+  });
+
   it('should safely handle empty inputs', function() {
     var expectedResult =
       'Index: testFileName\n'
@@ -493,6 +503,15 @@ describe('#createPatch', function() {
       + '--- testFileName\n'
       + '+++ testFileName\n';
     var diffResult = diff.createPatch('testFileName', '', '');
+    diffResult.should.equal(expectedResult);
+  });
+
+  it('should omit index with multiple file names', function() {
+    var expectedResult =
+      '===================================================================\n'
+      + '--- foo\n'
+      + '+++ bar\n';
+    var diffResult = diff.createTwoFilesPatch('foo', 'bar', '', '');
     diffResult.should.equal(expectedResult);
   });
 });

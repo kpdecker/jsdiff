@@ -212,6 +212,13 @@ describe('#diffLines', function() {
       'line\n\nnew value\n\nline');
     diff.convertChangesToXML(diffResult).should.equal('line\n\n<ins>new value\n</ins><del>old value \n</del>\nline');
   });
+
+  it('should handle empty input', function() {
+    var diffResult = diff.diffLines(
+      'line\n\nold value \n\nline',
+      '');
+    diff.convertChangesToXML(diffResult).should.equal('<del>line\n\nold value \n\nline</del>');
+  });
 });
 
 // Trimmed Line Diff

@@ -318,7 +318,7 @@
       // Merge lines that may contain windows new lines
       if (line === '\n' && lastLineLastChar === '\r') {
           retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0, -1) + '\r\n';
-      } else if (line) {
+      } else {
         if (this.ignoreTrim) {
           line = line.trim();
           // add a newline unless this is the last line.
@@ -464,34 +464,35 @@
     },
 
     applyPatch: function(oldStr, uniDiff) {
-      var diffstr = uniDiff.split('\n');
-      var diff = [];
-      var i = 0,
+      var diffstr = uniDiff.split('\n'),
+          hunks = [],
+          i = 0,
           remEOFNL = false,
           addEOFNL = false;
 
-      // Skip to the first change chunk
+      // Skip to the first change hunk
       while (i < diffstr.length && !(/^@@/.test(diffstr[i]))) {
         i++;
       }
 
+      // Parse the unified diff
       for (; i < diffstr.length; i++) {
         if (diffstr[i][0] === '@') {
           var chnukHeader = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
-          diff.unshift({
+          hunks.unshift({
             start: chnukHeader[3],
-            oldlength: chnukHeader[2],
-            oldlines: [],
+            oldlength: +chnukHeader[2],
+            removed: [],
             newlength: chnukHeader[4],
-            newlines: []
+            added: []
           });
         } else if (diffstr[i][0] === '+') {
-          diff[0].newlines.push(diffstr[i].substr(1));
+          hunks[0].added.push(diffstr[i].substr(1));
         } else if (diffstr[i][0] === '-') {
-          diff[0].oldlines.push(diffstr[i].substr(1));
+          hunks[0].removed.push(diffstr[i].substr(1));
         } else if (diffstr[i][0] === ' ') {
-          diff[0].newlines.push(diffstr[i].substr(1));
-          diff[0].oldlines.push(diffstr[i].substr(1));
+          hunks[0].added.push(diffstr[i].substr(1));
+          hunks[0].removed.push(diffstr[i].substr(1));
         } else if (diffstr[i][0] === '\\') {
           if (diffstr[i - 1][0] === '+') {
             remEOFNL = true;
@@ -501,25 +502,28 @@
         }
       }
 
-      var str = oldStr.split('\n');
-      for (i = diff.length - 1; i >= 0; i--) {
-        var d = diff[i];
-        for (var j = 0; j < d.oldlength; j++) {
-          if (str[d.start - 1 + j] !== d.oldlines[j]) {
+      // Apply the diff to the input
+      var lines = oldStr.split('\n');
+      for (i = hunks.length - 1; i >= 0; i--) {
+        var hunk = hunks[i];
+        // Sanity check the input string. Bail if we don't match.
+        for (var j = 0; j < hunk.oldlength; j++) {
+          if (lines[hunk.start - 1 + j] !== hunk.removed[j]) {
             return false;
           }
         }
-        Array.prototype.splice.apply(str, [d.start - 1, +d.oldlength].concat(d.newlines));
+        Array.prototype.splice.apply(lines, [hunk.start - 1, hunk.oldlength].concat(hunk.added));
       }
 
+      // Handle EOFNL insertion/removal
       if (remEOFNL) {
-        while (!str[str.length - 1]) {
-          str.pop();
+        while (!lines[lines.length - 1]) {
+          lines.pop();
         }
       } else if (addEOFNL) {
-        str.push('');
+        lines.push('');
       }
-      return str.join('\n');
+      return lines.join('\n');
     },
 
     convertChangesToXML: function(changes) {

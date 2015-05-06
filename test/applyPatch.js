@@ -3,9 +3,9 @@ var diff = require('../diff');
 describe('#applyPatch', function() {
   it('should apply patches that change the last line', function() {
     diff.applyPatch(
-        'line2\n'+
-        'line3\n'+
-        'line5\n',
+        'line2\n'
+        + 'line3\n'
+        + 'line5\n',
 
         'Index: test\n'
         + '===================================================================\n'
@@ -272,9 +272,9 @@ describe('#applyPatch', function() {
 
   it('should apply patches that lack an index header', function() {
     diff.applyPatch(
-        'line2\n'+
-        'line3\n'+
-        'line5\n',
+        'line2\n'
+        + 'line3\n'
+        + 'line5\n',
 
         '--- test\theader1\n'
         + '+++ test\theader2\n'
@@ -288,5 +288,21 @@ describe('#applyPatch', function() {
         + 'line3\n'
         + 'line4\n'
         + 'line5\n');
+  });
+
+  it('should fail on mismatch', function() {
+    diff.applyPatch(
+        'line2\n'
+        + 'line2\n'
+        + 'line5\n',
+
+        '--- test\theader1\n'
+        + '+++ test\theader2\n'
+        + '@@ -1,3 +1,4 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + '+line4\n'
+        + ' line5\n')
+      .should.equal(false);
   });
 });
