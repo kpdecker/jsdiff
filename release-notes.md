@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.2...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.4.0...master)
+
+## v1.4.0 - May 6th, 2015
+- [#57](https://github.com/kpdecker/jsdiff/issues/57) - createPatch -> applyPatch failed. ([@mog422](https://api.github.com/users/mog422))
+- [#56](https://github.com/kpdecker/jsdiff/pull/56) - Two files patch ([@rgeissert](https://api.github.com/users/rgeissert))
+- [#14](https://github.com/kpdecker/jsdiff/issues/14) - Flip added and removed order? ([@jakesandlund](https://api.github.com/users/jakesandlund))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.3.2...v1.4.0)
 
 ## v1.3.2 - March 30th, 2015
 - [#53](https://github.com/kpdecker/jsdiff/pull/53) - Updated README.MD with Bower installation instructions ([@ofbriggs](https://api.github.com/users/ofbriggs))
