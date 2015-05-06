@@ -406,6 +406,7 @@
         current.lines = lines;
 
         if (current.added || current.removed) {
+          // If we have previous context, start with that
           if (!oldRangeStart) {
             var prev = diff[i - 1];
             oldRangeStart = oldLine;
@@ -417,17 +418,21 @@
               newRangeStart -= curRange.length;
             }
           }
+
+          // Output our changes
           curRange.push.apply(curRange, map(lines, function(entry) {
             return (current.added ? '+' : '-') + entry;
           }));
           eofNL(curRange, i, current);
 
+          // Track the updated file position
           if (current.added) {
             newLine += lines.length;
           } else {
             oldLine += lines.length;
           }
         } else {
+          // Identical context lines. Track line changes
           if (oldRangeStart) {
             // Close out any changes that have been output (or join overlapping)
             if (lines.length <= 8 && i < diff.length - 2) {
