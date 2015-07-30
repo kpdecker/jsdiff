@@ -400,7 +400,7 @@
     },
     
     structuredPatch: function(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-      if(!options) {
+      if (!options) {
         options = { context: 4 };
       }
       
@@ -413,7 +413,7 @@
 
       var hunks = [];
       var oldRangeStart = 0, newRangeStart = 0, curRange = [],
-        oldLine = 1, newLine = 1;
+          oldLine = 1, newLine = 1;
       for (var i = 0; i < diff.length; i++) {
         var current = diff[i],
             lines = current.lines || current.value.replace(/\n$/, '').split('\n');
@@ -454,25 +454,24 @@
             } else {
               // end the range and output
               var contextSize = Math.min(lines.length, options.context);
-              var hunklines = [];
-              hunklines.push.apply(hunklines, curRange);
-              hunklines.push.apply(hunklines, contextLines(lines.slice(0, contextSize)));
+              curRange.push.apply(curRange, contextLines(lines.slice(0, contextSize)));
 
               var hunk = { 
                 oldStart: oldRangeStart, 
                 oldLines: (oldLine - oldRangeStart + contextSize), 
                 newStart: newRangeStart, 
                 newLines: (newLine - newRangeStart + contextSize),
-                lines: hunklines
+                lines: curRange
               }
-              if(i >= diff.length - 2 && lines.length <= options.context) {
+              if (i >= diff.length - 2 && lines.length <= options.context) {
                 // EOF is inside this hunk
                 var oldEOFNewline = /\n$/.test(oldStr);
                 var newEOFNewline = /\n$/.test(newStr);
-                if(lines.length == 0 && !oldEOFNewline) {
-                  hunklines.splice(hunk.oldLines, 0, '\\ No newline at end of file')
+                if (lines.length == 0 && !oldEOFNewline) {
+                  // special case: old has no eol and no trailing context; no-nl can end up before adds
+                  curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file')
                 } else if (!oldEOFNewline || !newEOFNewline) {
-                  hunklines.push('\\ No newline at end of file')
+                  curRange.push('\\ No newline at end of file')
                 }
               }
               hunks.push(hunk);
@@ -505,7 +504,7 @@
       ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
       ret.push('+++ ' + diff.newFileName + (typeof diff.newHeader === 'undefined' ? '' : '\t' + diff.newHeader));
 
-      for(var i = 0; i < diff.hunks.length; i++) {
+      for (var i = 0; i < diff.hunks.length; i++) {
         var hunk = diff.hunks[i];
         ret.push(
           '@@ -' + hunk.oldStart + ',' + hunk.oldLines
