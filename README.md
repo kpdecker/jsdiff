@@ -74,15 +74,15 @@ or
     This method is similar to createTwoFilesPatch, but returns a data structure 
     suitable for further processing. Parameters are the same as createTwoFilesPatch. The data structure returned may look like this:
 
-```js
-{
-  oldFileName: 'oldfile', newFileName: 'newfile',
-  oldHeader: 'header1', newHeader: 'header2',
-  hunks: [{
-    oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
-    lines: [' line2', ' line3', '-line4', '+line5', '\\ No newline at end of file'],
-  }]
-}
+    ```js
+    {
+      oldFileName: 'oldfile', newFileName: 'newfile',
+      oldHeader: 'header1', newHeader: 'header2',
+      hunks: [{
+        oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
+        lines: [' line2', ' line3', '-line4', '+line5', '\\ No newline at end of file'],
+      }]
+    }
     ```
 
 * `JsDiff.applyPatch(oldStr, diffStr)` - applies a unified diff patch.
