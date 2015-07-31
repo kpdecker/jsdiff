@@ -62,10 +62,28 @@ or
     * `newStr` : New string value
     * `oldHeader` : Additional information to include in the old file header
     * `newHeader` : Additional information to include in thew new file header
+    * `options` : An object with options. Currently, only `context` is supported and describes how many lines of context should be included.
 
 * `JsDiff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 
     Just like JsDiff.createTwoFilesPatch, but with oldFileName being equal to newFileName.
+
+    
+    * `JsDiff.structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)` - returns an object with an array of hunk objects.
+
+        This method is similar to createTwoFilesPatch, but returns a data structure 
+        suitable for further processing. Parameters are the same as createTwoFilesPatch. The data structure returned may look like this:
+
+    ```js
+    {
+      oldFileName: 'oldfile', newFileName: 'newfile',
+      oldHeader: 'header1', newHeader: 'header2',
+      hunks: [{
+        oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
+        lines: [' line2', ' line3', '-line4', '+line5', '\\ No newline at end of file'],
+      }]
+    }
+    ```
 
 * `JsDiff.applyPatch(oldStr, diffStr)` - applies a unified diff patch.
 
