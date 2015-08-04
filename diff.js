@@ -398,37 +398,20 @@
         callback
       );
     },
-
-    createTwoFilesPatch: function(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader) {
-      var ret = [];
-
-      if (oldFileName == newFileName) {
-        ret.push('Index: ' + oldFileName);
+    
+    structuredPatch: function(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+      if (!options) {
+        options = { context: 4 };
       }
-      ret.push('===================================================================');
-      ret.push('--- ' + oldFileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
-      ret.push('+++ ' + newFileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
-
+      
       var diff = PatchDiff.diff(oldStr, newStr);
       diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
-
-      // Formats a given set of lines for printing as context lines in a patch
+      
       function contextLines(lines) {
         return map(lines, function(entry) { return ' ' + entry; });
       }
 
-      // Outputs the no newline at end of file warning if needed
-      function eofNL(curRange, i, current) {
-        var last = diff[diff.length - 2],
-            isLast = i === diff.length - 2,
-            isLastOfType = i === diff.length - 3 && current.added !== last.added;
-
-        // Figure out if this is the last line for the given file and missing NL
-        if (!(/\n$/.test(current.value)) && (isLast || isLastOfType)) {
-          curRange.push('\\ No newline at end of file');
-        }
-      }
-
+      var hunks = [];
       var oldRangeStart = 0, newRangeStart = 0, curRange = [],
           oldLine = 1, newLine = 1;
       for (var i = 0; i < diff.length; i++) {
@@ -444,7 +427,7 @@
             newRangeStart = newLine;
 
             if (prev) {
-              curRange = contextLines(prev.lines.slice(-4));
+              curRange = options.context > 0 ? contextLines(prev.lines.slice(-options.context)) : [];
               oldRangeStart -= curRange.length;
               newRangeStart -= curRange.length;
             }
@@ -454,7 +437,6 @@
           curRange.push.apply(curRange, map(lines, function(entry) {
             return (current.added ? '+' : '-') + entry;
           }));
-          eofNL(curRange, i, current);
 
           // Track the updated file position
           if (current.added) {
@@ -466,21 +448,33 @@
           // Identical context lines. Track line changes
           if (oldRangeStart) {
             // Close out any changes that have been output (or join overlapping)
-            if (lines.length <= 8 && i < diff.length - 2) {
+            if (lines.length <= options.context * 2 && i < diff.length - 2) {
               // Overlapping
               curRange.push.apply(curRange, contextLines(lines));
             } else {
               // end the range and output
-              var contextSize = Math.min(lines.length, 4);
-              ret.push(
-                  '@@ -' + oldRangeStart + ',' + (oldLine - oldRangeStart + contextSize)
-                  + ' +' + newRangeStart + ',' + (newLine - newRangeStart + contextSize)
-                  + ' @@');
-              ret.push.apply(ret, curRange);
-              ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
-              if (lines.length <= 4) {
-                eofNL(ret, i, current);
+              var contextSize = Math.min(lines.length, options.context);
+              curRange.push.apply(curRange, contextLines(lines.slice(0, contextSize)));
+
+              var hunk = { 
+                oldStart: oldRangeStart, 
+                oldLines: (oldLine - oldRangeStart + contextSize), 
+                newStart: newRangeStart, 
+                newLines: (newLine - newRangeStart + contextSize),
+                lines: curRange
               }
+              if (i >= diff.length - 2 && lines.length <= options.context) {
+                // EOF is inside this hunk
+                var oldEOFNewline = /\n$/.test(oldStr);
+                var newEOFNewline = /\n$/.test(newStr);
+                if (lines.length == 0 && !oldEOFNewline) {
+                  // special case: old has no eol and no trailing context; no-nl can end up before adds
+                  curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file')
+                } else if (!oldEOFNewline || !newEOFNewline) {
+                  curRange.push('\\ No newline at end of file')
+                }
+              }
+              hunks.push(hunk);
 
               oldRangeStart = 0;
               newRangeStart = 0;
@@ -491,12 +485,40 @@
           newLine += lines.length;
         }
       }
+      
+      return {
+        oldFileName: oldFileName, newFileName: newFileName,
+        oldHeader: oldHeader, newHeader: newHeader,
+        hunks: hunks
+      };
+    },
 
+    createTwoFilesPatch: function(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+      var diff = JsDiff.structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
+
+      var ret = [];
+      if (oldFileName == newFileName) {
+        ret.push('Index: ' + oldFileName);
+      }
+      ret.push('===================================================================');
+      ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
+      ret.push('+++ ' + diff.newFileName + (typeof diff.newHeader === 'undefined' ? '' : '\t' + diff.newHeader));
+
+      for (var i = 0; i < diff.hunks.length; i++) {
+        var hunk = diff.hunks[i];
+        ret.push(
+          '@@ -' + hunk.oldStart + ',' + hunk.oldLines
+          + ' +' + hunk.newStart + ',' + hunk.newLines
+          + ' @@'
+        );
+        ret.push.apply(ret, hunk.lines);
+      }
+      
       return ret.join('\n') + '\n';
     },
 
-    createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
-      return JsDiff.createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader);
+    createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader, options) {
+      return JsDiff.createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options);
     },
 
     applyPatch: function(oldStr, uniDiff) {

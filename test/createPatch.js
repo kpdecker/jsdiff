@@ -56,7 +56,7 @@ describe('#createPatch', function() {
       + '+line5\n');
   });
 
-  it('should output no newline at end of file message', function() {
+  it('should output "no newline" at end of file message on new missing nl', function() {
     diff.createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline4', 'header1', 'header2').should.equal(
       'Index: test\n'
       + '===================================================================\n'
@@ -69,7 +69,9 @@ describe('#createPatch', function() {
       + '-line4\n'
       + '+line4\n'
       + '\\ No newline at end of file\n');
+  });
 
+  it('should output "no newline" at end of file message on old missing nl', function() {
     diff.createPatch('test', 'line1\nline2\nline3\nline4', 'line1\nline2\nline3\nline4\n', 'header1', 'header2').should.equal(
       'Index: test\n'
       + '===================================================================\n'
@@ -82,7 +84,9 @@ describe('#createPatch', function() {
       + '-line4\n'
       + '\\ No newline at end of file\n'
       + '+line4\n');
+  });
 
+  it('should output "no newline" at end of file message on context missing nl', function() {
     diff.createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2').should.equal(
       'Index: test\n'
       + '===================================================================\n'
@@ -95,7 +99,9 @@ describe('#createPatch', function() {
       + ' line3\n'
       + ' line4\n'
       + '\\ No newline at end of file\n');
+  });
 
+  it('should not output no newline at end of file message when eof outside hunk', function() {
     diff.createPatch('test', 'line11\nline2\nline3\nline4\nline4\nline4\nline4', 'line1\nline2\nline3\nline4\nline4\nline4\nline4', 'header1', 'header2').should.equal(
       'Index: test\n'
       + '===================================================================\n'
@@ -422,7 +428,7 @@ describe('#createPatch', function() {
     + 'context\n'
     + 'context';
 
-  it('should generate a patch', function() {
+  it('should generate a patch with default context size', function() {
     var expectedResult =
       'Index: testFileName\n'
       + '===================================================================\n'
@@ -473,6 +479,72 @@ describe('#createPatch', function() {
       + '\\ No newline at end of file\n';
 
     var diffResult = diff.createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header');
+    diffResult.should.equal(expectedResult);
+  });
+  
+  it('should generatea a patch with context size 0', function() {
+    var expectedResult =
+      'Index: testFileName\n'
+      + '===================================================================\n'
+      + '--- testFileName\tOld Header\n'
+      + '+++ testFileName\tNew Header\n'
+      + '@@ -1,1 +1,2 @@\n'
+      + '-value\n'
+      + '+new value\n'
+      + '+new value 2\n'
+      + '@@ -11,1 +12,0 @@\n'
+      + '-remove value\n'
+      + '@@ -21,1 +21,0 @@\n'
+      + '-remove value\n'
+      + '@@ -30,0 +29,1 @@\n'
+      + '+add value\n'
+      + '@@ -34,1 +34,2 @@\n'
+      + '-value\n'
+      + '+new value\n'
+      + '+new value 2\n';
+      var diffResult = diff.createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 0 });
+      diffResult.should.equal(expectedResult);
+  });
+  
+  it('should generate a patch with context size 2', function() {
+    var expectedResult =
+      'Index: testFileName\n'
+      + '===================================================================\n'
+      + '--- testFileName\tOld Header\n'
+      + '+++ testFileName\tNew Header\n'
+      + '@@ -1,3 +1,4 @@\n'
+      + '-value\n'
+      + '+new value\n'
+      + '+new value 2\n'
+      + ' context\n'
+      + ' context\n'
+      + '@@ -9,5 +10,4 @@\n'
+      + ' context\n'
+      + ' context\n'
+      + '-remove value\n'
+      + ' context\n'
+      + ' context\n'
+      + '@@ -19,5 +19,4 @@\n'
+      + ' context\n'
+      + ' context\n'
+      + '-remove value\n'
+      + ' context\n'
+      + ' context\n'
+      + '@@ -28,9 +27,11 @@\n'
+      + ' context\n'
+      + ' context\n'
+      + '+add value\n'
+      + ' context\n'
+      + ' context\n'
+      + ' context\n'
+      + ' context\n'
+      + '-value\n'
+      + '+new value\n'
+      + '+new value 2\n'
+      + ' context\n'
+      + ' context\n'
+      + '\\ No newline at end of file\n';
+    var diffResult = diff.createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 2 });
     diffResult.should.equal(expectedResult);
   });
 
