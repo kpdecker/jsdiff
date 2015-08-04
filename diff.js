@@ -33,15 +33,6 @@
   function clonePath(path) {
     return { newPos: path.newPos, components: path.components.slice(0) };
   }
-  function removeEmpty(array) {
-    var ret = [];
-    for (var i = 0; i < array.length; i++) {
-      if (array[i]) {
-        ret.push(array[i]);
-      }
-    }
-    return ret;
-  }
   function escapeHTML(s) {
     var n = s;
     n = n.replace(/&/g, '&amp;');
@@ -170,8 +161,8 @@
         return done([{ value: newString, added: true }]);
       }
 
-      newString = this.tokenize(newString);
-      oldString = this.tokenize(oldString);
+      newString = this.removeEmpty(this.tokenize(newString));
+      oldString = this.removeEmpty(this.tokenize(oldString));
 
       var newLen = newString.length, oldLen = oldString.length;
       var editLength = 1;
@@ -293,6 +284,15 @@
       var reWhitespace = /\S/;
       return left === right || (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
     },
+    removeEmpty: function(array) {
+      var ret = [];
+      for (var i = 0; i < array.length; i++) {
+        if (array[i]) {
+          ret.push(array[i]);
+        }
+      }
+      return ret;
+    },
     tokenize: function(value) {
       return value.split('');
     }
@@ -303,12 +303,12 @@
   var WordDiff = new Diff(true);
   var WordWithSpaceDiff = new Diff();
   WordDiff.tokenize = WordWithSpaceDiff.tokenize = function(value) {
-    return removeEmpty(value.split(/(\s+|\b)/));
+    return value.split(/(\s+|\b)/);
   };
 
   var CssDiff = new Diff(true);
   CssDiff.tokenize = function(value) {
-    return removeEmpty(value.split(/([{}:;,]|\s+)/));
+    return value.split(/([{}:;,]|\s+)/);
   };
 
   var LineDiff = new Diff();
@@ -367,7 +367,7 @@
 
   var SentenceDiff = new Diff();
   SentenceDiff.tokenize = function(value) {
-    return removeEmpty(value.split(/(\S.+?[.!?])(?=\s+|$)/));
+    return value.split(/(\S.+?[.!?])(?=\s+|$)/);
   };
 
   var JsonDiff = new Diff();
