@@ -17,7 +17,7 @@
 (function(global, undefined) {
   var objectPrototypeToString = Object.prototype.toString;
 
-  /*istanbul ignore next*/
+  /* istanbul ignore next*/
   function map(arr, mapper, that) {
     if (Array.prototype.map) {
       return Array.prototype.map.call(arr, mapper, that);
@@ -238,7 +238,7 @@
         (function exec() {
           setTimeout(function() {
             // This should not happen, but we want to be safe.
-            /*istanbul ignore next */
+            /* istanbul ignore next */
             if (editLength > maxEditLength) {
               return callback();
             }
@@ -398,15 +398,15 @@
         callback
       );
     },
-    
+
     structuredPatch: function(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
       if (!options) {
         options = { context: 4 };
       }
-      
+
       var diff = PatchDiff.diff(oldStr, newStr);
       diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
-      
+
       function contextLines(lines) {
         return map(lines, function(entry) { return ' ' + entry; });
       }
@@ -456,22 +456,22 @@
               var contextSize = Math.min(lines.length, options.context);
               curRange.push.apply(curRange, contextLines(lines.slice(0, contextSize)));
 
-              var hunk = { 
-                oldStart: oldRangeStart, 
-                oldLines: (oldLine - oldRangeStart + contextSize), 
-                newStart: newRangeStart, 
+              var hunk = {
+                oldStart: oldRangeStart,
+                oldLines: (oldLine - oldRangeStart + contextSize),
+                newStart: newRangeStart,
                 newLines: (newLine - newRangeStart + contextSize),
                 lines: curRange
-              }
+              };
               if (i >= diff.length - 2 && lines.length <= options.context) {
                 // EOF is inside this hunk
-                var oldEOFNewline = /\n$/.test(oldStr);
-                var newEOFNewline = /\n$/.test(newStr);
+                var oldEOFNewline = (/\n$/.test(oldStr));
+                var newEOFNewline = (/\n$/.test(newStr));
                 if (lines.length == 0 && !oldEOFNewline) {
                   // special case: old has no eol and no trailing context; no-nl can end up before adds
-                  curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file')
+                  curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file');
                 } else if (!oldEOFNewline || !newEOFNewline) {
-                  curRange.push('\\ No newline at end of file')
+                  curRange.push('\\ No newline at end of file');
                 }
               }
               hunks.push(hunk);
@@ -485,7 +485,7 @@
           newLine += lines.length;
         }
       }
-      
+
       return {
         oldFileName: oldFileName, newFileName: newFileName,
         oldHeader: oldHeader, newHeader: newHeader,
@@ -513,7 +513,7 @@
         );
         ret.push.apply(ret, hunk.lines);
       }
-      
+
       return ret.join('\n') + '\n';
     },
 
@@ -628,12 +628,12 @@
     canonicalize: canonicalize
   };
 
-  /*istanbul ignore next */
-  /*global module */
+  /* istanbul ignore next */
+  /* global module */
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = JsDiff;
   } else if (typeof define === 'function' && define.amd) {
-    /*global define */
+    /* global define */
     define([], function() { return JsDiff; });
   } else if (typeof global.JsDiff === 'undefined') {
     global.JsDiff = JsDiff;

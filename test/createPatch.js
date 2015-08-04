@@ -1,4 +1,4 @@
-const VERBOSE = false;
+var VERBOSE = false;
 
 var diff = require('../diff');
 
@@ -314,11 +314,11 @@ describe('#createPatch', function() {
     var largeNewValue = largeTest,
         len = largeTest.length,
         count = nextRandom() % 20,
-        removeBound = len-(count*100),
+        removeBound = len - (count * 100),
         logData = [];
     for (; count > 0; count--) {
     var removePos = nextRandom() % removeBound,
-        removeLength = 1+nextRandom()%100;
+        removeLength = 1 + nextRandom() % 100;
     logData.push('(' + removePos + ', ' + removeLength + ')');
     largeNewValue = largeNewValue.substring(0, removePos)
         + largeNewValue.substring(removePos + removeLength);
@@ -481,7 +481,7 @@ describe('#createPatch', function() {
     var diffResult = diff.createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header');
     diffResult.should.equal(expectedResult);
   });
-  
+
   it('should generatea a patch with context size 0', function() {
     var expectedResult =
       'Index: testFileName\n'
@@ -505,7 +505,7 @@ describe('#createPatch', function() {
       var diffResult = diff.createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 0 });
       diffResult.should.equal(expectedResult);
   });
-  
+
   it('should generate a patch with context size 2', function() {
     var expectedResult =
       'Index: testFileName\n'

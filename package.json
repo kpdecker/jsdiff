@@ -28,11 +28,12 @@
   },
   "main": "./diff",
   "scripts": {
-    "test": "istanbul cover node_modules/.bin/_mocha test/*.js && istanbul check-coverage --statements 100 --functions 100 --branches 100 --lines 100 coverage/coverage.json"
+    "test": "eslint *.js test/ && istanbul cover node_modules/.bin/_mocha test/*.js && istanbul check-coverage --statements 100 --functions 100 --branches 100 --lines 100 coverage/coverage.json"
   },
   "dependencies": {},
   "devDependencies": {
     "colors": "^1.1.0",
+    "eslint": "^1.0.0",
     "istanbul": "^0.3.2",
     "mocha": "^2.2.4",
     "should": "^6.0.1"
