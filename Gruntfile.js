@@ -53,7 +53,7 @@ module.exports = function(grunt) {
     mochaTest: {
       test: {
         options: {
-
+          require: ['babel/register', 'should']
         },
         src: ['test/**/*.js']
       }
@@ -61,7 +61,7 @@ module.exports = function(grunt) {
 
     mocha_istanbul: {
       coverage: {
-        src: 'test'
+        src: 'test/**/*.js'
       }
     },
     istanbul_check_coverage: {
