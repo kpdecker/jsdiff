@@ -67,3 +67,4 @@ export function canonicalize(obj, stack, replacementStack) {
 }
 
 export const jsonDiff = new JsonDiff();
+export function diffJson(oldObj, newObj, callback) { return jsonDiff.diff(oldObj, newObj, callback); }

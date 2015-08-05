@@ -31,3 +31,6 @@ export default class LineDiff extends Diff {
 export const lineDiff = new LineDiff();
 export const trimmedLineDiff = new LineDiff();
 trimmedLineDiff.ignoreTrim = true;
+
+export function diffLines(oldStr, newStr, callback) { return lineDiff.diff(oldStr, newStr, callback); }
+export function diffTrimmedLines(oldStr, newStr, callback) { return trimmedLineDiff.diff(oldStr, newStr, callback); }

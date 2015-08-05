@@ -7,3 +7,4 @@ export default class CssDiff extends Diff {
 }
 
 export const cssDiff = new CssDiff();
+export function diffCss(oldStr, newStr, callback) { return cssDiff.diff(oldStr, newStr, callback); }

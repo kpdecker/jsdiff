@@ -15,13 +15,13 @@
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 import Diff from './diff/base';
-import {characterDiff} from './diff/character';
-import {lineDiff, trimmedLineDiff} from './diff/line';
-import {sentenceDiff} from './diff/sentence';
-import {wordDiff, wordWithSpaceDiff} from './diff/word';
+import {diffChars} from './diff/character';
+import {diffWords, diffWordsWithSpace} from './diff/word';
+import {diffLines, diffTrimmedLines} from './diff/line';
+import {diffSentences} from './diff/sentence';
 
-import {cssDiff} from './diff/css';
-import {jsonDiff, canonicalize} from './diff/json';
+import {diffCss} from './diff/css';
+import {diffJson, canonicalize} from './diff/json';
 
 import {applyPatch} from './patch/apply';
 import {structuredPatch, createTwoFilesPatch, createPatch} from './patch/create';
@@ -31,6 +31,17 @@ import {convertChangesToXML} from './convert/xml';
 
 export {
   Diff,
+
+  diffChars,
+  diffWords,
+  diffWordsWithSpace,
+  diffLines,
+  diffTrimmedLines,
+  diffSentences,
+
+  diffCss,
+  diffJson,
+
   structuredPatch,
   createTwoFilesPatch,
   createPatch,
@@ -39,13 +50,3 @@ export {
   convertChangesToXML,
   canonicalize
 };
-
-export function diffChars(oldStr, newStr, callback) { return characterDiff.diff(oldStr, newStr, callback); }
-export function diffWords(oldStr, newStr, callback) { return wordDiff.diff(oldStr, newStr, callback); }
-export function diffWordsWithSpace(oldStr, newStr, callback) { return wordWithSpaceDiff.diff(oldStr, newStr, callback); }
-export function diffLines(oldStr, newStr, callback) { return lineDiff.diff(oldStr, newStr, callback); }
-export function diffTrimmedLines(oldStr, newStr, callback) { return trimmedLineDiff.diff(oldStr, newStr, callback); }
-export function diffSentences(oldStr, newStr, callback) { return sentenceDiff.diff(oldStr, newStr, callback); }
-
-export function diffCss(oldStr, newStr, callback) { return cssDiff.diff(oldStr, newStr, callback); }
-export function diffJson(oldObj, newObj, callback) { return jsonDiff.diff(oldObj, newObj, callback); }

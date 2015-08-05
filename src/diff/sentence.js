@@ -7,3 +7,4 @@ export default class SentenceDiff extends Diff {
 }
 
 export const sentenceDiff = new SentenceDiff();
+export function diffSentences(oldStr, newStr, callback) { return sentenceDiff.diff(oldStr, newStr, callback); }
