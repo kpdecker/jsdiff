@@ -50,6 +50,15 @@ module.exports = function(grunt) {
       }
     },
 
+    mochaTest: {
+      test: {
+        options: {
+
+        },
+        src: ['test/**/*.js']
+      }
+    },
+
     mocha_istanbul: {
       coverage: {
         src: 'test'
@@ -83,6 +92,7 @@ module.exports = function(grunt) {
 
   // Build a new version of the library
   this.registerTask('build', 'Builds a distributable version of the current project', ['eslint', 'babel', 'webpack']);
+  this.registerTask('test', ['build', 'mochaTest']);
   this.registerTask('cover', ['build', 'mocha_istanbul:coverage', 'istanbul_check_coverage']);
 
   // Load tasks from npm
@@ -90,6 +100,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-eslint');
+  grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-mocha-istanbul');
   grunt.loadNpmTasks('grunt-webpack');
 
