@@ -14,7 +14,7 @@ module.exports = function(grunt) {
       ]
     },
 
-    clean: ['dist'],
+    clean: ['lib', 'dist'],
 
     babel: {
       options: {
@@ -29,13 +29,13 @@ module.exports = function(grunt) {
           cwd: 'src/',
           expand: true,
           src: '**/*.js',
-          dest: 'dist/cjs/'
+          dest: 'lib/'
         }]
       }
     },
     webpack: {
       options: {
-        context: 'dist/cjs/',
+        context: 'lib/',
         output: {
           path: 'dist/',
           library: 'JsDiff',
@@ -43,7 +43,7 @@ module.exports = function(grunt) {
         }
       },
       dist: {
-        entry: './diff.js',
+        entry: './index.js',
         output: {
           filename: 'diff.js'
         }
