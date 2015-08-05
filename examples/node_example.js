@@ -1,5 +1,5 @@
 require('colors')
-var jsdiff = require('../diff');
+var jsdiff = require('../');
 
 var one = 'beep boop';
 var other = 'beep boob blah';

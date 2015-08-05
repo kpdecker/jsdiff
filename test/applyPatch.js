@@ -1,4 +1,4 @@
-var diff = require('../diff');
+var diff = require('../');
 
 describe('#applyPatch', function() {
   it('should apply patches that change the last line', function() {

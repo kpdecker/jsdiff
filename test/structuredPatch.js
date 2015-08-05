@@ -1,4 +1,4 @@
-var diff = require('../diff');
+var diff = require('../');
 
 describe('#structuredPatch', function() {
   it('should handle files with the last line changed', function() {

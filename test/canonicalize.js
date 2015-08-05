@@ -1,4 +1,4 @@
-var diff = require('../diff');
+var diff = require('../');
 
 function getKeys(obj) {
   var keys = [];

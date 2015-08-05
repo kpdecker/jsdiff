@@ -1,4 +1,4 @@
-var diff = require('../diff'),
+var diff = require('../'),
     should = require('should');
 
 describe('#diffWords', function() {

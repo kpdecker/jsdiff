@@ -1,6 +1,6 @@
 var VERBOSE = false;
 
-var diff = require('../diff');
+var diff = require('../');
 
 function log() {
   VERBOSE && console.log.apply(console, arguments);
