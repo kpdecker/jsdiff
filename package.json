@@ -26,17 +26,17 @@
   "engines": {
     "node": ">=0.3.1"
   },
-  "main": "./dist/diff",
+  "main": "./dist/cjs/diff",
   "scripts": {
     "test": "grunt"
   },
   "dependencies": {},
   "devDependencies": {
     "babel-core": "^5.8.20",
-    "babel-loader": "^5.3.2",
     "colors": "^1.1.0",
     "eslint": "^1.0.0",
     "grunt": "^0.4.5",
+    "grunt-babel": "^5.0.1",
     "grunt-clean": "^0.4.0",
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",

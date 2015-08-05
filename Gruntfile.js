@@ -1,11 +1,9 @@
-/* esline-env node */
+/* eslint-env node */
 /* eslint-disable no-process-env, camelcase */
 module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-
-    clean: ['dist'],
 
     eslint: {
       options: {
@@ -18,15 +16,26 @@ module.exports = function(grunt) {
 
     clean: ['dist'],
 
+    babel: {
+      options: {
+        loose: ['es6.modules'],
+        auxiliaryCommentBefore: 'istanbul ignore next'
+      },
+      cjs: {
+        options: {
+          modules: 'common'
+        },
+        files: [{
+          cwd: 'src/',
+          expand: true,
+          src: '**/*.js',
+          dest: 'dist/cjs/'
+        }]
+      }
+    },
     webpack: {
       options: {
-        context: __dirname,
-        module: {
-          loaders: [
-            // the optional 'runtime' transformer tells babel to require the runtime instead of inlining it.
-            { test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel-loader?optional=runtime&loose=es6.modules&auxiliaryCommentBefore=istanbul%20ignore%20next' }
-          ]
-        },
+        context: 'dist/cjs/',
         output: {
           path: 'dist/',
           library: 'JsDiff',
@@ -34,7 +43,7 @@ module.exports = function(grunt) {
         }
       },
       dist: {
-        entry: './src/diff.js',
+        entry: './diff.js',
         output: {
           filename: 'diff.js'
         }
@@ -67,18 +76,19 @@ module.exports = function(grunt) {
         },
 
         files: ['src/**/*.js', 'test/**/*.js'],
-        tasks: ['build', 'test']
+        tasks: ['test', 'cover']
       }
     }
   });
 
   // Build a new version of the library
-  this.registerTask('build', 'Builds a distributable version of the current project', ['eslint', 'webpack']);
-  this.registerTask('test', ['mocha_istanbul:coverage', 'istanbul_check_coverage']);
+  this.registerTask('build', 'Builds a distributable version of the current project', ['eslint', 'babel', 'webpack']);
+  this.registerTask('cover', ['build', 'mocha_istanbul:coverage', 'istanbul_check_coverage']);
 
   // Load tasks from npm
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-mocha-istanbul');
   grunt.loadNpmTasks('grunt-webpack');
@@ -86,5 +96,5 @@ module.exports = function(grunt) {
   grunt.registerTask('travis', 'default');
 
   grunt.registerTask('dev', ['clean', 'watch']);
-  grunt.registerTask('default', ['clean', 'build', 'test']);
+  grunt.registerTask('default', ['clean', 'build', 'cover']);
 };
