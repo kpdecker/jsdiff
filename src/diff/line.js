@@ -2,10 +2,10 @@ import Diff from './base';
 
 export default class LineDiff extends Diff {
   tokenize(value) {
-    var retLines = [],
+    let retLines = [],
         lines = value.split(/^/m);
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i],
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i],
           lastLine = lines[i - 1],
           lastLineLastChar = lastLine && lastLine[lastLine.length - 1];
 

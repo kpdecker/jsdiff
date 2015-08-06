@@ -7,9 +7,9 @@ function map(arr, mapper, that) {
     return Array.prototype.map.call(arr, mapper, that);
   }
 
-  var other = new Array(arr.length);
+  let other = new Array(arr.length);
 
-  for (var i = 0, n = arr.length; i < n; i++) {
+  for (let i = 0, n = arr.length; i < n; i++) {
     other[i] = mapper.call(that, arr[i], i, arr);
   }
   return other;

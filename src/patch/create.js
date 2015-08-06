@@ -6,25 +6,25 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
     options = { context: 4 };
   }
 
-  var diff = patchDiff.diff(oldStr, newStr);
+  const diff = patchDiff.diff(oldStr, newStr);
   diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
   function contextLines(lines) {
     return map(lines, function(entry) { return ' ' + entry; });
   }
 
-  var hunks = [];
-  var oldRangeStart = 0, newRangeStart = 0, curRange = [],
+  let hunks = [];
+  let oldRangeStart = 0, newRangeStart = 0, curRange = [],
       oldLine = 1, newLine = 1;
-  for (var i = 0; i < diff.length; i++) {
-    var current = diff[i],
-        lines = current.lines || current.value.replace(/\n$/, '').split('\n');
+  for (let i = 0; i < diff.length; i++) {
+    const current = diff[i],
+          lines = current.lines || current.value.replace(/\n$/, '').split('\n');
     current.lines = lines;
 
     if (current.added || current.removed) {
       // If we have previous context, start with that
       if (!oldRangeStart) {
-        var prev = diff[i - 1];
+        const prev = diff[i - 1];
         oldRangeStart = oldLine;
         newRangeStart = newLine;
 
@@ -55,10 +55,10 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
           curRange.push.apply(curRange, contextLines(lines));
         } else {
           // end the range and output
-          var contextSize = Math.min(lines.length, options.context);
+          let contextSize = Math.min(lines.length, options.context);
           curRange.push.apply(curRange, contextLines(lines.slice(0, contextSize)));
 
-          var hunk = {
+          let hunk = {
             oldStart: oldRangeStart,
             oldLines: (oldLine - oldRangeStart + contextSize),
             newStart: newRangeStart,
@@ -67,8 +67,8 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
           };
           if (i >= diff.length - 2 && lines.length <= options.context) {
             // EOF is inside this hunk
-            var oldEOFNewline = (/\n$/.test(oldStr));
-            var newEOFNewline = (/\n$/.test(newStr));
+            let oldEOFNewline = (/\n$/.test(oldStr));
+            let newEOFNewline = (/\n$/.test(newStr));
             if (lines.length == 0 && !oldEOFNewline) {
               // special case: old has no eol and no trailing context; no-nl can end up before adds
               curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file');
@@ -96,9 +96,9 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
 }
 
 export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-  var diff = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
+  const diff = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
 
-  var ret = [];
+  const ret = [];
   if (oldFileName == newFileName) {
     ret.push('Index: ' + oldFileName);
   }
@@ -106,8 +106,8 @@ export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, ol
   ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
   ret.push('+++ ' + diff.newFileName + (typeof diff.newHeader === 'undefined' ? '' : '\t' + diff.newHeader));
 
-  for (var i = 0; i < diff.hunks.length; i++) {
-    var hunk = diff.hunks[i];
+  for (let i = 0; i < diff.hunks.length; i++) {
+    const hunk = diff.hunks[i];
     ret.push(
       '@@ -' + hunk.oldStart + ',' + hunk.oldLines
       + ' +' + hunk.newStart + ',' + hunk.newLines

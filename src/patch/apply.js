@@ -1,5 +1,5 @@
 export function applyPatch(oldStr, uniDiff) {
-  var diffstr = uniDiff.split('\n'),
+  let diffstr = uniDiff.split('\n'),
       hunks = [],
       i = 0,
       remEOFNL = false,
@@ -13,7 +13,7 @@ export function applyPatch(oldStr, uniDiff) {
   // Parse the unified diff
   for (; i < diffstr.length; i++) {
     if (diffstr[i][0] === '@') {
-      var chnukHeader = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
+      let chnukHeader = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
       hunks.unshift({
         start: chnukHeader[3],
         oldlength: +chnukHeader[2],
@@ -38,11 +38,11 @@ export function applyPatch(oldStr, uniDiff) {
   }
 
   // Apply the diff to the input
-  var lines = oldStr.split('\n');
+  let lines = oldStr.split('\n');
   for (i = hunks.length - 1; i >= 0; i--) {
-    var hunk = hunks[i];
+    let hunk = hunks[i];
     // Sanity check the input string. Bail if we don't match.
-    for (var j = 0; j < hunk.oldlength; j++) {
+    for (let j = 0; j < hunk.oldlength; j++) {
       if (lines[hunk.start - 1 + j] !== hunk.removed[j]) {
         return false;
       }

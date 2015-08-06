@@ -138,7 +138,7 @@ describe('patch/apply', function() {
 
     it('should apply patches', function() {
       // Create patch
-      var oldFile =
+      const oldFile =
         'value\n'
         + 'context\n'
         + 'context\n'
@@ -175,7 +175,7 @@ describe('patch/apply', function() {
         + 'value\n'
         + 'context\n'
         + 'context';
-      var newFile =
+      const newFile =
         'new value\n'
         + 'new value 2\n'
         + 'context\n'
@@ -213,7 +213,7 @@ describe('patch/apply', function() {
         + 'new value 2\n'
         + 'context\n'
         + 'context';
-      var diffFile =
+      let diffFile =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
@@ -309,10 +309,10 @@ describe('patch/apply', function() {
     });
 
     it('should work with unicode newline characters', function() {
-      var oldtext = 'AAAAAAAAAAAAAAAA\n\n';
-      var newtext = 'AAAAAAAAAAAAAAAA\nBBBBBB' + String.fromCharCode(0x2028) + '\nCCCCCCCCCCCCCCCCCC\n\n';
+      const oldtext = 'AAAAAAAAAAAAAAAA\n\n';
+      const newtext = 'AAAAAAAAAAAAAAAA\nBBBBBB' + String.fromCharCode(0x2028) + '\nCCCCCCCCCCCCCCCCCC\n\n';
 
-      var diffed = createPatch('test', oldtext, newtext);
+      const diffed = createPatch('test', oldtext, newtext);
       applyPatch(oldtext, diffed).should.equal(newtext);
     });
   });

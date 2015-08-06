@@ -118,13 +118,14 @@ describe('patch/create', function() {
     });
 
     it('should diff large content blocks', function() {
-      var random = 42;
-      var mult = 134775813, range = Math.pow(2, 32);
+      let random = 42;
+      const mult = 134775813,
+            range = Math.pow(2, 32);
       function nextRandom() {
         random = ((random * mult) + 1) % range;
         return random;
       }
-      var largeTest = '.hbh9asgiidc {ehaahc9:ses;bhg9hc:ses;idgaag-hi9aa:cdca;ihgd9gdgca-gdadg:ighchehgaci;ggghdg:edhciag;daagsada:ahhhiaa;ahai7:hgid;}.hbh9asgiidc.hchgihaa {ggghdg:hgid;}.igiidchbh9ah {ihgd9gdgca-hbh9a:gga('
+      const largeTest = '.hbh9asgiidc {ehaahc9:ses;bhg9hc:ses;idgaag-hi9aa:cdca;ihgd9gdgca-gdadg:ighchehgaci;ggghdg:edhciag;daagsada:ahhhiaa;ahai7:hgid;}.hbh9asgiidc.hchgihaa {ggghdg:hgid;}.igiidchbh9ah {ihgd9gdgca-hbh9a:gga('
         + 'hbh9ah/igiidcfhbh9ah.9hs);ihgd9gdgca-gaeahi:cd-gaeahi;7ah97i:7des;bhg9hc-gh97i:ses;ahai7:7des;ihgd9gdgca-edhhihdc:ses ses;}.igiidcfgde9 {ihgd9gdgca-edhhihdc:ses ses;}.bdghadaag .igiidcfgde9 {ihgd9gdgc'
         + 'a-edhhihdc:-7des ses;}.hchgihaa .igiidcfgde9 {ihgd9gdgca-edhhihdc:-dses ses;}.igiidcfaaaaia {ihgd9gdgca-edhhihdc:-bdes ses;}.bdghadaag .igiidcfaaaaia {ihgd9gdgca-edhhihdc:-9sses ses;}.hchgihaa .igiidc'
         + 'faaaaia {ihgd9gdgca-edhhihdc:-97des ses;}.igiidcfadacadha {ihgd9gdgca-edhhihdc:-9dses ses;}.bdghadaag .igiidcfadacadha {ihgd9gdgca-edhhihdc:-9bdes ses;}.hchgihaa .igiidcfadacadha {ihgd9gdgca-edhhihdc:'
@@ -312,25 +313,24 @@ describe('patch/create', function() {
         + 'gdgca-edhhihdc:-9sdes -ses;ahai7:9hes;7ah97i:77es;}.hchgihaa .igiidcfgh97i {ihgd9gdgca-edhhihdc:-977es -ses;ahai7:9hes;7ah97i:77es;}.hgdcfhcsd {ihgd9gdgca-edhhihdc:-c7es -77es;ahai7:9ges;7ah97i:9des;}'
         + '.hgdcfaggdg {ihgd9gdgca-edhhihdc:-daes -77es;ahai7:9ges;7ah97i:9ges;}';
 
-      var largeNewValue = largeTest,
+      let largeNewValue = largeTest,
           len = largeTest.length,
           count = nextRandom() % 20,
           removeBound = len - (count * 100),
           logData = [];
       for (; count > 0; count--) {
-      var removePos = nextRandom() % removeBound,
-          removeLength = 1 + nextRandom() % 100;
-      logData.push('(' + removePos + ', ' + removeLength + ')');
-      largeNewValue = largeNewValue.substring(0, removePos)
-          + largeNewValue.substring(removePos + removeLength);
+        let removePos = nextRandom() % removeBound,
+            removeLength = 1 + nextRandom() % 100;
+        logData.push('(' + removePos + ', ' + removeLength + ')');
+        largeNewValue = largeNewValue.substring(0, removePos) + largeNewValue.substring(removePos + removeLength);
       }
       log('len: ' + len + ' count: ' + count + ' removed ( ' + logData.join(', ') + ' )');
 
-      var diffResult = diffWords(largeTest, largeNewValue);
+      let diffResult = diffWords(largeTest, largeNewValue);
       log('diffResult length: ' + diffResult.length);
-      var removeCount = 0;
-      var removeChanges = [], addChanges = [];
-      for (var i = 0; i < diffResult.length; i++) {
+      let removeCount = 0;
+      let removeChanges = [], addChanges = [];
+      for (let i = 0; i < diffResult.length; i++) {
         if (diffResult[i].removed) {
           log('remove Change ' + i, diffResult[i]);
           removeChanges.push(diffResult[i].value);
@@ -353,7 +353,7 @@ describe('patch/create', function() {
     });
 
     // Create patch
-    var oldFile =
+    const oldFile =
       'value\n'
       + 'context\n'
       + 'context\n'
@@ -390,7 +390,7 @@ describe('patch/create', function() {
       + 'value\n'
       + 'context\n'
       + 'context';
-    var newFile =
+    const newFile =
       'new value\n'
       + 'new value 2\n'
       + 'context\n'
@@ -430,7 +430,7 @@ describe('patch/create', function() {
       + 'context';
 
     it('should generate a patch with default context size', function() {
-      var expectedResult =
+      const expectedResult =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
@@ -479,12 +479,12 @@ describe('patch/create', function() {
         + ' context\n'
         + '\\ No newline at end of file\n';
 
-      var diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header');
+      const diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header');
       diffResult.should.equal(expectedResult);
     });
 
     it('should generatea a patch with context size 0', function() {
-      var expectedResult =
+      const expectedResult =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
@@ -503,12 +503,12 @@ describe('patch/create', function() {
         + '-value\n'
         + '+new value\n'
         + '+new value 2\n';
-        var diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 0 });
+        const diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 0 });
         diffResult.should.equal(expectedResult);
     });
 
     it('should generate a patch with context size 2', function() {
-      var expectedResult =
+      const expectedResult =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
@@ -545,53 +545,53 @@ describe('patch/create', function() {
         + ' context\n'
         + ' context\n'
         + '\\ No newline at end of file\n';
-      var diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 2 });
+      const diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 2 });
       diffResult.should.equal(expectedResult);
     });
 
     it('should output headers only for identical files', function() {
-      var expectedResult =
+      const expectedResult =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
         + '+++ testFileName\tNew Header\n';
-      var diffResult = createPatch('testFileName', oldFile, oldFile, 'Old Header', 'New Header');
+      const diffResult = createPatch('testFileName', oldFile, oldFile, 'Old Header', 'New Header');
       diffResult.should.equal(expectedResult);
     });
 
     it('should omit headers if undefined', function() {
-      var expectedResult =
+      const expectedResult =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\n'
         + '+++ testFileName\n';
-      var diffResult = createPatch('testFileName', oldFile, oldFile);
+      const diffResult = createPatch('testFileName', oldFile, oldFile);
       diffResult.should.equal(expectedResult);
     });
 
     it('should safely handle empty inputs', function() {
-      var expectedResult =
+      const expectedResult =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\n'
         + '+++ testFileName\n';
-      var diffResult = createPatch('testFileName', '', '');
+      const diffResult = createPatch('testFileName', '', '');
       diffResult.should.equal(expectedResult);
     });
 
     it('should omit index with multiple file names', function() {
-      var expectedResult =
+      const expectedResult =
         '===================================================================\n'
         + '--- foo\n'
         + '+++ bar\n';
-      var diffResult = createTwoFilesPatch('foo', 'bar', '', '');
+      const diffResult = createTwoFilesPatch('foo', 'bar', '', '');
       diffResult.should.equal(expectedResult);
     });
   });
 
   describe('#structuredPatch', function() {
     it('should handle files with the last line changed', function() {
-      var res = structuredPatch(
+      const res = structuredPatch(
         'oldfile', 'newfile',
         'line2\nline3\nline4\n', 'line2\nline3\nline5',
         'header1', 'header2'

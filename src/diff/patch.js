@@ -2,7 +2,7 @@ import Diff from './base';
 
 export default class PatchDiff extends Diff {
   tokenize(value) {
-    var ret = [],
+    let ret = [],
         linesAndNewlines = value.split(/(\n|\r\n)/);
 
     // Ignore the final empty token that occurs if the string ends with a new line
@@ -11,8 +11,8 @@ export default class PatchDiff extends Diff {
     }
 
     // Merge the content and line separators into single tokens
-    for (var i = 0; i < linesAndNewlines.length; i++) {
-      var line = linesAndNewlines[i];
+    for (let i = 0; i < linesAndNewlines.length; i++) {
+      let line = linesAndNewlines[i];
 
       if (i % 2) {
         ret[ret.length - 1] += line;

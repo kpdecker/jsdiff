@@ -6,7 +6,7 @@ export default class Diff {
   }
 
   diff(oldString, newString, callback) {
-    var self = this;
+    let self = this;
 
     function done(value) {
       if (callback) {
@@ -35,13 +35,13 @@ export default class Diff {
     newString = this.removeEmpty(this.tokenize(newString));
     oldString = this.removeEmpty(this.tokenize(oldString));
 
-    var newLen = newString.length, oldLen = oldString.length;
-    var editLength = 1;
-    var maxEditLength = newLen + oldLen;
-    var bestPath = [{ newPos: -1, components: [] }];
+    let newLen = newString.length, oldLen = oldString.length;
+    let editLength = 1;
+    let maxEditLength = newLen + oldLen;
+    let bestPath = [{ newPos: -1, components: [] }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
-    var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+    let oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
     if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
       // Identity per the equality and tokenizer
       return done([{value: newString.join('')}]);
@@ -49,9 +49,9 @@ export default class Diff {
 
     // Main worker method. checks all permutations of a given edit length for acceptance.
     function execEditLength() {
-      for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
-        var basePath;
-        var addPath = bestPath[diagonalPath - 1],
+      for (let diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
+        let basePath;
+        let addPath = bestPath[diagonalPath - 1],
             removePath = bestPath[diagonalPath + 1],
             oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
         if (addPath) {
@@ -59,7 +59,7 @@ export default class Diff {
           bestPath[diagonalPath - 1] = undefined;
         }
 
-        var canAdd = addPath && addPath.newPos + 1 < newLen,
+        let canAdd = addPath && addPath.newPos + 1 < newLen,
             canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
@@ -112,7 +112,7 @@ export default class Diff {
       }());
     } else {
       while (editLength <= maxEditLength) {
-        var ret = execEditLength();
+        let ret = execEditLength();
         if (ret) {
           return ret;
         }
@@ -121,7 +121,7 @@ export default class Diff {
   }
 
   pushComponent(components, added, removed) {
-    var last = components[components.length - 1];
+    let last = components[components.length - 1];
     if (last && last.added === added && last.removed === removed) {
       // We need to clone here as the component clone operation is just
       // as shallow array clone
@@ -131,7 +131,7 @@ export default class Diff {
     }
   }
   extractCommon(basePath, newString, oldString, diagonalPath) {
-    var newLen = newString.length,
+    let newLen = newString.length,
         oldLen = oldString.length,
         newPos = basePath.newPos,
         oldPos = newPos - diagonalPath,
@@ -152,12 +152,12 @@ export default class Diff {
   }
 
   equals(left, right) {
-    var reWhitespace = /\S/;
+    let reWhitespace = /\S/;
     return left === right || (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
   }
   removeEmpty(array) {
-    var ret = [];
-    for (var i = 0; i < array.length; i++) {
+    let ret = [];
+    for (let i = 0; i < array.length; i++) {
       if (array[i]) {
         ret.push(array[i]);
       }
@@ -173,18 +173,18 @@ export default class Diff {
 }
 
 function buildValues(components, newString, oldString, useLongestToken) {
-  var componentPos = 0,
+  let componentPos = 0,
       componentLen = components.length,
       newPos = 0,
       oldPos = 0;
 
   for (; componentPos < componentLen; componentPos++) {
-    var component = components[componentPos];
+    let component = components[componentPos];
     if (!component.removed) {
       if (!component.added && useLongestToken) {
-        var value = newString.slice(newPos, newPos + component.count);
+        let value = newString.slice(newPos, newPos + component.count);
         value = map(value, function(value, i) {
-          var oldValue = oldString[oldPos + i];
+          let oldValue = oldString[oldPos + i];
           return oldValue.length > value.length ? oldValue : value;
         });
 
@@ -206,7 +206,7 @@ function buildValues(components, newString, oldString, useLongestToken) {
       // The diffing algorithm is tied to add then remove output and this is the simplest
       // route to get the desired output with minimal overhead.
       if (componentPos && components[componentPos - 1].added) {
-        var tmp = components[componentPos - 1];
+        let tmp = components[componentPos - 1];
         components[componentPos - 1] = components[componentPos];
         components[componentPos] = tmp;
       }

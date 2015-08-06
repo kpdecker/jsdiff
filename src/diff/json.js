@@ -25,7 +25,7 @@ export function canonicalize(obj, stack, replacementStack) {
   stack = stack || [];
   replacementStack = replacementStack || [];
 
-  var i;
+  let i;
 
   for (i = 0; i < stack.length; i += 1) {
     if (stack[i] === obj) {
@@ -33,7 +33,7 @@ export function canonicalize(obj, stack, replacementStack) {
     }
   }
 
-  var canonicalizedObj;
+  let canonicalizedObj;
 
   if ('[object Array]' === objectPrototypeToString.call(obj)) {
     stack.push(obj);
@@ -48,10 +48,12 @@ export function canonicalize(obj, stack, replacementStack) {
     stack.push(obj);
     canonicalizedObj = {};
     replacementStack.push(canonicalizedObj);
-    var sortedKeys = [],
+    let sortedKeys = [],
         key;
     for (key in obj) {
-      sortedKeys.push(key);
+      if (obj.hasOwnProperty(key)) {
+        sortedKeys.push(key);
+      }
     }
     sortedKeys.sort();
     for (i = 0; i < sortedKeys.length; i += 1) {

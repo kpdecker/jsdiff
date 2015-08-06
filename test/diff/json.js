@@ -47,21 +47,21 @@ describe('diff/json', function() {
     });
 
     it('should ignore trailing comma on the previous line when the property has been removed', function() {
-      var diffResult = diffJson(
+      const diffResult = diffJson(
         {a: 123, b: 456, c: 789},
         {a: 123, b: 456});
       convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<del>  &quot;c&quot;: 789\n</del>}');
     });
 
     it('should ignore the missing trailing comma on the last line when a property has been added after it', function() {
-      var diffResult = diffJson(
+      const diffResult = diffJson(
         {a: 123, b: 456},
         {a: 123, b: 456, c: 789});
       convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<ins>  &quot;c&quot;: 789\n</ins>}');
     });
 
     it('should throw an error if one of the objects being diffed has a circular reference', function() {
-      var circular = {foo: 123};
+      const circular = {foo: 123};
       circular.bar = circular;
       (function() {
         diffJson(
@@ -78,19 +78,19 @@ describe('diff/json', function() {
     });
 
     it('should dive into nested objects', function() {
-      var canonicalObj = canonicalize({b: 456, a: {d: 123, c: 456}});
+      const canonicalObj = canonicalize({b: 456, a: {d: 123, c: 456}});
       getKeys(canonicalObj.a).should.eql(['c', 'd']);
     });
 
     it('should dive into nested arrays', function() {
-      var canonicalObj = canonicalize({b: 456, a: [789, {d: 123, c: 456}]});
+      const canonicalObj = canonicalize({b: 456, a: [789, {d: 123, c: 456}]});
       getKeys(canonicalObj.a[1]).should.eql(['c', 'd']);
     });
 
     it('should handle circular references correctly', function() {
-      var obj = {b: 456};
+      const obj = {b: 456};
       obj.a = obj;
-      var canonicalObj = canonicalize(obj);
+      const canonicalObj = canonicalize(obj);
       getKeys(canonicalObj).should.eql(['a', 'b']);
       getKeys(canonicalObj.a).should.eql(['a', 'b']);
     });
@@ -98,8 +98,8 @@ describe('diff/json', function() {
 });
 
 function getKeys(obj) {
-  var keys = [];
-  for (var key in obj) {
+  const keys = [];
+  for (let key in obj) {
     if (obj.hasOwnProperty(key)) {
       keys.push(key);
     }

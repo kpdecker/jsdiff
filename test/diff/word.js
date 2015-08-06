@@ -5,18 +5,18 @@ import should from 'should';
 describe('WordDiff', function() {
   describe('#diffWords', function() {
     it('should diff whitespace', function() {
-      var diffResult = diffWords('New Value', 'New  ValueMoreData');
+      const diffResult = diffWords('New Value', 'New  ValueMoreData');
       convertChangesToXML(diffResult).should.equal('New  <del>Value</del><ins>ValueMoreData</ins>');
     });
 
     it('should diff multiple whitespace values', function() {
-      var diffResult = diffWords('New Value  ', 'New  ValueMoreData ');
+      const diffResult = diffWords('New Value  ', 'New  ValueMoreData ');
       convertChangesToXML(diffResult).should.equal('New  <del>Value</del><ins>ValueMoreData</ins> ');
     });
 
     // Diff on word boundary
     it('should diff on word boundaries', function() {
-      var diffResult = diffWords('New :Value:Test', 'New  ValueMoreData ');
+      let diffResult = diffWords('New :Value:Test', 'New  ValueMoreData ');
       convertChangesToXML(diffResult).should.equal('New  <del>:Value:Test</del><ins>ValueMoreData </ins>');
 
       diffResult = diffWords('New Value:Test', 'New  Value:MoreData ');
@@ -31,32 +31,32 @@ describe('WordDiff', function() {
 
     // Diff without changes
     it('should handle identity', function() {
-      var diffResult = diffWords('New Value', 'New Value');
+      const diffResult = diffWords('New Value', 'New Value');
       convertChangesToXML(diffResult).should.equal('New Value');
     });
     it('should handle empty', function() {
-      var diffResult = diffWords('', '');
+      const diffResult = diffWords('', '');
       convertChangesToXML(diffResult).should.equal('');
     });
     it('should diff has identical content', function() {
-      var diffResult = diffWords('New Value', 'New  Value');
+      const diffResult = diffWords('New Value', 'New  Value');
       convertChangesToXML(diffResult).should.equal('New  Value');
     });
 
     // Empty diffs
     it('should diff empty new content', function() {
-      var diffResult = diffWords('New Value', '');
+      const diffResult = diffWords('New Value', '');
       diffResult.length.should.equal(1);
       convertChangesToXML(diffResult).should.equal('<del>New Value</del>');
     });
     it('should diff empty old content', function() {
-      var diffResult = diffWords('', 'New Value');
+      const diffResult = diffWords('', 'New Value');
       convertChangesToXML(diffResult).should.equal('<ins>New Value</ins>');
     });
 
     // With without anchor (the Heckel algorithm error case)
     it('should diff when there is no anchor value', function() {
-      var diffResult = diffWords('New Value New Value', 'Value Value New New');
+      const diffResult = diffWords('New Value New Value', 'Value Value New New');
       convertChangesToXML(diffResult).should.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
     });
   });
@@ -136,12 +136,12 @@ describe('WordDiff', function() {
 
   describe('#diffWordsWithSpace', function() {
     it('should diff whitespace', function() {
-      var diffResult = diffWordsWithSpace('New Value', 'New  ValueMoreData');
+      const diffResult = diffWordsWithSpace('New Value', 'New  ValueMoreData');
       convertChangesToXML(diffResult).should.equal('New<del> Value</del><ins>  ValueMoreData</ins>');
     });
 
     it('should diff multiple whitespace values', function() {
-      var diffResult = diffWordsWithSpace('New Value  ', 'New  ValueMoreData ');
+      const diffResult = diffWordsWithSpace('New Value  ', 'New  ValueMoreData ');
       convertChangesToXML(diffResult).should.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
     });
   });

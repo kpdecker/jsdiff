@@ -4,7 +4,7 @@ import {convertChangesToXML} from '../../lib/convert/xml';
 describe('diff/css', function() {
   describe('#diffCss', function() {
     it('should diff css', function() {
-      var diffResult = diffCss(
+      const diffResult = diffCss(
         '.test,#value .test{margin-left:50px;margin-right:-40px}',
         '.test2, #value2 .test {\nmargin-top:50px;\nmargin-right:-400px;\n}');
       convertChangesToXML(diffResult).should.equal(
