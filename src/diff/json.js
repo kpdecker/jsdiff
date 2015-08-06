@@ -51,6 +51,7 @@ export function canonicalize(obj, stack, replacementStack) {
     let sortedKeys = [],
         key;
     for (key in obj) {
+      /* istanbul ignore else */
       if (obj.hasOwnProperty(key)) {
         sortedKeys.push(key);
       }
