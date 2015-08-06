@@ -1,4 +1,4 @@
-import {diffWords, diffWordsWithSpace} from '../../lib/diff/word';
+import {wordDiff, diffWords, diffWordsWithSpace} from '../../lib/diff/word';
 import {convertChangesToXML} from '../../lib/convert/xml';
 import should from 'should';
 
@@ -58,6 +58,11 @@ describe('WordDiff', function() {
     it('should diff when there is no anchor value', function() {
       const diffResult = diffWords('New Value New Value', 'Value Value New New');
       convertChangesToXML(diffResult).should.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
+    });
+
+    it('should token unicode characters safely', function() {
+      wordDiff.tokenize('jurídica').should.eql(['jurídica']);
+      wordDiff.tokenize('wir üben').should.eql(['wir', ' ', 'üben']);
     });
   });
 
