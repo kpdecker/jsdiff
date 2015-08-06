@@ -1,23 +1,24 @@
-import LineDiff from './line';
+import Diff from './base';
+import {lineDiff} from './line';
 
 const objectPrototypeToString = Object.prototype.toString;
 
-export default class JsonDiff extends LineDiff {
-  constructor() {
-    super();
 
-    // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
-    // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
-    this.useLongestToken = true;
-  }
+export const jsonDiff = new Diff();
+// Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
+// dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
+jsonDiff.useLongestToken = true;
 
-  castInput(value) {
-    return typeof value === 'string' ? value : JSON.stringify(canonicalize(value), undefined, '  ');
-  }
-  equals(left, right) {
-    return super.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
-  }
-}
+jsonDiff.tokenize = lineDiff.tokenize;
+jsonDiff.castInput = function(value) {
+  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value), undefined, '  ');
+};
+jsonDiff.equals = function(left, right) {
+  return Diff.prototype.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
+};
+
+export function diffJson(oldObj, newObj, callback) { return jsonDiff.diff(oldObj, newObj, callback); }
+
 
 // This function handles the presence of circular references by bailing out when encountering an
 // object that is already on the "stack" of items being processed.
@@ -68,6 +69,3 @@ export function canonicalize(obj, stack, replacementStack) {
   }
   return canonicalizedObj;
 }
-
-export const jsonDiff = new JsonDiff();
-export function diffJson(oldObj, newObj, callback) { return jsonDiff.diff(oldObj, newObj, callback); }

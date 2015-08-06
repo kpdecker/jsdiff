@@ -1,10 +1,10 @@
 import map from '../util/map';
 
-export default class Diff {
-  constructor(ignoreWhitespace) {
-    this.ignoreWhitespace = ignoreWhitespace;
-  }
+export default function Diff(ignoreWhitespace) {
+  this.ignoreWhitespace = ignoreWhitespace;
+}
 
+Diff.prototype = {
   diff(oldString, newString, callback) {
     let self = this;
 
@@ -118,7 +118,7 @@ export default class Diff {
         }
       }
     }
-  }
+  },
 
   pushComponent(components, added, removed) {
     let last = components[components.length - 1];
@@ -129,7 +129,7 @@ export default class Diff {
     } else {
       components.push({count: 1, added: added, removed: removed });
     }
-  }
+  },
   extractCommon(basePath, newString, oldString, diagonalPath) {
     let newLen = newString.length,
         oldLen = oldString.length,
@@ -149,12 +149,12 @@ export default class Diff {
 
     basePath.newPos = newPos;
     return oldPos;
-  }
+  },
 
   equals(left, right) {
     let reWhitespace = /\S/;
     return left === right || (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
-  }
+  },
   removeEmpty(array) {
     let ret = [];
     for (let i = 0; i < array.length; i++) {
@@ -163,14 +163,14 @@ export default class Diff {
       }
     }
     return ret;
-  }
+  },
   castInput(value) {
     return value;
-  }
+  },
   tokenize(value) {
     return value.split('');
   }
-}
+};
 
 function buildValues(components, newString, oldString, useLongestToken) {
   let componentPos = 0,

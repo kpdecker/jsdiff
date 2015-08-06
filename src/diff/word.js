@@ -20,28 +20,25 @@ import Diff from './base';
 // Latin Extended Additional, 1E00–1EFF
 const extendedWordChars = /^[a-zA-Z\u{C0}-\u{FF}\u{D8}-\u{F6}\u{F8}-\u{2C6}\u{2C8}-\u{2D7}\u{2DE}-\u{2FF}\u{1E00}-\u{1EFF}]+$/u;
 
-export default class WordDiff extends Diff {
-  tokenize(value) {
-    let tokens = value.split(/(\s+|\b)/);
+export const wordDiff = new Diff(true);
+export const wordWithSpaceDiff = new Diff();
+wordDiff.tokenize = wordWithSpaceDiff.tokenize = function(value) {
+  let tokens = value.split(/(\s+|\b)/);
 
-    // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
-    for (let i = 0; i < tokens.length - 1; i++) {
-      // If we have an empty string in the next field and we have only word chars before and after, merge
-      if (!tokens[i + 1] && tokens[i + 2]
-            && extendedWordChars.test(tokens[i])
-            && extendedWordChars.test(tokens[i + 2])) {
-        tokens[i] += tokens[i + 2];
-        tokens.splice(i + 1, 2);
-        i--;
-      }
+  // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
+  for (let i = 0; i < tokens.length - 1; i++) {
+    // If we have an empty string in the next field and we have only word chars before and after, merge
+    if (!tokens[i + 1] && tokens[i + 2]
+          && extendedWordChars.test(tokens[i])
+          && extendedWordChars.test(tokens[i + 2])) {
+      tokens[i] += tokens[i + 2];
+      tokens.splice(i + 1, 2);
+      i--;
     }
-
-    return tokens;
   }
-}
 
-export const wordDiff = new WordDiff(true);
-export const wordWithSpaceDiff = new WordDiff();
+  return tokens;
+};
 
 export function diffWords(oldStr, newStr, callback) { return wordDiff.diff(oldStr, newStr, callback); }
 export function diffWordsWithSpace(oldStr, newStr, callback) { return wordWithSpaceDiff.diff(oldStr, newStr, callback); }

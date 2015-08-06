@@ -6,7 +6,7 @@
     // Enabling features that can be implemented without polyfills. Want to avoid polyfills at this time.
     "arrowFunctions": true,
     "blockBindings": true,
-    "classes": true,
+    "classes": false,
     "defaultParams": true,
     "destructuring": true,
     "modules": true,
