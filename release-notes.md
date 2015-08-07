@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.1...master)
+
+## v2.0.1 - August 7th, 2015
+- Add release build at proper step - 57542fd
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.0...v2.0.1)
 
 ## v2.0.0 - August 7th, 2015
 - [#66](https://github.com/kpdecker/jsdiff/issues/66) - Add karma and sauce tests ([@kpdecker](https://api.github.com/users/kpdecker))
