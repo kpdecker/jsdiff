@@ -1,6 +1,8 @@
 import {diffWords} from '../../lib';
 import {createPatch, createTwoFilesPatch, structuredPatch} from '../../lib/patch/create';
 
+import expect from 'expect.js';
+
 const VERBOSE = false;
 function log() {
   VERBOSE && console.log.apply(console, arguments);
@@ -9,7 +11,7 @@ function log() {
 describe('patch/create', function() {
   describe('#createPatch', function() {
     it('should handle files with the last line changed', function() {
-      createPatch('test', 'line2\nline3\nline5\n', 'line2\nline3\nline4\nline5\n', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line2\nline3\nline5\n', 'line2\nline3\nline4\nline5\n', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -20,7 +22,7 @@ describe('patch/create', function() {
         + '+line4\n'
         + ' line5\n');
 
-      createPatch('test', 'line2\nline3\nline4\n', 'line2\nline3\nline4\nline5\n', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line2\nline3\nline4\n', 'line2\nline3\nline4\nline5\n', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -31,7 +33,7 @@ describe('patch/create', function() {
         + ' line4\n'
         + '+line5\n');
 
-      createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\n', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\n', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -43,7 +45,7 @@ describe('patch/create', function() {
         + '-line4\n'
         + '+line44\n');
 
-      createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\nline5\n', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline44\nline5\n', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -58,7 +60,7 @@ describe('patch/create', function() {
     });
 
     it('should output "no newline" at end of file message on new missing nl', function() {
-      createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline4', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line1\nline2\nline3\nline4\n', 'line1\nline2\nline3\nline4', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -73,7 +75,7 @@ describe('patch/create', function() {
     });
 
     it('should output "no newline" at end of file message on old missing nl', function() {
-      createPatch('test', 'line1\nline2\nline3\nline4', 'line1\nline2\nline3\nline4\n', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line1\nline2\nline3\nline4', 'line1\nline2\nline3\nline4\n', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -88,7 +90,7 @@ describe('patch/create', function() {
     });
 
     it('should output "no newline" at end of file message on context missing nl', function() {
-      createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -103,7 +105,7 @@ describe('patch/create', function() {
     });
 
     it('should not output no newline at end of file message when eof outside hunk', function() {
-      createPatch('test', 'line11\nline2\nline3\nline4\nline4\nline4\nline4', 'line1\nline2\nline3\nline4\nline4\nline4\nline4', 'header1', 'header2').should.equal(
+      expect(createPatch('test', 'line11\nline2\nline3\nline4\nline4\nline4\nline4', 'line1\nline2\nline3\nline4\nline4\nline4\nline4', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
@@ -348,8 +350,8 @@ describe('patch/create', function() {
       function stripSpace(value) {
         return value.replace(/s+/g, '');
       }
-      stripSpace(removeChanges.join('')).should.equal(stripSpace(largeTest));
-      stripSpace(addChanges.join('')).should.equal(stripSpace(largeNewValue));
+      expect(stripSpace(removeChanges.join(''))).to.equal(stripSpace(largeTest));
+      expect(stripSpace(addChanges.join(''))).to.equal(stripSpace(largeNewValue));
     });
 
     // Create patch
@@ -480,7 +482,7 @@ describe('patch/create', function() {
         + '\\ No newline at end of file\n';
 
       const diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header');
-      diffResult.should.equal(expectedResult);
+      expect(diffResult).to.equal(expectedResult);
     });
 
     it('should generatea a patch with context size 0', function() {
@@ -504,7 +506,7 @@ describe('patch/create', function() {
         + '+new value\n'
         + '+new value 2\n';
         const diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 0 });
-        diffResult.should.equal(expectedResult);
+        expect(diffResult).to.equal(expectedResult);
     });
 
     it('should generate a patch with context size 2', function() {
@@ -546,7 +548,7 @@ describe('patch/create', function() {
         + ' context\n'
         + '\\ No newline at end of file\n';
       const diffResult = createPatch('testFileName', oldFile, newFile, 'Old Header', 'New Header', { context: 2 });
-      diffResult.should.equal(expectedResult);
+      expect(diffResult).to.equal(expectedResult);
     });
 
     it('should output headers only for identical files', function() {
@@ -556,7 +558,7 @@ describe('patch/create', function() {
         + '--- testFileName\tOld Header\n'
         + '+++ testFileName\tNew Header\n';
       const diffResult = createPatch('testFileName', oldFile, oldFile, 'Old Header', 'New Header');
-      diffResult.should.equal(expectedResult);
+      expect(diffResult).to.equal(expectedResult);
     });
 
     it('should omit headers if undefined', function() {
@@ -566,7 +568,7 @@ describe('patch/create', function() {
         + '--- testFileName\n'
         + '+++ testFileName\n';
       const diffResult = createPatch('testFileName', oldFile, oldFile);
-      diffResult.should.equal(expectedResult);
+      expect(diffResult).to.equal(expectedResult);
     });
 
     it('should safely handle empty inputs', function() {
@@ -576,7 +578,7 @@ describe('patch/create', function() {
         + '--- testFileName\n'
         + '+++ testFileName\n';
       const diffResult = createPatch('testFileName', '', '');
-      diffResult.should.equal(expectedResult);
+      expect(diffResult).to.equal(expectedResult);
     });
 
     it('should omit index with multiple file names', function() {
@@ -585,7 +587,7 @@ describe('patch/create', function() {
         + '--- foo\n'
         + '+++ bar\n';
       const diffResult = createTwoFilesPatch('foo', 'bar', '', '');
-      diffResult.should.equal(expectedResult);
+      expect(diffResult).to.equal(expectedResult);
     });
   });
 
@@ -596,7 +598,7 @@ describe('patch/create', function() {
         'line2\nline3\nline4\n', 'line2\nline3\nline5',
         'header1', 'header2'
       );
-      res.should.eql({
+      expect(res).to.eql({
         oldFileName: 'oldfile', newFileName: 'newfile',
         oldHeader: 'header1', newHeader: 'header2',
         hunks: [{

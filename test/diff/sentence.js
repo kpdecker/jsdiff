@@ -1,16 +1,18 @@
 import {diffSentences} from '../../lib/diff/sentence';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
+import expect from 'expect.js';
+
 describe('diff/sentence', function() {
   describe('#diffSentences', function() {
     it('Should diff Sentences', function() {
       const diffResult = diffSentences('New Value.', 'New ValueMoreData.');
-      convertChangesToXML(diffResult).should.equal('<del>New Value.</del><ins>New ValueMoreData.</ins>');
+      expect(convertChangesToXML(diffResult)).to.equal('<del>New Value.</del><ins>New ValueMoreData.</ins>');
     });
 
     it('should diff only the last sentence', function() {
       const diffResult = diffSentences('Here im. Rock you like old man.', 'Here im. Rock you like hurricane.');
-      convertChangesToXML(diffResult).should.equal('Here im. <del>Rock you like old man.</del><ins>Rock you like hurricane.</ins>');
+      expect(convertChangesToXML(diffResult)).to.equal('Here im. <del>Rock you like old man.</del><ins>Rock you like hurricane.</ins>');
     });
   });
 });

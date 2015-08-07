@@ -1,10 +1,12 @@
 import {convertChangesToDMP} from '../../lib/convert/dmp';
 import {diffWords} from '../../lib/diff/word';
 
+import expect from 'expect.js';
+
 describe('convertToDMP', function() {
   it('should output diff-match-patch format', function() {
     const diffResult = diffWords('New Value  ', 'New  ValueMoreData ');
 
-    convertChangesToDMP(diffResult).should.eql([[0, 'New  '], [-1, 'Value'], [1, 'ValueMoreData'], [0, ' ']]);
+    expect(convertChangesToDMP(diffResult)).to.eql([[0, 'New  '], [-1, 'Value'], [1, 'ValueMoreData'], [0, ' ']]);
   });
 });

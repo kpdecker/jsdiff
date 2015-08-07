@@ -1,10 +1,12 @@
 import {applyPatch} from '../../lib/patch/apply';
 import {createPatch} from '../../lib/patch/create';
 
+import expect from 'expect.js';
+
 describe('patch/apply', function() {
   describe('#applyPatch', function() {
     it('should apply patches that change the last line', function() {
-      applyPatch(
+      expect(applyPatch(
           'line2\n'
           + 'line3\n'
           + 'line5\n',
@@ -17,14 +19,14 @@ describe('patch/apply', function() {
           + ' line2\n'
           + ' line3\n'
           + '+line4\n'
-          + ' line5\n')
-        .should.equal(
+          + ' line5\n'))
+        .to.equal(
           'line2\n'
           + 'line3\n'
           + 'line4\n'
           + 'line5\n');
 
-      applyPatch(
+      expect(applyPatch(
           'line2\nline3\nline4\n',
 
           'Index: test\n'
@@ -35,10 +37,10 @@ describe('patch/apply', function() {
           + ' line2\n'
           + ' line3\n'
           + ' line4\n'
-          + '+line5\n')
-        .should.equal('line2\nline3\nline4\nline5\n');
+          + '+line5\n'))
+        .to.equal('line2\nline3\nline4\nline5\n');
 
-      applyPatch(
+      expect(applyPatch(
           'line1\nline2\nline3\nline4\n',
 
           'Index: test\n'
@@ -50,10 +52,10 @@ describe('patch/apply', function() {
           + ' line2\n'
           + ' line3\n'
           + '+line44\n'
-          + '-line4\n')
-        .should.equal('line1\nline2\nline3\nline44\n');
+          + '-line4\n'))
+        .to.equal('line1\nline2\nline3\nline44\n');
 
-      applyPatch(
+      expect(applyPatch(
           'line1\nline2\nline3\nline4\n',
 
           'Index: test\n'
@@ -66,12 +68,12 @@ describe('patch/apply', function() {
           + ' line3\n'
           + '+line44\n'
           + '+line5\n'
-          + '-line4\n')
-        .should.equal('line1\nline2\nline3\nline44\nline5\n');
+          + '-line4\n'))
+        .to.equal('line1\nline2\nline3\nline44\nline5\n');
     });
 
     it('should merge EOFNL', function() {
-      applyPatch(
+      expect(applyPatch(
           'line1\nline2\nline3\nline4\n',
 
           'Index: test\n'
@@ -84,10 +86,10 @@ describe('patch/apply', function() {
           + ' line3\n'
           + '+line4\n'
           + '\\ No newline at end of file\n'
-          + '-line4\n')
-        .should.equal('line1\nline2\nline3\nline4');
+          + '-line4\n'))
+        .to.equal('line1\nline2\nline3\nline4');
 
-      applyPatch(
+      expect(applyPatch(
           'line1\nline2\nline3\nline4',
 
           'Index: test\n'
@@ -100,10 +102,10 @@ describe('patch/apply', function() {
           + ' line3\n'
           + '+line4\n'
           + '-line4\n'
-          + '\\ No newline at end of file\n')
-        .should.equal('line1\nline2\nline3\nline4\n');
+          + '\\ No newline at end of file\n'))
+        .to.equal('line1\nline2\nline3\nline4\n');
 
-      applyPatch(
+      expect(applyPatch(
           'line11\nline2\nline3\nline4',
 
             'Index: test\n'
@@ -116,10 +118,10 @@ describe('patch/apply', function() {
             + ' line2\n'
             + ' line3\n'
             + ' line4\n'
-            + '\\ No newline at end of file\n')
-        .should.equal('line1\nline2\nline3\nline4');
+            + '\\ No newline at end of file\n'))
+        .to.equal('line1\nline2\nline3\nline4');
 
-      applyPatch(
+      expect(applyPatch(
           'line11\nline2\nline3\nline4\nline4\nline4\nline4',
 
           'Index: test\n'
@@ -132,8 +134,8 @@ describe('patch/apply', function() {
           + ' line2\n'
           + ' line3\n'
           + ' line4\n'
-          + ' line4\n')
-        .should.equal('line1\nline2\nline3\nline4\nline4\nline4\nline4');
+          + ' line4\n'))
+        .to.equal('line1\nline2\nline3\nline4\nline4\nline4\nline4');
     });
 
     it('should apply patches', function() {
@@ -262,18 +264,18 @@ describe('patch/apply', function() {
         + ' context\n'
         + '\\ No newline at end of file\n';
 
-      applyPatch(oldFile, diffFile).should.equal(newFile);
+      expect(applyPatch(oldFile, diffFile)).to.equal(newFile);
 
       diffFile =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
         + '+++ testFileName\tNew Header\n';
-      applyPatch(oldFile, diffFile).should.equal(oldFile);
+      expect(applyPatch(oldFile, diffFile)).to.equal(oldFile);
     });
 
     it('should apply patches that lack an index header', function() {
-      applyPatch(
+      expect(applyPatch(
           'line2\n'
           + 'line3\n'
           + 'line5\n',
@@ -284,8 +286,8 @@ describe('patch/apply', function() {
           + ' line2\n'
           + ' line3\n'
           + '+line4\n'
-          + ' line5\n')
-        .should.equal(
+          + ' line5\n'))
+        .to.equal(
           'line2\n'
           + 'line3\n'
           + 'line4\n'
@@ -293,7 +295,7 @@ describe('patch/apply', function() {
     });
 
     it('should fail on mismatch', function() {
-      applyPatch(
+      expect(applyPatch(
           'line2\n'
           + 'line2\n'
           + 'line5\n',
@@ -304,8 +306,8 @@ describe('patch/apply', function() {
           + ' line2\n'
           + ' line3\n'
           + '+line4\n'
-          + ' line5\n')
-        .should.equal(false);
+          + ' line5\n'))
+        .to.equal(false);
     });
 
     it('should work with unicode newline characters', function() {
@@ -313,7 +315,7 @@ describe('patch/apply', function() {
       const newtext = 'AAAAAAAAAAAAAAAA\nBBBBBB' + String.fromCharCode(0x2028) + '\nCCCCCCCCCCCCCCCCCC\n\n';
 
       const diffed = createPatch('test', oldtext, newtext);
-      applyPatch(oldtext, diffed).should.equal(newtext);
+      expect(applyPatch(oldtext, diffed)).to.equal(newtext);
     });
   });
 });

@@ -1,23 +1,25 @@
 import {diffJson, canonicalize} from '../../lib/diff/json';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
+import expect from 'expect.js';
+
 describe('diff/json', function() {
   describe('#diffJson', function() {
     it('should accept objects', function() {
-      diffJson(
+      expect(diffJson(
         {a: 123, b: 456, c: 789},
         {a: 123, b: 456}
-      ).should.eql([
+      )).to.eql([
         { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
         { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
         { count: 1, value: '}' }
       ]);
     });
     it('should accept objects with different order', function() {
-      diffJson(
+      expect(diffJson(
         {a: 123, b: 456, c: 789},
         {b: 456, a: 123}
-      ).should.eql([
+      )).to.eql([
         { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
         { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
         { count: 1, value: '}' }
@@ -25,10 +27,10 @@ describe('diff/json', function() {
     });
 
     it('should accept objects with nested structures', function() {
-      diffJson(
+      expect(diffJson(
         {a: 123, b: 456, c: [1, 2, {foo: 'bar'}, 4]},
         {a: 123, b: 456, c: [1, {foo: 'bar'}, 4]}
-      ).should.eql([
+      )).to.eql([
         { count: 5, value: '{\n  "a": 123,\n  "b": 456,\n  "c": [\n    1,\n' },
         { count: 1, value: '    2,\n', added: undefined, removed: true },
         { count: 6, value: '    {\n      "foo": "bar"\n    },\n    4\n  ]\n}' }
@@ -36,10 +38,10 @@ describe('diff/json', function() {
     });
 
     it('should accept already stringified JSON', function() {
-      diffJson(
+      expect(diffJson(
         JSON.stringify({a: 123, b: 456, c: 789}, undefined, '  '),
         JSON.stringify({a: 123, b: 456}, undefined, '  ')
-      ).should.eql([
+      )).to.eql([
         { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
         { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
         { count: 1, value: '}' }
@@ -50,49 +52,49 @@ describe('diff/json', function() {
       const diffResult = diffJson(
         {a: 123, b: 456, c: 789},
         {a: 123, b: 456});
-      convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<del>  &quot;c&quot;: 789\n</del>}');
+      expect(convertChangesToXML(diffResult)).to.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<del>  &quot;c&quot;: 789\n</del>}');
     });
 
     it('should ignore the missing trailing comma on the last line when a property has been added after it', function() {
       const diffResult = diffJson(
         {a: 123, b: 456},
         {a: 123, b: 456, c: 789});
-      convertChangesToXML(diffResult).should.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<ins>  &quot;c&quot;: 789\n</ins>}');
+      expect(convertChangesToXML(diffResult)).to.equal('{\n  &quot;a&quot;: 123,\n  &quot;b&quot;: 456,\n<ins>  &quot;c&quot;: 789\n</ins>}');
     });
 
     it('should throw an error if one of the objects being diffed has a circular reference', function() {
       const circular = {foo: 123};
       circular.bar = circular;
-      (function() {
+      expect(function() {
         diffJson(
           circular,
           {foo: 123, bar: {}}
         );
-      }.should['throw'](/Converting circular structure to JSON|JSON.stringify cannot serialize cyclic structures/));
+      }).to.throwError(/Converting circular structure to JSON|JSON.stringify cannot serialize cyclic structures|cyclic object value/);
     });
   });
 
   describe('#canonicalize', function() {
     it('should put the keys in canonical order', function() {
-      getKeys(canonicalize({b: 456, a: 123})).should.eql(['a', 'b']);
+      expect(getKeys(canonicalize({b: 456, a: 123}))).to.eql(['a', 'b']);
     });
 
     it('should dive into nested objects', function() {
       const canonicalObj = canonicalize({b: 456, a: {d: 123, c: 456}});
-      getKeys(canonicalObj.a).should.eql(['c', 'd']);
+      expect(getKeys(canonicalObj.a)).to.eql(['c', 'd']);
     });
 
     it('should dive into nested arrays', function() {
       const canonicalObj = canonicalize({b: 456, a: [789, {d: 123, c: 456}]});
-      getKeys(canonicalObj.a[1]).should.eql(['c', 'd']);
+      expect(getKeys(canonicalObj.a[1])).to.eql(['c', 'd']);
     });
 
     it('should handle circular references correctly', function() {
       const obj = {b: 456};
       obj.a = obj;
       const canonicalObj = canonicalize(obj);
-      getKeys(canonicalObj).should.eql(['a', 'b']);
-      getKeys(canonicalObj.a).should.eql(['a', 'b']);
+      expect(getKeys(canonicalObj)).to.eql(['a', 'b']);
+      expect(getKeys(canonicalObj.a)).to.eql(['a', 'b']);
     });
   });
 });

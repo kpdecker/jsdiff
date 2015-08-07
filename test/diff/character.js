@@ -1,11 +1,13 @@
 import {diffChars} from '../../lib/diff/character';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
+import expect from 'expect.js';
+
 describe('diff/character', function() {
   describe('#diffChars', function() {
     it('Should diff chars', function() {
       const diffResult = diffChars('New Value.', 'New ValueMoreData.');
-      convertChangesToXML(diffResult).should.equal('New Value<ins>MoreData</ins>.');
+      expect(convertChangesToXML(diffResult)).to.equal('New Value<ins>MoreData</ins>.');
     });
   });
 });

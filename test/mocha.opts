@@ -1,3 +1,2 @@
 --require babel/register
---require should
 --reporter spec
