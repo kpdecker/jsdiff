@@ -9,3 +9,7 @@ matrix:
       env: KARMA=
     - node_js: "iojs"
       env: KARMA=false
+
+cache:
+  directories:
+    - node_modules
