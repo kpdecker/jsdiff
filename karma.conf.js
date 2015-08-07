@@ -59,7 +59,7 @@ module.exports = function(config) {
       testName: 'jsdiff'
     },
 
-    reporters: ['progress', 'saucelabs'],
+    reporters: ['mocha', 'saucelabs'],
 
     customLaunchers: customLaunchers,
     port: 9876,
