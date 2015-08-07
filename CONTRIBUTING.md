@@ -32,7 +32,7 @@ A full release may be completed with the following:
 ```
 yo release
 npm publish
-yo release:publish components handlebars.js dist/components/
+yo release:publish components jsdiff dist/components/
 ```
 
 [generator-release]: https://github.com/walmartlabs/generator-release
