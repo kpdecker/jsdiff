@@ -27,7 +27,7 @@ module.exports = function(grunt) {
         git.add(args[0], callback);
       },
       function() {
-        grunt.task.run(['default']);
+        grunt.task.run(['release']);
         done();
       });
   });
