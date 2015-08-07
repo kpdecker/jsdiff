@@ -78,6 +78,16 @@ module.exports = function(grunt) {
       }
     },
 
+    karma: {
+      options: {
+        configFile: 'karma.conf.js',
+        autoWatch: false
+      },
+      unit: {
+        singleRun: true
+      }
+    },
+
     watch: {
       scripts: {
         options: {
@@ -92,7 +102,7 @@ module.exports = function(grunt) {
 
   // Build a new version of the library
   this.registerTask('build', 'Builds a distributable version of the current project', ['eslint', 'babel', 'webpack']);
-  this.registerTask('test', ['build', 'mochaTest']);
+  this.registerTask('test', ['build', 'mochaTest', 'karma:unit']);
   this.registerTask('cover', ['test', 'mocha_istanbul:coverage', 'istanbul_check_coverage']);
 
   // Load tasks from npm
@@ -100,11 +110,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-eslint');
+  grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-mocha-istanbul');
   grunt.loadNpmTasks('grunt-webpack');
 
-  grunt.registerTask('travis', 'default');
+  grunt.registerTask('travis', ['clean', 'build', 'karma:unit', 'cover']);
 
   grunt.registerTask('dev', ['clean', 'watch']);
   grunt.registerTask('default', ['clean', 'build', 'cover']);
