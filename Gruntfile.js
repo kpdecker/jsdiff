@@ -107,7 +107,7 @@ module.exports = function(grunt) {
   // Build a new version of the library
   this.registerTask('build', 'Builds a distributable version of the current project', ['eslint', 'babel', 'webpack']);
   this.registerTask('test', ['build', 'mochaTest', 'karma:unit']);
-  this.registerTask('cover', ['test', 'mocha_istanbul:coverage', 'istanbul_check_coverage']);
+  this.registerTask('cover', ['mocha_istanbul:coverage', 'istanbul_check_coverage']);
 
   // Load tasks from npm
   grunt.loadNpmTasks('grunt-contrib-clean');
