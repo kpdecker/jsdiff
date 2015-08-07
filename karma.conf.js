@@ -19,7 +19,7 @@ module.exports = function(config) {
           {
             test: /\.jsx?$/,
             exclude: /node_modules/,
-            loader: 'babel-loader?optional=runtime&loose=es6.modules'
+            loader: 'babel-loader?loose=es6.modules'
           }
         ]
       }
