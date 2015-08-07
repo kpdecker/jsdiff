@@ -92,6 +92,45 @@ module.exports = function(grunt) {
       }
     },
 
+    uglify: {
+      options: {
+        mangle: true,
+        compress: true,
+        preserveComments: 'some'
+      },
+      dist: {
+        files: [{
+          cwd: 'dist/',
+          expand: true,
+          src: ['*.js', '!*.min.js'],
+          dest: 'dist/',
+          rename: function(dest, src) {
+            return dest + src.replace(/\.js$/, '.min.js');
+          }
+        }]
+      }
+    },
+
+    copy: {
+      dist: {
+        options: {
+          processContent: function(content) {
+            return grunt.template.process('/*!\n\n <%= pkg.name %> v<%= pkg.version %>\n\n<%= grunt.file.read("LICENSE") %>\n@license\n*/\n')
+                + content;
+          }
+        },
+        files: [
+          {expand: true, cwd: 'dist/', src: ['*.js'], dest: 'dist/'}
+        ]
+      },
+      components: {
+        files: [
+          {expand: true, cwd: 'components/', src: ['**'], dest: 'dist/components'},
+          {expand: true, cwd: 'dist/', src: ['*.js'], dest: 'dist/components'}
+        ]
+      }
+    },
+
     watch: {
       scripts: {
         options: {
@@ -109,8 +148,12 @@ module.exports = function(grunt) {
   this.registerTask('test', ['build', 'mochaTest', 'karma:unit']);
   this.registerTask('cover', ['mocha_istanbul:coverage', 'istanbul_check_coverage']);
 
+  this.registerTask('release', ['clean', 'test', 'uglify', 'copy:dist', 'copy:components']);
+
   // Load tasks from npm
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-babel');
   grunt.loadNpmTasks('grunt-eslint');
@@ -118,6 +161,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-mocha-istanbul');
   grunt.loadNpmTasks('grunt-webpack');
+
+  grunt.task.loadTasks('tasks');
 
   grunt.registerTask('travis',
     !process.env.KARMA && process.env.SAUCE_USERNAME
