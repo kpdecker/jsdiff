@@ -70,7 +70,7 @@ describe('diff/json', function() {
           circular,
           {foo: 123, bar: {}}
         );
-      }).to.throwError(/Converting circular structure to JSON|JSON.stringify cannot serialize cyclic structures|cyclic object value/);
+      }).to.throwError(/circular|cyclic/i);
     });
   });
 
