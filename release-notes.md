@@ -2,7 +2,21 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v1.4.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.0...master)
+
+## v2.0.0 - August 7th, 2015
+- [#66](https://github.com/kpdecker/jsdiff/issues/66) - Add karma and sauce tests ([@kpdecker](https://api.github.com/users/kpdecker))
+- [#65](https://github.com/kpdecker/jsdiff/issues/65) - Create component repository for bower ([@kpdecker](https://api.github.com/users/kpdecker))
+- [#64](https://github.com/kpdecker/jsdiff/issues/64) - Automatically call removeEmpty for all tokenizer calls ([@kpdecker](https://api.github.com/users/kpdecker))
+- [#62](https://github.com/kpdecker/jsdiff/pull/62) - Allow access to structured object representation of patch data ([@bittrance](https://api.github.com/users/bittrance))
+- [#61](https://github.com/kpdecker/jsdiff/pull/61) - Use svg instead of png to get better image quality ([@PeterDaveHello](https://api.github.com/users/PeterDaveHello))
+- [#29](https://github.com/kpdecker/jsdiff/issues/29) - word tokenizer works only for 7 bit ascii ([@plasmagunman](https://api.github.com/users/plasmagunman))
+
+Compatibility notes:
+- `this.removeEmpty` is now called automatically for all instances. If this is not desired, this may be overriden on a per instance basis.
+- The library has been refactored to use some ES6 features. The external APIs should remain the same, but bower projects that directly referenced the repository will now have to point to the [components/jsdiff](https://github.com/components/jsdiff) repository.
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v1.4.0...v2.0.0)
 
 ## v1.4.0 - May 6th, 2015
 - [#57](https://github.com/kpdecker/jsdiff/issues/57) - createPatch -> applyPatch failed. ([@mog422](https://api.github.com/users/mog422))
