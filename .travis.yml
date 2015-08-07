@@ -4,3 +4,16 @@ node_js:
   - "0.10"
   - "node"
   - "iojs"
+
+env:
+  - KARMA=false
+  - KARMA=
+
+matrix:
+  include:
+    - node_js: "0.10"
+      env: KARMA=false
+    - node_js: "node"
+      env: KARMA=
+    - node_js: "iojs"
+      env: KARMA=false

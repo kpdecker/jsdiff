@@ -115,7 +115,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-istanbul');
   grunt.loadNpmTasks('grunt-webpack');
 
-  grunt.registerTask('travis', ['clean', 'build', 'karma:unit', 'cover']);
+  grunt.registerTask('travis',
+    !process.env.KARMA
+      ? ['clean', 'build', 'karma:unit', 'cover']
+      : ['clean', 'build', 'cover']);
 
   grunt.registerTask('dev', ['clean', 'watch']);
   grunt.registerTask('default', ['clean', 'build', 'cover']);
