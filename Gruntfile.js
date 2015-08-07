@@ -85,6 +85,10 @@ module.exports = function(grunt) {
       },
       unit: {
         singleRun: true
+      },
+      sauce: {
+        singleRun: true,
+        browsers: ['sl_chrome', 'sl_firefox', 'sl_safari', 'sl_ie_11', 'sl_ie_9']
       }
     },
 
@@ -116,7 +120,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-webpack');
 
   grunt.registerTask('travis',
-    !process.env.KARMA
+    !process.env.KARMA && process.env.SAUCE_USERNAME
       ? ['clean', 'build', 'karma:unit', 'cover']
       : ['clean', 'build', 'cover']);
 
