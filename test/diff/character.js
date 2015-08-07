@@ -1,7 +1,7 @@
 import {diffChars} from '../../lib/diff/character';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('diff/character', function() {
   describe('#diffChars', function() {

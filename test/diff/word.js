@@ -1,7 +1,7 @@
 import {wordDiff, diffWords, diffWordsWithSpace} from '../../lib/diff/word';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('WordDiff', function() {
   describe('#diffWords', function() {
@@ -70,7 +70,7 @@ describe('WordDiff', function() {
   describe('#diffWords - async', function() {
     it('should diff whitespace', function(done) {
       diffWords('New Value', 'New  ValueMoreData', function(err, diffResult) {
-        expect(err).to.be(undefined);
+        expect(err).to.be.undefined;
         expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins>');
         done();
       });
@@ -78,7 +78,7 @@ describe('WordDiff', function() {
 
     it('should diff multiple whitespace values', function(done) {
       diffWords('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
-        expect(err).to.be(undefined);
+        expect(err).to.be.undefined;
         expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins> ');
         done();
       });
@@ -87,7 +87,7 @@ describe('WordDiff', function() {
     // Diff on word boundary
     it('should diff on word boundaries', function(done) {
       diffWords('New :Value:Test', 'New  ValueMoreData ', function(err, diffResult) {
-        expect(err).to.be(undefined);
+        expect(err).to.be.undefined;
         expect(convertChangesToXML(diffResult)).to.equal('New  <del>:Value:Test</del><ins>ValueMoreData </ins>');
         done();
       });
@@ -96,21 +96,21 @@ describe('WordDiff', function() {
     // Diff without changes
     it('should handle identity', function(done) {
       diffWords('New Value', 'New Value', function(err, diffResult) {
-        expect(err).to.be(undefined);
+        expect(err).to.be.undefined;
         expect(convertChangesToXML(diffResult)).to.equal('New Value');
         done();
       });
     });
     it('should handle empty', function(done) {
       diffWords('', '', function(err, diffResult) {
-        expect(err).to.be(undefined);
+        expect(err).to.be.undefined;
         expect(convertChangesToXML(diffResult)).to.equal('');
         done();
       });
     });
     it('should diff has identical content', function(done) {
       diffWords('New Value', 'New  Value', function(err, diffResult) {
-        expect(err).to.be(undefined);
+        expect(err).to.be.undefined;
         expect(convertChangesToXML(diffResult)).to.equal('New  Value');
         done();
       });

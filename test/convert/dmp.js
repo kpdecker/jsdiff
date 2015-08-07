@@ -1,7 +1,7 @@
 import {convertChangesToDMP} from '../../lib/convert/dmp';
 import {diffWords} from '../../lib/diff/word';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('convertToDMP', function() {
   it('should output diff-match-patch format', function() {

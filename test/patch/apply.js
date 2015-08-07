@@ -1,7 +1,7 @@
 import {applyPatch} from '../../lib/patch/apply';
 import {createPatch} from '../../lib/patch/create';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('patch/apply', function() {
   describe('#applyPatch', function() {

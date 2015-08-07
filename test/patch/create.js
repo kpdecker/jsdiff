@@ -1,7 +1,7 @@
 import {diffWords} from '../../lib';
 import {createPatch, createTwoFilesPatch, structuredPatch} from '../../lib/patch/create';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 const VERBOSE = false;
 function log() {

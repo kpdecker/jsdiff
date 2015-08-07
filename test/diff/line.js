@@ -1,7 +1,7 @@
 import {diffLines, diffTrimmedLines} from '../../lib/diff/line';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('diff/line', function() {
   // Line Diff

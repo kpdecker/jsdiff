@@ -1,7 +1,7 @@
 import {diffCss} from '../../lib/diff/css';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('diff/css', function() {
   describe('#diffCss', function() {

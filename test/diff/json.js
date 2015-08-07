@@ -1,7 +1,7 @@
 import {diffJson, canonicalize} from '../../lib/diff/json';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('diff/json', function() {
   describe('#diffJson', function() {
@@ -70,7 +70,7 @@ describe('diff/json', function() {
           circular,
           {foo: 123, bar: {}}
         );
-      }).to.throwError(/circular|cyclic/i);
+      }).to['throw'](/circular|cyclic/i);
     });
   });
 

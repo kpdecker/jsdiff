@@ -1,7 +1,7 @@
 import {diffSentences} from '../../lib/diff/sentence';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
-import expect from 'expect.js';
+import {expect} from 'chai';
 
 describe('diff/sentence', function() {
   describe('#diffSentences', function() {
