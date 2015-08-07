@@ -61,8 +61,8 @@ describe('WordDiff', function() {
     });
 
     it('should token unicode characters safely', function() {
-      wordDiff.tokenize('jurídica').should.eql(['jurídica']);
-      wordDiff.tokenize('wir üben').should.eql(['wir', ' ', 'üben']);
+      wordDiff.removeEmpty(wordDiff.tokenize('jurídica')).should.eql(['jurídica']);
+      wordDiff.removeEmpty(wordDiff.tokenize('wir üben')).should.eql(['wir', ' ', 'üben']);
     });
   });
 

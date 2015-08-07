@@ -68,7 +68,7 @@ describe('diff/json', function() {
           circular,
           {foo: 123, bar: {}}
         );
-      }.should['throw']('Converting circular structure to JSON'));
+      }.should['throw'](/Converting circular structure to JSON|JSON.stringify cannot serialize cyclic structures/));
     });
   });
 
