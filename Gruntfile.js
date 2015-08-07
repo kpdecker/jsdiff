@@ -121,7 +121,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('travis',
     !process.env.KARMA && process.env.SAUCE_USERNAME
-      ? ['clean', 'build', 'karma:unit', 'cover']
+      ? ['clean', 'build', 'karma:unit', 'karma:sauce', 'cover']
       : ['clean', 'build', 'cover']);
 
   grunt.registerTask('dev', ['clean', 'watch']);
