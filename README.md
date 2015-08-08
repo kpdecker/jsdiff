@@ -83,9 +83,22 @@ or
     }
     ```
 
-* `JsDiff.applyPatch(oldStr, diffStr)` - applies a unified diff patch.
+* `JsDiff.applyPatch(oldStr, patch)` - applies a unified diff patch.
 
-    Return a string containing new version of provided data.
+    Return a string containing new version of provided data. `patch` may be a string diff or the output from the `parsePatch` or `structuredPatch` methods.
+
+* `JsDiff.applyPatches(patch, options)` - applies one or more patches.
+
+    This method will iterate over the contents of the patch and apply to data provided through callbacks. The general flow for each patch index is:
+
+    - `options.loadFile(index, callback)` is called. The caller should then load the contents of the file and then pass that to the `callback(err, data)` callback. Passing an `err` will terminate further patch execution.
+    - `options.patched(index, content)` is called once the patch has been applied. `content` will be the return value frmo `applyPatch`.
+
+    Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
+
+* `JsDiff.parsePatch(diffStr)` - Parses a patch into structured data
+
+    Return a JSON object representation of the a patch, suitable for use with the `applyPath` method. This parses to the same structure returned by `JsDiff.structuredPatch`.
 
 * `convertChangesToXML(changes)` - converts a list of changes to a serialized XML format
 
