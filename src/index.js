@@ -24,6 +24,7 @@ import {diffCss} from './diff/css';
 import {diffJson, canonicalize} from './diff/json';
 
 import {applyPatch} from './patch/apply';
+import {parsePatch} from './patch/parse';
 import {structuredPatch, createTwoFilesPatch, createPatch} from './patch/create';
 
 import {convertChangesToDMP} from './convert/dmp';
@@ -46,6 +47,7 @@ export {
   createTwoFilesPatch,
   createPatch,
   applyPatch,
+  parsePatch,
   convertChangesToDMP,
   convertChangesToXML,
   canonicalize
