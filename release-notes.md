@@ -2,7 +2,13 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.1...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.2...master)
+
+## v2.0.2 - August 8th, 2015
+- [#67](https://github.com/kpdecker/jsdiff/issues/67) - cannot require from npm module in node ([@commenthol](https://api.github.com/users/commenthol))
+- Convert to chai since we don’t support IE8 - a96bbad
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.1...v2.0.2)
 
 ## v2.0.1 - August 7th, 2015
 - Add release build at proper step - 57542fd
