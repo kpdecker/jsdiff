@@ -14,13 +14,13 @@ describe('patch/parse', function() {
         .to.eql([{
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: ' ', content: 'line2'},
-                {operation: ' ', content: 'line3'},
-                {operation: '+', content: 'line4'},
-                {operation: ' ', content: 'line5'}
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
               ]
             }
           ]
@@ -34,11 +34,11 @@ describe('patch/parse', function() {
         .to.eql([{
           hunks: [
             {
-              from: {line: 1, count: 1},
-              to: {line: 1, count: 1},
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
               lines: [
-                {operation: '-', content: 'line3'},
-                {operation: '+', content: 'line4'}
+                '-line3',
+                '+line4'
               ]
             }
           ]
@@ -59,23 +59,23 @@ describe('patch/parse', function() {
         .to.eql([{
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: ' ', content: 'line2'},
-                {operation: ' ', content: 'line3'},
-                {operation: '+', content: 'line4'},
-                {operation: ' ', content: 'line5'}
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
               ]
             },
             {
-              from: {line: 4, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 4, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: ' ', content: 'line2'},
-                {operation: ' ', content: 'line3'},
-                {operation: '-', content: 'line4'},
-                {operation: ' ', content: 'line5'}
+                ' line2',
+                ' line3',
+                '-line4',
+                ' line5'
               ]
             }
           ]
@@ -94,23 +94,19 @@ describe('patch/parse', function() {
  line5`))
         .to.eql([{
           index: 'test',
-          from: {
-            file: 'from',
-            header: 'header1'
-          },
-          to: {
-            file: 'to',
-            header: 'header2'
-          },
+          oldFileName: 'from',
+          oldHeader: 'header1',
+          newFileName: 'to',
+          newHeader: 'header2',
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: ' ', content: 'line2'},
-                {operation: ' ', content: 'line3'},
-                {operation: '+', content: 'line4'},
-                {operation: ' ', content: 'line5'}
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
               ]
             }
           ]
@@ -138,45 +134,37 @@ Index: test2
  line5`))
         .to.eql([{
           index: 'test',
-          from: {
-            file: 'from',
-            header: 'header1'
-          },
-          to: {
-            file: 'to',
-            header: 'header2'
-          },
+          oldFileName: 'from',
+          oldHeader: 'header1',
+          newFileName: 'to',
+          newHeader: 'header2',
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: ' ', content: 'line2'},
-                {operation: ' ', content: 'line3'},
-                {operation: '+', content: 'line4'},
-                {operation: ' ', content: 'line5'}
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
               ]
             }
           ]
         }, {
           index: 'test2',
-          from: {
-            file: 'from',
-            header: 'header1'
-          },
-          to: {
-            file: 'to',
-            header: 'header2'
-          },
+          oldFileName: 'from',
+          oldHeader: 'header1',
+          newFileName: 'to',
+          newHeader: 'header2',
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: ' ', content: 'line2'},
-                {operation: ' ', content: 'line3'},
-                {operation: '+', content: 'line4'},
-                {operation: ' ', content: 'line5'}
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
               ]
             }
           ]
@@ -191,14 +179,14 @@ Index: test2
         .to.eql([{
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: '-', content: 'line5'}
+                '-line5',
+                '\\ No newline at end of file'
               ]
             }
-          ],
-          addEOFNL: true
+          ]
         }]);
     });
     it('should note removed EOFNL', function() {
@@ -209,14 +197,14 @@ Index: test2
         .to.eql([{
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: '+', content: 'line5'}
+                '+line5',
+                '\\ No newline at end of file'
               ]
             }
-          ],
-          removeEOFNL: true
+          ]
         }]);
     });
     it('should ignore context no EOFNL', function() {
@@ -228,11 +216,12 @@ Index: test2
         .to.eql([{
           hunks: [
             {
-              from: {line: 1, count: 3},
-              to: {line: 1, count: 4},
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
               lines: [
-                {operation: '+', content: 'line4'},
-                {operation: ' ', content: 'line5'}
+                '+line4',
+                ' line5',
+                '\\ No newline at end of file'
               ]
             }
           ]

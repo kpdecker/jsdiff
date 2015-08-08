@@ -30,7 +30,7 @@ export function parsePatch(uniDiff, options = {}) {
       if (/^Index:/.test(diffstr[i])) {
         break;
       } else if (/^@@/.test(diffstr[i])) {
-        index.hunks.push(parseHunk(index));
+        index.hunks.push(parseHunk());
       } else if (!diffstr[i]) {
         i++;
       } else {
@@ -44,55 +44,44 @@ export function parsePatch(uniDiff, options = {}) {
   function parseFileHeader(index) {
     let fileHeader = (/^(\-\-\-|\+\+\+)\s(\S+)\s?(.*)/.exec(diffstr[i]));
     if (fileHeader) {
-      index[fileHeader[1] === '---' ? 'from' : 'to'] = {
-        file: fileHeader[2],
-        header: fileHeader[3]
-      };
+      let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
+      index[keyPrefix + 'FileName'] = fileHeader[2];
+      index[keyPrefix + 'Header'] = fileHeader[3];
+
       i++;
     }
   }
 
   // Parses a hunk
   // This assumes that we are at the start of a hunk.
-  function parseHunk(index) {
+  function parseHunk() {
     let chunkHeaderIndex = i,
         chunkHeaderLine = diffstr[i++],
         chunkHeader = chunkHeaderLine.split(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
 
     let hunk = {
-      from: {
-        line: +chunkHeader[1],
-        count: +chunkHeader[2] || 1
-      },
-      to: {
-        line: +chunkHeader[3],
-        count: +chunkHeader[4] || 1
-      },
+      oldStart: +chunkHeader[1],
+      oldLines: +chunkHeader[2] || 1,
+      newStart: +chunkHeader[3],
+      newLines: +chunkHeader[4] || 1,
       lines: []
     };
 
     let addCount = 0,
         removeCount = 0;
     for (; i < diffstr.length; i++) {
-      let operation = diffstr[i][0],
-          content = diffstr[i].substr(1);
+      let operation = diffstr[i][0];
 
-      if (operation === '+' || operation === '-' || operation === ' ') {
-        hunk.lines.push({operation, content});
+      if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
+        hunk.lines.push(diffstr[i]);
 
         if (operation === '+') {
           addCount++;
         } else if (operation === '-') {
           removeCount++;
-        } else {
+        } else if (operation === ' ') {
           addCount++;
           removeCount++;
-        }
-      } else if (operation === '\\') {
-        if (diffstr[i - 1][0] === '+') {
-          index.removeEOFNL = true;
-        } else if (diffstr[i - 1][0] === '-') {
-          index.addEOFNL = true;
         }
       } else {
         break;
@@ -100,19 +89,19 @@ export function parsePatch(uniDiff, options = {}) {
     }
 
     // Handle the empty block count case
-    if (!addCount && hunk.to.count === 1) {
-      hunk.to.count = 0;
+    if (!addCount && hunk.newLines === 1) {
+      hunk.newLines = 0;
     }
-    if (!removeCount && hunk.from.count === 1) {
-      hunk.from.count = 0;
+    if (!removeCount && hunk.oldLines === 1) {
+      hunk.oldLines = 0;
     }
 
     // Perform optional sanity checking
     if (options.strict) {
-      if (addCount !== hunk.to.count) {
+      if (addCount !== hunk.newLines) {
         throw new Error('Added line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
       }
-      if (removeCount !== hunk.from.count) {
+      if (removeCount !== hunk.oldLines) {
         throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
       }
     }

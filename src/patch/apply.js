@@ -15,39 +15,50 @@ export function applyPatch(oldStr, uniDiff) {
 
   // Apply the diff to the input
   let lines = oldStr.split('\n'),
-      hunks = uniDiff.hunks;
+      hunks = uniDiff.hunks,
+      removeEOFNL,
+      addEOFNL;
   for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
-        toPos = hunk.to.line - 1;
+        toPos = hunk.newStart - 1;
 
     // Sanity check the input string. Bail if we don't match.
     for (let j = 0; j < hunk.lines.length; j++) {
-      let line = hunk.lines[j];
-      if (line.operation === ' ' || line.operation === '-') {
+      let line = hunk.lines[j],
+          operation = line[0],
+          content = line.substr(1);
+      if (operation === ' ' || operation === '-') {
         // Context sanity check
-        if (lines[toPos] !== line.content) {
+        if (lines[toPos] !== content) {
           return false;
         }
       }
 
-      if (line.operation === ' ') {
+      if (operation === ' ') {
         toPos++;
-      } else if (line.operation === '-') {
+      } else if (operation === '-') {
         lines.splice(toPos, 1);
       /* istanbul ignore else */
-      } else if (line.operation === '+') {
-        lines.splice(toPos, 0, line.content);
+      } else if (operation === '+') {
+        lines.splice(toPos, 0, content);
         toPos++;
+      } else if (operation === '\\') {
+        let previousOperation = hunk.lines[j - 1][0];
+        if (previousOperation === '+') {
+          removeEOFNL = true;
+        } else if (previousOperation === '-') {
+          addEOFNL = true;
+        }
       }
     }
   }
 
   // Handle EOFNL insertion/removal
-  if (uniDiff.removeEOFNL) {
+  if (removeEOFNL) {
     while (!lines[lines.length - 1]) {
       lines.pop();
     }
-  } else if (uniDiff.addEOFNL) {
+  } else if (addEOFNL) {
     lines.push('');
   }
   return lines.join('\n');
