@@ -1,10 +1,54 @@
 import {applyPatch} from '../../lib/patch/apply';
+import {parsePatch} from '../../lib/patch/parse';
 import {createPatch} from '../../lib/patch/create';
 
 import {expect} from 'chai';
 
 describe('patch/apply', function() {
   describe('#applyPatch', function() {
+    it('should accept parsed patches', function() {
+      let patch = parsePatch(
+          'Index: test\n'
+          + '===================================================================\n'
+          + '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n');
+
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          patch))
+        .to.equal(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          patch[0]))
+        .to.equal(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('should error if passed multiple indexes', function() {
+      expect(function() {
+        applyPatch('', [1, 2]);
+      }).to['throw']('applyPatch only works with a single input.');
+    });
+
     it('should apply patches that change the last line', function() {
       expect(applyPatch(
           'line2\n'
