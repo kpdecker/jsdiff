@@ -6,6 +6,7 @@ test
 .eslintrc
 .gitignore
 .travis.yml
+.npmignore
 Gruntfile.js
 index.html
 karma.conf.js
