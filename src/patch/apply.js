@@ -52,3 +52,30 @@ export function applyPatch(oldStr, uniDiff) {
   }
   return lines.join('\n');
 }
+
+// Wrapper that supports multiple file patches via callbacks.
+export function applyPatches(uniDiff, options) {
+  if (typeof uniDiff === 'string') {
+    uniDiff = parsePatch(uniDiff);
+  }
+
+  let currentIndex = 0;
+  function processIndex() {
+    let index = uniDiff[currentIndex++];
+    if (!index) {
+      options.complete();
+    }
+
+    options.loadFile(index, function(err, data) {
+      if (err) {
+        return options.complete(err);
+      }
+
+      let updatedContent = applyPatch(data, index);
+      options.patched(index, updatedContent);
+
+      setTimeout(processIndex, 0);
+    });
+  }
+  processIndex();
+}

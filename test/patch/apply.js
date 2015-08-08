@@ -1,4 +1,4 @@
-import {applyPatch} from '../../lib/patch/apply';
+import {applyPatch, applyPatches} from '../../lib/patch/apply';
 import {parsePatch} from '../../lib/patch/parse';
 import {createPatch} from '../../lib/patch/create';
 
@@ -360,6 +360,88 @@ describe('patch/apply', function() {
 
       const diffed = createPatch('test', oldtext, newtext);
       expect(applyPatch(oldtext, diffed)).to.equal(newtext);
+    });
+  });
+
+  describe('#applyPatches', function() {
+    const patch =
+          'Index: test\n'
+          + '===================================================================\n'
+          + '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n'
+          + 'Index: test2\n'
+          + '===================================================================\n'
+          + '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' foo2\n'
+          + ' foo3\n'
+          + '+foo4\n'
+          + ' foo5\n';
+    const contents = {
+      test:
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+      test2:
+          'foo2\n'
+          + 'foo3\n'
+          + 'foo5\n'
+    };
+    const expected = {
+      test:
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n',
+      test2:
+          'foo2\n'
+          + 'foo3\n'
+          + 'foo4\n'
+          + 'foo5\n'
+    };
+
+    it('should handle multiple files', function(done) {
+      applyPatches(patch, {
+        loadFile(index, callback) {
+          callback(undefined, contents[index.index]);
+        },
+        patched(index, content) {
+          expect(content)
+              .to.equal(expected[index.index])
+              .to.not.be.undefined;
+        },
+        complete: done
+      });
+    });
+    it('should handle parsed patches', function(done) {
+      applyPatches(parsePatch(patch), {
+        loadFile(index, callback) {
+          callback(undefined, contents[index.index]);
+        },
+        patched(index, content) {
+          expect(content)
+              .to.equal(expected[index.index])
+              .to.not.be.undefined;
+        },
+        complete: done
+      });
+    });
+    it('should propagate errors', function(done) {
+      applyPatches(patch, {
+        loadFile(index, callback) {
+          callback(new Error('foo'));
+        },
+        complete(err) {
+          expect(err).to.match(/foo/);
+          done();
+        }
+      });
     });
   });
 });
