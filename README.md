@@ -83,9 +83,14 @@ or
     }
     ```
 
-* `JsDiff.applyPatch(oldStr, patch)` - applies a unified diff patch.
+* `JsDiff.applyPatch(oldStr, patch[, options])` - applies a unified diff patch.
 
     Return a string containing new version of provided data. `patch` may be a string diff or the output from the `parsePatch` or `structuredPatch` methods.
+
+    The optional `options` object may have the following keys:
+
+    - `fuzzFactor`: Number of lines that are allowed to differ before rejecting a patch. Defaults to 0.
+    - `compareLine(lineNumber, line, operation, patchContent)`: Callback used to compare to given lines to determine if they should be considered equal when patching. Defaults to strict equality but may be overriden to provide fuzzier comparison. Should return false if the lines should be rejected.
 
 * `JsDiff.applyPatches(patch, options)` - applies one or more patches.
 

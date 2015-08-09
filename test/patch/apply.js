@@ -353,6 +353,58 @@ describe('patch/apply', function() {
           + ' line5\n'))
         .to.equal(false);
     });
+    it('should succeed within fuzz factor', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line2\n'
+          + 'line5\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n',
+          {fuzzFactor: 1}))
+        .to.equal(
+          'line2\n'
+          + 'line2\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('should allow custom line comparison', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line2\n'
+          + 'line5\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n',
+          {
+            compareLine(lineNumber, line, operation, patchContent) {
+              expect(lineNumber).to.be.a('number');
+              if (lineNumber === 2) {
+                expect(line).to.equal('line2');
+                expect(operation).to.equal(' ');
+                expect(patchContent).to.equal('line3');
+              }
+
+              return true;
+            }
+          }))
+        .to.equal(
+          'line2\n'
+          + 'line2\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
 
     it('should work with unicode newline characters', function() {
       const oldtext = 'AAAAAAAAAAAAAAAA\n\n';

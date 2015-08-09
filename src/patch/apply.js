@@ -1,6 +1,6 @@
 import {parsePatch} from './parse';
 
-export function applyPatch(oldStr, uniDiff) {
+export function applyPatch(oldStr, uniDiff, options = {}) {
   if (typeof uniDiff === 'string') {
     uniDiff = parsePatch(uniDiff);
   }
@@ -16,8 +16,14 @@ export function applyPatch(oldStr, uniDiff) {
   // Apply the diff to the input
   let lines = oldStr.split('\n'),
       hunks = uniDiff.hunks,
+
+      compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
+      errorCount = 0,
+      fuzzFactor = options.fuzzFactor || 0,
+
       removeEOFNL,
       addEOFNL;
+
   for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
         toPos = hunk.newStart - 1;
@@ -29,8 +35,12 @@ export function applyPatch(oldStr, uniDiff) {
           content = line.substr(1);
       if (operation === ' ' || operation === '-') {
         // Context sanity check
-        if (lines[toPos] !== content) {
-          return false;
+        if (!compareLine(toPos + 1, lines[toPos], operation, content)) {
+          errorCount++;
+
+          if (errorCount > fuzzFactor) {
+            return false;
+          }
         }
       }
 
@@ -82,7 +92,7 @@ export function applyPatches(uniDiff, options) {
         return options.complete(err);
       }
 
-      let updatedContent = applyPatch(data, index);
+      let updatedContent = applyPatch(data, index, options);
       options.patched(index, updatedContent);
 
       setTimeout(processIndex, 0);
