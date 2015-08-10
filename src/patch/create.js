@@ -1,11 +1,11 @@
-import {patchDiff} from '../diff/patch';
+import {diffLines} from '../diff/line';
 
 export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
   if (!options) {
     options = { context: 4 };
   }
 
-  const diff = patchDiff.diff(oldStr, newStr);
+  const diff = diffLines(oldStr, newStr);
   diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
   function contextLines(lines) {

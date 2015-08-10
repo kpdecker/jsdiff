@@ -6,22 +6,22 @@ trimmedLineDiff.ignoreTrim = true;
 
 lineDiff.tokenize = trimmedLineDiff.tokenize = function(value) {
   let retLines = [],
-      lines = value.split(/^/m);
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i],
-        lastLine = lines[i - 1],
-        lastLineLastChar = lastLine && lastLine[lastLine.length - 1];
+      linesAndNewlines = value.split(/(\n|\r\n)/);
 
-    // Merge lines that may contain windows new lines
-    if (line === '\n' && lastLineLastChar === '\r') {
-        retLines[retLines.length - 1] = retLines[retLines.length - 1].slice(0, -1) + '\r\n';
+  // Ignore the final empty token that occurs if the string ends with a new line
+  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
+    linesAndNewlines.pop();
+  }
+
+  // Merge the content and line separators into single tokens
+  for (let i = 0; i < linesAndNewlines.length; i++) {
+    let line = linesAndNewlines[i];
+
+    if (i % 2) {
+      retLines[retLines.length - 1] += line;
     } else {
       if (this.ignoreTrim) {
         line = line.trim();
-        // add a newline unless this is the last line.
-        if (i < lines.length - 1) {
-          line += '\n';
-        }
       }
       retLines.push(line);
     }
