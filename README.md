@@ -83,7 +83,7 @@ or
     }
     ```
 
-* `JsDiff.applyPatch(oldStr, patch[, options])` - applies a unified diff patch.
+* `JsDiff.applyPatch(source, patch[, options])` - applies a unified diff patch.
 
     Return a string containing new version of provided data. `patch` may be a string diff or the output from the `parsePatch` or `structuredPatch` methods.
 

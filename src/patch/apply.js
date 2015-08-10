@@ -1,6 +1,6 @@
 import {parsePatch} from './parse';
 
-export function applyPatch(oldStr, uniDiff, options = {}) {
+export function applyPatch(source, uniDiff, options = {}) {
   if (typeof uniDiff === 'string') {
     uniDiff = parsePatch(uniDiff);
   }
@@ -14,7 +14,7 @@ export function applyPatch(oldStr, uniDiff, options = {}) {
   }
 
   // Apply the diff to the input
-  let lines = oldStr.split('\n'),
+  let lines = source.split('\n'),
       hunks = uniDiff.hunks,
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
