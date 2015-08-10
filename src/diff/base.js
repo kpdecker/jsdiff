@@ -1,5 +1,3 @@
-import map from '../util/map';
-
 export default function Diff(ignoreWhitespace) {
   this.ignoreWhitespace = ignoreWhitespace;
 }
@@ -183,7 +181,7 @@ function buildValues(components, newString, oldString, useLongestToken) {
     if (!component.removed) {
       if (!component.added && useLongestToken) {
         let value = newString.slice(newPos, newPos + component.count);
-        value = map(value, function(value, i) {
+        value = value.map(function(value, i) {
           let oldValue = oldString[oldPos + i];
           return oldValue.length > value.length ? oldValue : value;
         });
