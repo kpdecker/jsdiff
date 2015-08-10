@@ -1,5 +1,4 @@
 import {patchDiff} from '../diff/patch';
-import map from '../util/map';
 
 export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
   if (!options) {
@@ -10,7 +9,7 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
 
   function contextLines(lines) {
-    return map(lines, function(entry) { return ' ' + entry; });
+    return lines.map(function(entry) { return ' ' + entry; });
   }
 
   let hunks = [];
@@ -36,7 +35,7 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
       }
 
       // Output our changes
-      curRange.push.apply(curRange, map(lines, function(entry) {
+      curRange.push(... lines.map(function(entry) {
         return (current.added ? '+' : '-') + entry;
       }));
 
@@ -52,11 +51,11 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
         // Close out any changes that have been output (or join overlapping)
         if (lines.length <= options.context * 2 && i < diff.length - 2) {
           // Overlapping
-          curRange.push.apply(curRange, contextLines(lines));
+          curRange.push(... contextLines(lines));
         } else {
           // end the range and output
           let contextSize = Math.min(lines.length, options.context);
-          curRange.push.apply(curRange, contextLines(lines.slice(0, contextSize)));
+          curRange.push(... contextLines(lines.slice(0, contextSize)));
 
           let hunk = {
             oldStart: oldRangeStart,
