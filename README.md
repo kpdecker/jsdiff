@@ -39,6 +39,10 @@ or
 
     Returns a list of change objects (See below).
 
+* `JsDiff.diffLinesNL(oldStr, newStr[, callback])` - diffs two blocks of text, comparing line by line. This differs from `diffLines` in that the newline character is treated as a distinct token. This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines` and `diffLines` is better suited for patches and other computer friendly output.
+
+    Returns a list of change objects (See below).
+
 * `JsDiff.diffSentences(oldStr, newStr[, callback])` - diffs two blocks of text, comparing sentence by sentence.
 
     Returns a list of change objects (See below).
