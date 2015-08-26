@@ -65,6 +65,18 @@ describe('WordDiff', function() {
       expect(wordDiff.removeEmpty(wordDiff.tokenize('jurídica'))).to.eql(['jurídica']);
       expect(wordDiff.removeEmpty(wordDiff.tokenize('wir üben'))).to.eql(['wir', ' ', 'üben']);
     });
+
+    it('should include count with identity cases', function() {
+      expect(diffWords('foo', 'foo')).to.eql([{value: 'foo', count: 1}]);
+      expect(diffWords('foo bar', 'foo bar')).to.eql([{value: 'foo bar', count: 3}]);
+    });
+    it('should include count with empty cases', function() {
+      expect(diffWords('foo', '')).to.eql([{value: 'foo', count: 1, added: undefined, removed: true}]);
+      expect(diffWords('foo bar', '')).to.eql([{value: 'foo bar', count: 3, added: undefined, removed: true}]);
+
+      expect(diffWords('', 'foo')).to.eql([{value: 'foo', count: 1, added: true, removed: undefined}]);
+      expect(diffWords('', 'foo bar')).to.eql([{value: 'foo bar', count: 3, added: true, removed: undefined}]);
+    });
   });
 
   describe('#diffWords - async', function() {

@@ -19,19 +19,8 @@ Diff.prototype = {
     oldString = this.castInput(oldString);
     newString = this.castInput(newString);
 
-    // Handle the identity case (this is due to unrolling editLength == 0
-    if (newString === oldString) {
-      return done([{ value: newString }]);
-    }
-    if (!newString) {
-      return done([{ value: oldString, removed: true }]);
-    }
-    if (!oldString) {
-      return done([{ value: newString, added: true }]);
-    }
-
-    newString = this.removeEmpty(this.tokenize(newString));
     oldString = this.removeEmpty(this.tokenize(oldString));
+    newString = this.removeEmpty(this.tokenize(newString));
 
     let newLen = newString.length, oldLen = oldString.length;
     let editLength = 1;
@@ -42,7 +31,7 @@ Diff.prototype = {
     let oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
     if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
       // Identity per the equality and tokenizer
-      return done([{value: newString.join('')}]);
+      return done([{value: newString.join(''), count: newString.length}]);
     }
 
     // Main worker method. checks all permutations of a given edit length for acceptance.
