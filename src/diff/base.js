@@ -1,6 +1,4 @@
-export default function Diff(ignoreWhitespace) {
-  this.ignoreWhitespace = ignoreWhitespace;
-}
+export default function Diff() {}
 
 Diff.prototype = {
   diff(oldString, newString, callback) {
@@ -139,8 +137,7 @@ Diff.prototype = {
   },
 
   equals(left, right) {
-    let reWhitespace = /\S/;
-    return left === right || (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
+    return left === right;
   },
   removeEmpty(array) {
     let ret = [];

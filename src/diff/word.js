@@ -20,7 +20,13 @@ import Diff from './base';
 // Latin Extended Additional, 1E00–1EFF
 const extendedWordChars = /^[a-zA-Z\u{C0}-\u{FF}\u{D8}-\u{F6}\u{F8}-\u{2C6}\u{2C8}-\u{2D7}\u{2DE}-\u{2FF}\u{1E00}-\u{1EFF}]+$/u;
 
-export const wordDiff = new Diff(true);
+const reWhitespace = /\S/;
+
+export const wordDiff = new Diff();
+wordDiff.equals = function(left, right) {
+  return left === right || (!reWhitespace.test(left) && !reWhitespace.test(right));
+};
+
 export const wordWithSpaceDiff = new Diff();
 wordDiff.tokenize = wordWithSpaceDiff.tokenize = function(value) {
   let tokens = value.split(/(\s+|\b)/);
