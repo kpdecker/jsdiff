@@ -68,7 +68,7 @@ Diff.prototype = {
 
         // If we have hit the end of both strings, then we are done
         if (basePath.newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
-          return done(buildValues(basePath.components, newString, oldString, self.useLongestToken));
+          return done(buildValues(self, basePath.components, newString, oldString, self.useLongestToken));
         } else {
           // Otherwise track this path as a potential candidate and continue.
           bestPath[diagonalPath] = basePath;
@@ -156,7 +156,7 @@ Diff.prototype = {
   }
 };
 
-function buildValues(components, newString, oldString, useLongestToken) {
+function buildValues(diff, components, newString, oldString, useLongestToken) {
   let componentPos = 0,
       componentLen = components.length,
       newPos = 0,
@@ -195,6 +195,14 @@ function buildValues(components, newString, oldString, useLongestToken) {
         components[componentPos] = tmp;
       }
     }
+  }
+
+  // Special case handle for when one terminal is ignored. For this case we merge the
+  // terminal into the prior string and drop the change.
+  let lastComponent = components[componentLen - 1];
+  if ((lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
+    components[componentLen - 2].value += lastComponent.value;
+    components.pop();
   }
 
   return components;

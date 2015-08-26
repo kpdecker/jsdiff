@@ -77,6 +77,14 @@ describe('WordDiff', function() {
       expect(diffWords('', 'foo')).to.eql([{value: 'foo', count: 1, added: true, removed: undefined}]);
       expect(diffWords('', 'foo bar')).to.eql([{value: 'foo bar', count: 3, added: true, removed: undefined}]);
     });
+
+    it('should ignore whitespace', function() {
+      expect(diffWords('hase igel fuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs' }]);
+      expect(diffWords('hase igel fuchs', 'hase igel fuchs\n')).to.eql([{ count: 5, value: 'hase igel fuchs\n' }]);
+      expect(diffWords('hase igel fuchs\n', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs\n' }]);
+      expect(diffWords('hase igel fuchs', 'hase igel\nfuchs')).to.eql([{ count: 5, value: 'hase igel\nfuchs' }]);
+      expect(diffWords('hase igel\nfuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs' }]);
+    });
   });
 
   describe('#diffWords - async', function() {
