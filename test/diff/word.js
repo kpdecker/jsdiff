@@ -85,6 +85,11 @@ describe('WordDiff', function() {
       expect(diffWords('hase igel fuchs', 'hase igel\nfuchs')).to.eql([{ count: 5, value: 'hase igel\nfuchs' }]);
       expect(diffWords('hase igel\nfuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs' }]);
     });
+
+    it('should diff whitespace with flag', function() {
+      const diffResult = diffWords('New Value', 'New  ValueMoreData', {ignoreWhitespace: false});
+      expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del><ins>  ValueMoreData</ins>');
+    });
   });
 
   describe('#diffWords - async', function() {
@@ -169,6 +174,13 @@ describe('WordDiff', function() {
     it('should diff multiple whitespace values', function() {
       const diffResult = diffWordsWithSpace('New Value  ', 'New  ValueMoreData ');
       expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
+    });
+
+    it('should perform async operations', function(done) {
+      diffWordsWithSpace('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
+        expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
+        done();
+      });
     });
   });
 });

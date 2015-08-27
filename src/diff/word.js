@@ -1,4 +1,5 @@
 import Diff from './base';
+import {generateOptions} from '../util/params';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -24,11 +25,9 @@ const reWhitespace = /\S/;
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right) {
-  return left === right || (!reWhitespace.test(left) && !reWhitespace.test(right));
+  return left === right || (this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
 };
-
-export const wordWithSpaceDiff = new Diff();
-wordDiff.tokenize = wordWithSpaceDiff.tokenize = function(value) {
+wordDiff.tokenize = function(value) {
   let tokens = value.split(/(\s+|\b)/);
 
   // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
@@ -46,5 +45,10 @@ wordDiff.tokenize = wordWithSpaceDiff.tokenize = function(value) {
   return tokens;
 };
 
-export function diffWords(oldStr, newStr, callback) { return wordDiff.diff(oldStr, newStr, callback); }
-export function diffWordsWithSpace(oldStr, newStr, callback) { return wordWithSpaceDiff.diff(oldStr, newStr, callback); }
+export function diffWords(oldStr, newStr, callback) {
+  let options = generateOptions(callback, {ignoreWhitespace: true});
+  return wordDiff.diff(oldStr, newStr, options);
+}
+export function diffWordsWithSpace(oldStr, newStr, callback) {
+  return wordDiff.diff(oldStr, newStr, callback);
+}

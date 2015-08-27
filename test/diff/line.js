@@ -1,4 +1,4 @@
-import {diffLines, diffTrimmedLines, diffLinesNL} from '../../lib/diff/line';
+import {diffLines, diffTrimmedLines} from '../../lib/diff/line';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
 import {expect} from 'chai';
@@ -79,11 +79,11 @@ describe('diff/line', function() {
   });
 
   describe('#diffLinesNL', function() {
-    expect(diffLinesNL('restaurant', 'restaurant\n')).to.eql([
+    expect(diffLines('restaurant', 'restaurant\n', {newlineIsToken: true})).to.eql([
       {value: 'restaurant', count: 1},
       {value: '\n', count: 1, added: true, removed: undefined}
     ]);
-    expect(diffLinesNL('restaurant', 'restaurant\nhello')).to.eql([
+    expect(diffLines('restaurant', 'restaurant\nhello', {newlineIsToken: true})).to.eql([
       {value: 'restaurant', count: 1},
       {value: '\nhello', count: 2, added: true, removed: undefined}
     ]);

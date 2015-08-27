@@ -1,7 +1,14 @@
 export default function Diff() {}
 
 Diff.prototype = {
-  diff(oldString, newString, callback) {
+  diff(oldString, newString, options = {}) {
+    let callback = options.callback;
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    this.options = options;
+
     let self = this;
 
     function done(value) {
