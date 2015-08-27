@@ -2,7 +2,26 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.2...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.0...master)
+
+## v2.1.0 - August 27th, 2015
+- [#72](https://github.com/kpdecker/jsdiff/issues/72) - Consider using options object API for flag permutations ([@kpdecker](https://api.github.com/users/kpdecker))
+- [#70](https://github.com/kpdecker/jsdiff/issues/70) - diffWords treats \n at the end as significant whitespace ([@nesQuick](https://api.github.com/users/nesQuick))
+- [#69](https://github.com/kpdecker/jsdiff/issues/69) - Missing count ([@wfalkwallace](https://api.github.com/users/wfalkwallace))
+- [#68](https://github.com/kpdecker/jsdiff/issues/68) - diffLines seems broken ([@wfalkwallace](https://api.github.com/users/wfalkwallace))
+- [#60](https://github.com/kpdecker/jsdiff/issues/60) - Support multiple diff hunks ([@piranna](https://api.github.com/users/piranna))
+- [#54](https://github.com/kpdecker/jsdiff/issues/54) - Feature Reuqest: 3-way merge ([@mog422](https://api.github.com/users/mog422))
+- [#42](https://github.com/kpdecker/jsdiff/issues/42) - Fuzz factor for applyPatch ([@stuartpb](https://api.github.com/users/stuartpb))
+- Move whitespace ignore out of equals method - 542063c
+- Include source maps in babel output - 7f7ab21
+- Merge diff/line and diff/patch implementations - 1597705
+- Drop map utility method - 1ddc939
+- Documentation for parsePatch and applyPatches - 27c4b77
+
+Compatibility notes:
+- The undocumented ignoreWhitespace flag has been removed from the Diff equality check directly. This implementation may be copied to diff utilities if dependencies existed on this functionality.
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.0.2...v2.1.0)
 
 ## v2.0.2 - August 8th, 2015
 - [#67](https://github.com/kpdecker/jsdiff/issues/67) - cannot require from npm module in node ([@commenthol](https://api.github.com/users/commenthol))
