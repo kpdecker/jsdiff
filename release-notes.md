@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.1...master)
+
+## v2.1.1 - September 9th, 2015
+- [#73](https://github.com/kpdecker/jsdiff/issues/73) - Is applyPatches() exposed in the API? ([@davidparsson](https://api.github.com/users/davidparsson))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.0...v2.1.1)
 
 ## v2.1.0 - August 27th, 2015
 - [#72](https://github.com/kpdecker/jsdiff/issues/72) - Consider using options object API for flag permutations ([@kpdecker](https://api.github.com/users/kpdecker))
