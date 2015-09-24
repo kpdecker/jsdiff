@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.1...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.2...master)
+
+## v2.1.2 - September 23rd, 2015
+- [#76](https://github.com/kpdecker/jsdiff/issues/76) - diff headers give error ([@piranna](https://api.github.com/users/piranna))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.1...v2.1.2)
 
 ## v2.1.1 - September 9th, 2015
 - [#73](https://github.com/kpdecker/jsdiff/issues/73) - Is applyPatches() exposed in the API? ([@davidparsson](https://api.github.com/users/davidparsson))
