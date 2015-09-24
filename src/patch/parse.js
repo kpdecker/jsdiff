@@ -7,6 +7,14 @@ export function parsePatch(uniDiff, options = {}) {
     let index = {};
     list.push(index);
 
+    // Ignore any leading junk
+    while (i < diffstr.length) {
+      if ((/^Index:/.test(diffstr[i])) || (/^@@/.test(diffstr[i]))) {
+        break;
+      }
+      i++;
+    }
+
     let header = (/^Index: (.*)/.exec(diffstr[i]));
     if (header) {
       index.index = header[1];
@@ -31,10 +39,11 @@ export function parsePatch(uniDiff, options = {}) {
         break;
       } else if (/^@@/.test(diffstr[i])) {
         index.hunks.push(parseHunk());
-      } else if (!diffstr[i]) {
-        i++;
-      } else {
+      } else if (diffstr[i] && options.strict) {
+        // Ignore unexpected content unless in strict mode
         throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(diffstr[i]));
+      } else {
+        i++;
       }
     }
   }

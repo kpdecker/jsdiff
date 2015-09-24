@@ -238,9 +238,17 @@ Index: test2
         parsePatch(`@@ -1,4 +1 @@`, {strict: true});
       }).to['throw']('Removed line count did not match for hunk at line 1');
     });
-    it('should throw on invalid input', function() {
+
+    it('should not throw on invalid input', function() {
+      expect(parsePatch('blit\nblat\nIndex: foo\nfoo'))
+          .to.eql([{
+            hunks: [],
+            index: 'foo'
+          }]);
+    });
+    it('should throw on invalid input in strict mode', function() {
       expect(function() {
-        parsePatch('Index: foo\nfoo');
+        parsePatch('Index: foo\nfoo', {strict: true});
       }).to['throw'](/Unknown line 2 "foo"/);
     });
   });
