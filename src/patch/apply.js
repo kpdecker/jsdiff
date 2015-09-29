@@ -53,7 +53,7 @@ export function applyPatch(source, uniDiff, options = {}) {
         lines.splice(toPos, 0, content);
         toPos++;
       } else if (operation === '\\') {
-        let previousOperation = hunk.lines[j - 1][0];
+        let previousOperation = hunk.lines[j - 1] ? hunk.lines[j - 1][0] : null;
         if (previousOperation === '+') {
           removeEOFNL = true;
         } else if (previousOperation === '-') {

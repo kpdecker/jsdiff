@@ -413,6 +413,23 @@ describe('patch/apply', function() {
       const diffed = createPatch('test', oldtext, newtext);
       expect(applyPatch(oldtext, diffed)).to.equal(newtext);
     });
+
+    it('handle empty text', function() {
+      const oldtext = '';
+      const newtext = 'asdasd\n';
+
+      const diffed = createPatch('test', oldtext, newtext);
+      expect(applyPatch(oldtext, diffed)).to.equal(newtext);
+    });
+
+    it('handle two common text', function() {
+      const oldtext = 's';
+      const newtext = 'sdfsdf\n';
+      const diffed = createPatch('test', oldtext, newtext);
+      expect(applyPatch(oldtext, diffed)).to.equal(newtext);
+    });
+
+
   });
 
   describe('#applyPatches', function() {
