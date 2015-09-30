@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.2...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.3...master)
+
+## v2.1.3 - September 30th, 2015
+- [#78](https://github.com/kpdecker/jsdiff/pull/78) - fix: error throwing when apply patch to empty string ([@21paradox](https://api.github.com/users/21paradox))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.2...v2.1.3)
 
 ## v2.1.2 - September 23rd, 2015
 - [#76](https://github.com/kpdecker/jsdiff/issues/76) - diff headers give error ([@piranna](https://api.github.com/users/piranna))
