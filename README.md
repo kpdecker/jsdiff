@@ -107,7 +107,7 @@ or
 
 * `JsDiff.parsePatch(diffStr)` - Parses a patch into structured data
 
-    Return a JSON object representation of the a patch, suitable for use with the `applyPath` method. This parses to the same structure returned by `JsDiff.structuredPatch`.
+    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `JsDiff.structuredPatch`.
 
 * `convertChangesToXML(changes)` - converts a list of changes to a serialized XML format
 
