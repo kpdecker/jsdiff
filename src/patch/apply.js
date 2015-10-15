@@ -24,25 +24,40 @@ export function applyPatch(source, uniDiff, options = {}) {
       removeEOFNL,
       addEOFNL;
 
-  for (let i = 0; i < hunks.length; i++) {
-    let hunk = hunks[i],
-        toPos = hunk.newStart - 1;
-
-    // Sanity check the input string. Bail if we don't match.
+  // Sanity check the input string. Fail if we don't match.
+  function sanityCheck(hunk, toPos) {
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
           operation = line[0],
           content = line.substr(1);
+
       if (operation === ' ' || operation === '-') {
         // Context sanity check
         if (!compareLine(toPos + 1, lines[toPos], operation, content)) {
           errorCount++;
 
           if (errorCount > fuzzFactor) {
-            return false;
+            return true;
           }
         }
+        toPos++;
       }
+    }
+  }
+
+  for (let i = 0; i < hunks.length; i++) {
+    let hunk = hunks[i],
+        toPos = hunk.newStart - 1;
+
+    // Sanity check the input string. Fail if we don't match.
+    if (sanityCheck(hunk, toPos)) {
+      return false;
+    }
+
+    for (let j = 0; j < hunk.lines.length; j++) {
+      let line = hunk.lines[j],
+          operation = line[0],
+          content = line.substr(1);
 
       if (operation === ' ') {
         toPos++;
