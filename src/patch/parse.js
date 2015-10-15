@@ -9,13 +9,13 @@ export function parsePatch(uniDiff, options = {}) {
 
     // Ignore any leading junk
     while (i < diffstr.length) {
-      if ((/^Index:/.test(diffstr[i])) || (/^@@/.test(diffstr[i]))) {
+      if (/^(Index:|diff -r|@@)/.test(diffstr[i])) {
         break;
       }
       i++;
     }
 
-    let header = (/^Index: (.*)/.exec(diffstr[i]));
+    let header = (/^(?:Index:|diff -r (?:\w+)) (.*)/.exec(diffstr[i]));
     if (header) {
       index.index = header[1];
       i++;
@@ -35,7 +35,7 @@ export function parsePatch(uniDiff, options = {}) {
     index.hunks = [];
 
     while (i < diffstr.length) {
-      if (/^Index:/.test(diffstr[i])) {
+      if (/^(Index:|diff -r)/.test(diffstr[i])) {
         break;
       } else if (/^@@/.test(diffstr[i])) {
         index.hunks.push(parseHunk());
