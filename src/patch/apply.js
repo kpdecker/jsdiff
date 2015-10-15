@@ -84,7 +84,7 @@ export function applyPatches(uniDiff, options) {
   function processIndex() {
     let index = uniDiff[currentIndex++];
     if (!index) {
-      options.complete();
+      return options.complete();
     }
 
     options.loadFile(index, function(err, data) {
