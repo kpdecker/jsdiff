@@ -24,8 +24,7 @@ export function applyPatch(source, uniDiff, options = {}) {
       removeEOFNL,
       addEOFNL;
 
-  // Sanity check the input string. Fail if we don't match.
-  function sanityCheck(hunk, toPos) {
+  function hunkFits(hunk, toPos) {
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
           operation = line[0],
@@ -37,22 +36,28 @@ export function applyPatch(source, uniDiff, options = {}) {
           errorCount++;
 
           if (errorCount > fuzzFactor) {
-            return true;
+            return false;
           }
         }
         toPos++;
       }
+    }
+
+    return true;
+  }
+
+ // Sanity check the input string. Fail if we don't match.
+ for (let i = 0; i < hunks.length; i++) {
+    let hunk = hunks[i];
+
+    if (!hunkFits(hunk, hunk.oldStart - 1)) {
+      return false;
     }
   }
 
   for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
         toPos = hunk.newStart - 1;
-
-    // Sanity check the input string. Fail if we don't match.
-    if (sanityCheck(hunk, toPos)) {
-      return false;
-    }
 
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
