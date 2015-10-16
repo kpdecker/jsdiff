@@ -50,28 +50,43 @@ export function applyPatch(source, uniDiff, options = {}) {
  // Search best fit offsets for each hunk based on the previous ones
  for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
+        outOfLimits = 0,
+        localOffset = 0,
         minLine = 0,
         toPos = offset + hunk.oldStart - 1;
 
-    for (let localOffset = 0; ; localOffset++) {
-      if (toPos - localOffset < minLine
-      || lines.length < toPos + localOffset + hunk.oldLines) {
+    for (;;) {
+      if (toPos + localOffset + hunk.oldLines <= lines.length) {
+        if (hunkFits(hunk, toPos + localOffset)) {
+          hunk.offset = offset += localOffset;
+          break;
+        }
+      } else {
+        outOfLimits++;
+      }
+
+      // If trying to fit hunk outside both limits, return error
+      if (outOfLimits === 2) {
         return false;
       }
 
-      if (hunkFits(hunk, toPos - localOffset)) {
-        hunk.offset = offset -= localOffset;
-        minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
-        break;
-      }
-      if (hunkFits(hunk, toPos + localOffset)) {
-        hunk.offset = offset += localOffset;
-        minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
-        break;
+      outOfLimits = 0;
+      localOffset++;
+
+      if (minLine <= toPos - localOffset) {
+        if (hunkFits(hunk, toPos - localOffset)) {
+          hunk.offset = offset -= localOffset;
+          break;
+        }
+      } else {
+        outOfLimits++;
       }
     }
+
+    minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
   }
 
+  // Apply patch hunks
   for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
         toPos = hunk.offset + hunk.newStart - 1;
