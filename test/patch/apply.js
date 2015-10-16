@@ -374,6 +374,27 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    it('should succeed when hunk has an offset', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -3,2 +3,3 @@\n'
+          + ' line1\n'
+          + '+line2\n'
+          + ' line3\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
     it('should allow custom line comparison', function() {
       expect(applyPatch(
           'line2\n'
