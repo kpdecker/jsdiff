@@ -19,6 +19,7 @@ export function applyPatch(source, uniDiff, options = {}) {
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
       errorCount = 0,
+      offset = 0,
       fuzzFactor = options.fuzzFactor || 0,
 
       removeEOFNL,
@@ -46,18 +47,34 @@ export function applyPatch(source, uniDiff, options = {}) {
     return true;
   }
 
- // Sanity check the input string. Fail if we don't match.
+ // Search best fit offsets for each hunk based on the previous ones
  for (let i = 0; i < hunks.length; i++) {
-    let hunk = hunks[i];
+    let hunk = hunks[i],
+        minLine = 0,
+        toPos = offset + hunk.oldStart - 1;
 
-    if (!hunkFits(hunk, hunk.oldStart - 1)) {
-      return false;
+    for (let localOffset = 0; ; localOffset++) {
+      if (toPos - localOffset < minLine
+      || lines.length < toPos + localOffset + hunk.oldLines) {
+        return false;
+      }
+
+      if (hunkFits(hunk, toPos - localOffset)) {
+        hunk.offset = offset -= localOffset;
+        minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
+        break;
+      }
+      if (hunkFits(hunk, toPos + localOffset)) {
+        hunk.offset = offset += localOffset;
+        minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
+        break;
+      }
     }
   }
 
   for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
-        toPos = hunk.newStart - 1;
+        toPos = hunk.offset + hunk.newStart - 1;
 
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
