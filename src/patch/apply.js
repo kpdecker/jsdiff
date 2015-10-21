@@ -19,12 +19,16 @@ export function applyPatch(source, uniDiff, options = {}) {
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
       errorCount = 0,
-      offset = 0,
       fuzzFactor = options.fuzzFactor || 0,
+      minLine = 0,
+      offset = 0,
 
       removeEOFNL,
       addEOFNL;
 
+  /**
+   * Checks if the hunk exactly fits on the provided location
+   */
   function hunkFits(hunk, toPos) {
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
@@ -47,42 +51,46 @@ export function applyPatch(source, uniDiff, options = {}) {
     return true;
   }
 
- // Search best fit offsets for each hunk based on the previous ones
- for (let i = 0; i < hunks.length; i++) {
+  // Search best fit offsets for each hunk based on the previous ones
+  for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
         outOfLimits = 0,
         localOffset = 0,
-        minLine = 0,
         toPos = offset + hunk.oldStart - 1;
 
     for (;;) {
-      if (toPos + localOffset + hunk.oldLines <= lines.length) {
-        if (hunkFits(hunk, toPos + localOffset)) {
-          hunk.offset = offset += localOffset;
-          break;
-        }
-      } else {
+      // Check if trying to fit beyond text length, and if not, check it fits
+      // after offset location (or desired location on first iteration)
+      if (lines.length < toPos + localOffset + hunk.oldLines) {
         outOfLimits++;
+      } else if (hunkFits(hunk, toPos + localOffset)) {
+        hunk.offset = offset += localOffset;
+        break;
       }
 
-      // If trying to fit hunk outside both limits, return error
+      // If we tried to fit hunk before text beginning and beyond text lenght,
+      // then hunk can't be fit on the text so we raise an error
       if (outOfLimits === 2) {
         return false;
       }
 
+      // Reset checks of trying to fit outside text limits and increase offset
+      // of the current hunk relative to its desired location
       outOfLimits = 0;
       localOffset++;
 
-      if (minLine <= toPos - localOffset) {
-        if (hunkFits(hunk, toPos - localOffset)) {
-          hunk.offset = offset -= localOffset;
-          break;
-        }
-      } else {
+      // Check if trying to fit before text beginning, and if not, check it fits
+      // before offset location
+      if (toPos - localOffset < minLine) {
         outOfLimits++;
+      } else if (hunkFits(hunk, toPos - localOffset)) {
+        hunk.offset = offset -= localOffset;
+        break;
       }
     }
 
+    // Set lower text limit to end of the current hunk, so next ones don't try
+    // to fit over already patched text
     minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
   }
 
