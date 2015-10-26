@@ -374,7 +374,7 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
-    it('should succeed when hunk has an offset', function() {
+    it('should succeed when hunk needs a negative offset', function() {
       expect(applyPatch(
           'line1\n'
           + 'line3\n'
@@ -387,6 +387,27 @@ describe('patch/apply', function() {
           + ' line1\n'
           + '+line2\n'
           + ' line3\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('should succeed when hunk needs a positive offset', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,2 +1,3 @@\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n'))
         .to.equal(
           'line1\n'
           + 'line2\n'
