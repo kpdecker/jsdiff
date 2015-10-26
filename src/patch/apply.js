@@ -54,36 +54,42 @@ export function applyPatch(source, uniDiff, options = {}) {
   // Search best fit offsets for each hunk based on the previous ones
   for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
-        outOfLimits = 0,
+        backwardExhausted = false,
+        forwardExhausted = false,
         localOffset = 0,
-        toPos = offset + hunk.oldStart - 1;
+        toPos = offset + hunk.oldStart - 1,
+        maxLine = lines.length - hunk.oldLines,
+        toCheck;
 
     for (;;) {
       // Check if trying to fit beyond text length, and if not, check it fits
       // after offset location (or desired location on first iteration)
-      if (lines.length < toPos + localOffset + hunk.oldLines) {
-        outOfLimits++;
-      } else if (hunkFits(hunk, toPos + localOffset)) {
+      toCheck = toPos + localOffset;
+      if (maxLine < toCheck) {
+        forwardExhausted = true;
+      } else if (hunkFits(hunk, toCheck)) {
         hunk.offset = offset += localOffset;
         break;
       }
 
       // If we tried to fit hunk before text beginning and beyond text lenght,
       // then hunk can't be fit on the text so we raise an error
-      if (outOfLimits === 2) {
+      if (backwardExhausted && forwardExhausted) {
         return false;
       }
 
       // Reset checks of trying to fit outside text limits and increase offset
       // of the current hunk relative to its desired location
-      outOfLimits = 0;
+      backwardExhausted = false;
+      forwardExhausted = false;
       localOffset++;
 
       // Check if trying to fit before text beginning, and if not, check it fits
       // before offset location
-      if (toPos - localOffset < minLine) {
-        outOfLimits++;
-      } else if (hunkFits(hunk, toPos - localOffset)) {
+      toCheck = toPos - localOffset;
+      if (toCheck < minLine) {
+        backwardExhausted = true;
+      } else if (hunkFits(hunk, toCheck)) {
         hunk.offset = offset -= localOffset;
         break;
       }
