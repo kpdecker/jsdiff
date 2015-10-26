@@ -103,14 +103,14 @@ export function applyPatch(source, uniDiff, options = {}) {
 
     let iterator = distanceIterator(toPos, minLine, maxLine);
 
-    for (; localOffset != undefined; localOffset = iterator()) {
+    for (; localOffset !== undefined; localOffset = iterator()) {
       if (hunkFits(hunk, toPos + localOffset)) {
         hunk.offset = offset += localOffset;
         break;
       }
     }
 
-    if (localOffset == undefined) {
+    if (localOffset === undefined) {
       return false;
     }
 
