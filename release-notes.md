@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.3...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.0...master)
+
+## v2.2.0 - October 29th, 2015
+- [#80](https://github.com/kpdecker/jsdiff/pull/80) - Fix a typo: applyPath ->  applyPatch ([@fluxxu](https://api.github.com/users/fluxxu))
+- [#83](https://github.com/kpdecker/jsdiff/pull/83) - Add basic fuzzy matching to applyPatch ([@piranna](https://github.com/piranna))
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.1.3...v2.2.0)
 
 ## v2.1.3 - September 30th, 2015
 - [#78](https://github.com/kpdecker/jsdiff/pull/78) - fix: error throwing when apply patch to empty string ([@21paradox](https://api.github.com/users/21paradox))
