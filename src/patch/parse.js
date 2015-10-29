@@ -3,45 +3,43 @@ export function parsePatch(uniDiff, options = {}) {
       list = [],
       i = 0;
 
-  function parseIndex() {
-    let index = {};
-    list.push(index);
+  function parseDiff() {
+    let diff = {};
+    list.push(diff);
 
-    // Ignore any leading junk
-    while (i < diffstr.length) {
-      if (/^(Index:|diff -r|@@)/.test(diffstr[i])) {
+    // Parse diff metadata
+    for (; i < diffstr.length; i++) {
+      let line = diffstr[i];
+
+      // File header found, end parsing diff metadata
+      if (/^(\-\-\-|\+\+\+|@@)/.test(line)) {
         break;
       }
-      i++;
-    }
 
-    let header = (/^(?:Index:|diff(?: -r \w+)+) (.*)/.exec(diffstr[i]));
-    if (header) {
-      index.index = header[1];
-      i++;
-
-      if (/^===/.test(diffstr[i])) {
-        i++;
+      // Diff index
+      let header = (/^(?:Index:|diff(?: -r \w+)+) (.+)/).exec(line);
+      if (header) {
+        diff.index = header[1];
       }
-
-      parseFileHeader(index);
-      parseFileHeader(index);
-    } else {
-      // Ignore erant header components that might occur at the start of the file
-      parseFileHeader({});
-      parseFileHeader({});
     }
 
-    index.hunks = [];
+    // Parse header lines twice (one for old file and another for new one)
+    parseFileHeader(diff);
+    parseFileHeader(diff);
+
+    // Parse diff hunks
+    diff.hunks = [];
 
     while (i < diffstr.length) {
-      if (/^(Index:|diff -r)/.test(diffstr[i])) {
+      let line = diffstr[i];
+
+      if (/^(Index:|diff|\-\-\-|\+\+\+)\s(.+)/.test(line)) {
         break;
-      } else if (/^@@/.test(diffstr[i])) {
-        index.hunks.push(parseHunk());
-      } else if (diffstr[i] && options.strict) {
+      } else if (/^@@/.test(line)) {
+        diff.hunks.push(parseHunk());
+      } else if (line && options.strict) {
         // Ignore unexpected content unless in strict mode
-        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(diffstr[i]));
+        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(line));
       } else {
         i++;
       }
@@ -50,12 +48,12 @@ export function parsePatch(uniDiff, options = {}) {
 
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
-  function parseFileHeader(index) {
-    let fileHeader = (/^(\-\-\-|\+\+\+)\s(\S+)\s?(.*)/.exec(diffstr[i]));
+  function parseFileHeader(diff) {
+    let fileHeader = (/^(\-\-\-|\+\+\+)\s(\S+)\s?(.+)/.exec(diffstr[i]));
     if (fileHeader) {
       let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
-      index[keyPrefix + 'FileName'] = fileHeader[2];
-      index[keyPrefix + 'Header'] = fileHeader[3];
+      diff[keyPrefix + 'FileName'] = fileHeader[2];
+      diff[keyPrefix + 'Header'] = fileHeader[3];
 
       i++;
     }
@@ -78,22 +76,26 @@ export function parsePatch(uniDiff, options = {}) {
 
     let addCount = 0,
         removeCount = 0;
+
     for (; i < diffstr.length; i++) {
-      let operation = diffstr[i][0];
+      let line = diffstr[i],
+          operation = line[0];
 
-      if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
-        hunk.lines.push(diffstr[i]);
-
-        if (operation === '+') {
-          addCount++;
-        } else if (operation === '-') {
-          removeCount++;
-        } else if (operation === ' ') {
-          addCount++;
-          removeCount++;
-        }
-      } else {
+      // Check begin of line is NOT from a hunk, end parsing
+      if (operation !== '+'
+       && operation !== '-'
+       && operation !== ' '
+       && operation !== '\\') {
         break;
+      }
+
+      // Line is from a hunk, add it and update counters
+      hunk.lines.push(line);
+
+      switch (operation) {
+        case '+': addCount++; break;
+        case '-': removeCount++; break;
+        case ' ': addCount++; removeCount++; break;
       }
     }
 
@@ -119,7 +121,7 @@ export function parsePatch(uniDiff, options = {}) {
   }
 
   while (i < diffstr.length) {
-    parseIndex();
+    parseDiff();
   }
 
   return list;
