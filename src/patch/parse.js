@@ -78,22 +78,26 @@ export function parsePatch(uniDiff, options = {}) {
 
     let addCount = 0,
         removeCount = 0;
+
     for (; i < diffstr.length; i++) {
-      let operation = diffstr[i][0];
+      let line = diffstr[i],
+          operation = line[0];
 
-      if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
-        hunk.lines.push(diffstr[i]);
-
-        if (operation === '+') {
-          addCount++;
-        } else if (operation === '-') {
-          removeCount++;
-        } else if (operation === ' ') {
-          addCount++;
-          removeCount++;
-        }
-      } else {
+      // Check begin of line is NOT from a hunk, end parsing
+      if (operation !== '+'
+       && operation !== '-'
+       && operation !== ' '
+       && operation !== '\\') {
         break;
+      }
+
+      // Line is from a hunk, add it and update counters
+      hunk.lines.push(line);
+
+      switch (operation) {
+        case '+': addCount++; break;
+        case '-': removeCount++; break;
+        case ' ': addCount++; removeCount++; break;
       }
     }
 
