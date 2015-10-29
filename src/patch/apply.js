@@ -1,4 +1,5 @@
 import {parsePatch} from './parse';
+import distanceIterator from '../util/distance-iterator';
 
 export function applyPatch(source, uniDiff, options = {}) {
   if (typeof uniDiff === 'string') {
@@ -49,49 +50,6 @@ export function applyPatch(source, uniDiff, options = {}) {
     }
 
     return true;
-  }
-
-  function distanceIterator(toPos, minLine, maxLine) {
-    let wantForward = true,
-        backwardExhausted = false,
-        forwardExhausted = false,
-        localOffset = 1;
-
-    return function iterator() {
-      if (wantForward && !forwardExhausted) {
-        if (backwardExhausted) {
-          localOffset++;
-        } else {
-          wantForward = false;
-        }
-
-        // Check if trying to fit beyond text length, and if not, check it fits
-        // after offset location (or desired location on first iteration)
-        if (toPos + localOffset <= maxLine) {
-          return localOffset;
-        }
-
-        forwardExhausted = true;
-      }
-
-      if (!backwardExhausted) {
-        if (!forwardExhausted) {
-          wantForward = true;
-        }
-
-        // Check if trying to fit before text beginning, and if not, check it fits
-        // before offset location
-        if (minLine <= toPos - localOffset) {
-          return -localOffset++;
-        }
-
-        backwardExhausted = true;
-        return iterator();
-      }
-
-      // We tried to fit hunk before text beginning and beyond text lenght, then
-      // hunk can't fit on the text. Return undefined
-    };
   }
 
   // Search best fit offsets for each hunk based on the previous ones
