@@ -7,41 +7,38 @@ export function parsePatch(uniDiff, options = {}) {
     let index = {};
     list.push(index);
 
-    // Ignore any leading junk
-    while (i < diffstr.length) {
-      if (/^(Index:|diff -r|@@)/.test(diffstr[i])) {
+    // Parse diff metadata
+    for (; i < diffstr.length; i++) {
+      let line = diffstr[i];
+
+      // File header found, end parsing diff metadata
+      if (/^(\-\-\-|\+\+\+|@@)/.test(line)) {
         break;
       }
-      i++;
-    }
 
-    let header = (/^(?:Index:|diff(?: -r \w+)+) (.*)/.exec(diffstr[i]));
-    if (header) {
-      index.index = header[1];
-      i++;
-
-      if (/^===/.test(diffstr[i])) {
-        i++;
+      // Diff index
+      let header = /^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/.exec(line);
+      if (header) {
+        index.index = header[1];
       }
-
-      parseFileHeader(index);
-      parseFileHeader(index);
-    } else {
-      // Ignore erant header components that might occur at the start of the file
-      parseFileHeader({});
-      parseFileHeader({});
     }
 
+    parseFileHeader(index);
+    parseFileHeader(index);
+
+    // Parse hunks
     index.hunks = [];
 
     while (i < diffstr.length) {
-      if (/^(Index:|diff -r)/.test(diffstr[i])) {
+      let line = diffstr[i];
+
+      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(line)) {
         break;
-      } else if (/^@@/.test(diffstr[i])) {
+      } else if (/^@@\s/.test(line)) {
         index.hunks.push(parseHunk());
-      } else if (diffstr[i] && options.strict) {
+      } else if (line && options.strict) {
         // Ignore unexpected content unless in strict mode
-        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(diffstr[i]));
+        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(line));
       } else {
         i++;
       }
@@ -51,7 +48,7 @@ export function parsePatch(uniDiff, options = {}) {
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
   function parseFileHeader(index) {
-    let fileHeader = (/^(\-\-\-|\+\+\+)\s(\S+)\s?(.*)/.exec(diffstr[i]));
+    let fileHeader = /^(\-\-\-|\+\+\+)\s+(\S+)\s?(.+)/.exec(diffstr[i]);
     if (fileHeader) {
       let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
       index[keyPrefix + 'FileName'] = fileHeader[2];
