@@ -7,31 +7,23 @@ export function parsePatch(uniDiff, options = {}) {
     let diff = {};
     list.push(diff);
 
-    // Ignore any leading junk
-    while (i < diffstr.length) {
-      if (/^(Index:|diff -r|@@)/.test(diffstr[i])) {
+    // Parse diff metadata
+    for (; i < diffstr.length; i++) {
       let line = diffstr[i];
 
+      // File header found, end parsing diff metadata
+      if (/^(\-\-\-|\+\+\+|@@)/.test(line)) {
         break;
       }
-      i++;
-    }
 
-    let header = (/^(?:Index:|diff(?: -r \w+)+) (.*)/.exec(diffstr[i]));
-    if (header) {
-      i++;
-
-      if (/^===/.test(diffstr[i])) {
-        i++;
+      // Diff index
+      let header = (/^(?:Index:|diff(?: -r \w+)+) (.+)/).exec(line);
+      if (header) {
         diff.index = header[1];
       }
-
-    } else {
-      // Ignore erant header components that might occur at the start of the file
-      parseFileHeader({});
-      parseFileHeader({});
     }
 
+    // Parse header lines twice (one for old file and another for new one)
     parseFileHeader(diff);
     parseFileHeader(diff);
 
@@ -41,7 +33,7 @@ export function parsePatch(uniDiff, options = {}) {
     while (i < diffstr.length) {
       let line = diffstr[i];
 
-      if (/^(Index:|diff -r)/.test(diffstr[i])) {
+      if (/^(Index:|diff|\-\-\-|\+\+\+)\s(.+)/.test(line)) {
         break;
       } else if (/^@@/.test(line)) {
         diff.hunks.push(parseHunk());
