@@ -8,7 +8,7 @@ export function parsePatch(uniDiff, options = {}) {
     list.push(index);
 
     // Parse diff metadata
-    for (; i < diffstr.length; i++) {
+    while (i < diffstr.length) {
       let line = diffstr[i];
 
       // File header found, end parsing diff metadata
@@ -21,6 +21,8 @@ export function parsePatch(uniDiff, options = {}) {
       if (header) {
         index.index = header[1];
       }
+
+      i++;
     }
 
     parseFileHeader(index);
