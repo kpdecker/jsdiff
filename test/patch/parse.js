@@ -248,8 +248,8 @@ Index: test2
     });
     it('should throw on invalid input in strict mode', function() {
       expect(function() {
-        parsePatch('Index: foo\n+++', {strict: true});
-      }).to['throw'](/Unknown line 2 "\+\+\+"/);
+        parsePatch('Index: foo\n+++ bar\nblah', {strict: true});
+      }).to['throw'](/Unknown line 3 "blah"/);
     });
   });
 });
