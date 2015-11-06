@@ -25,6 +25,8 @@ export function parsePatch(uniDiff, options = {}) {
       i++;
     }
 
+    // Parse file headers if they are defined. Unified diff requires them, but
+    // there's no technical issues to have an isolated hunk without file header
     parseFileHeader(index);
     parseFileHeader(index);
 
@@ -36,7 +38,7 @@ export function parsePatch(uniDiff, options = {}) {
 
       if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(line)) {
         break;
-      } else if (/^@@\s/.test(line)) {
+      } else if (/^@@/.test(line)) {
         index.hunks.push(parseHunk());
       } else if (line && options.strict) {
         // Ignore unexpected content unless in strict mode
@@ -50,7 +52,7 @@ export function parsePatch(uniDiff, options = {}) {
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
   function parseFileHeader(index) {
-    let fileHeader = (/^(\-\-\-|\+\+\+)\s+(\S+)\s?(.+)/).exec(diffstr[i]);
+    let fileHeader = (/^(\-\-\-|\+\+\+)\s+(\S+)\s?(.+?)\s*$/).exec(diffstr[i]);
     if (fileHeader) {
       let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
       index[keyPrefix + 'FileName'] = fileHeader[2];
