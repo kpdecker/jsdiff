@@ -160,6 +160,7 @@ var one = 'beep boop';
 var other = 'beep boob blah';
 
 var diff = JsDiff.diffChars(one, other);
+var display = document.getElementById('display');
 
 diff.forEach(function(part){
   // green for additions, red for deletions
