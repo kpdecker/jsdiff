@@ -79,24 +79,29 @@ export function parsePatch(uniDiff, options = {}) {
 
     let addCount = 0,
         removeCount = 0;
-    for (; i < diffstr.length; i++) {
-      let operation = diffstr[i][0];
 
-      if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
-        hunk.lines.push(diffstr[i]);
+    function addHunkLines() {
+      for (; i < diffstr.length; i++) {
+        let line = diffstr[i];
 
-        if (operation === '+') {
-          addCount++;
-        } else if (operation === '-') {
-          removeCount++;
-        } else if (operation === ' ') {
-          addCount++;
-          removeCount++;
+        switch (line[0]) {
+          // Line is from a hunk, update counters
+          case '+': addCount++; break;
+          case '-': removeCount++; break;
+          case ' ': addCount++; removeCount++; break;
+
+          case '\\': break;
+
+          // Begin of line is NOT from a hunk, end adding them
+          default: return;
         }
-      } else {
-        break;
+
+        // Add line to hunk
+        hunk.lines.push(line);
       }
     }
+
+    addHunkLines();
 
     // Handle the empty block count case
     if (!addCount && hunk.newLines === 1) {
