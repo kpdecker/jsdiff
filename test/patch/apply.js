@@ -554,5 +554,36 @@ describe('patch/apply', function() {
         }
       });
     });
+    it('should handle patches without Index', function(done) {
+      const patch =
+            '===================================================================\n'
+            + '--- test\theader1\n'
+            + '+++ test\theader2\n'
+            + '@@ -1,3 +1,4 @@\n'
+            + ' line2\n'
+            + ' line3\n'
+            + '+line4\n'
+            + ' line5\n'
+            + '===================================================================\n'
+            + '--- test2\theader1\n'
+            + '+++ test2\theader2\n'
+            + '@@ -1,3 +1,4 @@\n'
+            + ' foo2\n'
+            + ' foo3\n'
+            + '+foo4\n'
+            + ' foo5\n';
+
+      applyPatches(patch, {
+        loadFile(index, callback) {
+          callback(undefined, contents[index.oldFileName]);
+        },
+        patched(index, content) {
+          expect(content)
+              .to.equal(expected[index.newFileName])
+              .to.not.be.undefined;
+        },
+        complete: done
+      });
+    });
   });
 });
