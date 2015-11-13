@@ -2,7 +2,13 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.1...master)
+
+## v2.2.1 - November 12th, 2015
+- [#89](https://github.com/kpdecker/jsdiff/pull/89) - add in display selector to readme ([@FranDias](https://api.github.com/users/FranDias))
+- [#88](https://github.com/kpdecker/jsdiff/pull/88) - Split diffs based on file headers instead of 'Index:' metadata ([@piranna](https://api.github.com/users/piranna))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.0...v2.2.1)
 
 ## v2.2.0 - October 29th, 2015
 - [#80](https://github.com/kpdecker/jsdiff/pull/80) - Fix a typo: applyPath ->  applyPatch ([@fluxxu](https://api.github.com/users/fluxxu))
