@@ -63,7 +63,7 @@ or
     * `oldStr` : Original string value
     * `newStr` : New string value
     * `oldHeader` : Additional information to include in the old file header
-    * `newHeader` : Additional information to include in thew new file header
+    * `newHeader` : Additional information to include in the new file header
     * `options` : An object with options. Currently, only `context` is supported and describes how many lines of context should be included.
 
 * `JsDiff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
