@@ -251,5 +251,9 @@ Index: test2
         parsePatch('Index: foo\n+++ bar\nblah', {strict: true});
       }).to['throw'](/Unknown line 3 "blah"/);
     });
+
+    it('should handle OOM case', function() {
+      parsePatch('Index: \n===================================================================\n--- \n+++ \n@@ -1,1 +1,2 @@\n-1\n\\ No newline at end of file\n+1\n+2\n');
+    });
   });
 });
