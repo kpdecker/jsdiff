@@ -207,7 +207,9 @@ function buildValues(diff, components, newString, oldString, useLongestToken) {
   // Special case handle for when one terminal is ignored. For this case we merge the
   // terminal into the prior string and drop the change.
   let lastComponent = components[componentLen - 1];
-  if ((lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
+  if (componentLen > 1
+      && (lastComponent.added || lastComponent.removed)
+      && diff.equals('', lastComponent.value)) {
     components[componentLen - 2].value += lastComponent.value;
     components.pop();
   }

@@ -90,6 +90,14 @@ describe('WordDiff', function() {
       const diffResult = diffWords('New Value', 'New  ValueMoreData', {ignoreWhitespace: false});
       expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del><ins>  ValueMoreData</ins>');
     });
+
+    it('should diff with only whitespace', function() {
+      let diffResult = diffWords('', ' ');
+      expect(convertChangesToXML(diffResult)).to.equal('<ins> </ins>');
+
+      diffResult = diffWords(' ', '');
+      expect(convertChangesToXML(diffResult)).to.equal('<del> </del>');
+    });
   });
 
   describe('#diffWords - async', function() {
