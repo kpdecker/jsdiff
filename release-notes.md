@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.1...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.2...master)
+
+## v2.2.2 - March 13th, 2016
+- [#102](https://github.com/kpdecker/jsdiff/issues/102) - diffJson with dates, returns empty curly braces  ([@dr-dimitru](https://api.github.com/users/dr-dimitru))
+- [#97](https://github.com/kpdecker/jsdiff/issues/97) - Whitespaces & diffWords ([@faiwer](https://api.github.com/users/faiwer))
+- [#92](https://github.com/kpdecker/jsdiff/pull/92) - Fixes typo in the readme ([@bg451](https://api.github.com/users/bg451))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.1...v2.2.2)
 
 ## v2.2.1 - November 12th, 2015
 - [#89](https://github.com/kpdecker/jsdiff/pull/89) - add in display selector to readme ([@FranDias](https://api.github.com/users/FranDias))
