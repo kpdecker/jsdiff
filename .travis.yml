@@ -11,8 +11,6 @@ matrix:
   include:
     - node_js: "node"
       env: KARMA=
-    - node_js: "iojs"
-      env: KARMA=false
 
 cache:
   directories:
