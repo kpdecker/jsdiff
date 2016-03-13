@@ -37,6 +37,20 @@ describe('diff/json', function() {
       ]);
     });
 
+    it('should accept dates', function() {
+      expect(diffJson(
+        {a: new Date(123), b: new Date(456), c: new Date(789)},
+        {a: new Date(124), b: new Date(456)}
+      )).to.eql([
+        { count: 1, value: '{\n' },
+        { count: 1, value: '  "a": "1970-01-01T00:00:00.123Z",\n', added: undefined, removed: true },
+        { count: 1, value: '  "a": "1970-01-01T00:00:00.124Z",\n', added: true, removed: undefined },
+        { count: 1, value: '  "b": "1970-01-01T00:00:00.456Z",\n' },
+        { count: 1, value: '  "c": "1970-01-01T00:00:00.789Z"\n', added: undefined, removed: true },
+        { count: 1, value: '}' }
+      ]);
+    });
+
     it('should accept already stringified JSON', function() {
       expect(diffJson(
         JSON.stringify({a: 123, b: 456, c: 789}, undefined, '  '),

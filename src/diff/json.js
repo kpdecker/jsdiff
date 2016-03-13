@@ -45,7 +45,14 @@ export function canonicalize(obj, stack, replacementStack) {
     }
     stack.pop();
     replacementStack.pop();
-  } else if (typeof obj === 'object' && obj !== null) {
+    return canonicalizedObj;
+  }
+
+  if (obj && obj.toJSON) {
+    obj = obj.toJSON();
+  }
+
+  if (typeof obj === 'object' && obj !== null) {
     stack.push(obj);
     canonicalizedObj = {};
     replacementStack.push(canonicalizedObj);
