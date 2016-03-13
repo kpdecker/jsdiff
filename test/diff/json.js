@@ -51,6 +51,23 @@ describe('diff/json', function() {
       ]);
     });
 
+    it('should accept undefined keys', function() {
+      expect(diffJson(
+        {a: 123, b: 456, c: null},
+        {a: 123, b: 456}
+      )).to.eql([
+        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
+        { count: 1, value: '  "c": null\n', added: undefined, removed: true },
+        { count: 1, value: '}' }
+      ]);
+      expect(diffJson(
+        {a: 123, b: 456, c: undefined},
+        {a: 123, b: 456}
+      )).to.eql([
+        { count: 4, value: '{\n  "a": 123,\n  "b": 456\n}' }
+      ]);
+    });
+
     it('should accept already stringified JSON', function() {
       expect(diffJson(
         JSON.stringify({a: 123, b: 456, c: 789}, undefined, '  '),
