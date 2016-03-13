@@ -9,8 +9,6 @@ script: grunt travis
 
 matrix:
   include:
-    - node_js: "0.10"
-      env: KARMA=false
     - node_js: "node"
       env: KARMA=
     - node_js: "iojs"
