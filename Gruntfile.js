@@ -17,15 +17,7 @@ module.exports = function(grunt) {
     clean: ['lib', 'dist'],
 
     babel: {
-      options: {
-        sourceMaps: 'inline',
-        loose: ['es6.modules'],
-        auxiliaryCommentBefore: 'istanbul ignore next'
-      },
       cjs: {
-        options: {
-          modules: 'common'
-        },
         files: [{
           cwd: 'src/',
           expand: true,
@@ -54,7 +46,7 @@ module.exports = function(grunt) {
     mochaTest: {
       test: {
         options: {
-          require: ['babel/register'],
+          require: ['babel-core/register'],
           reporter: 'dot'
         },
         src: ['test/**/*.js']

@@ -28,14 +28,14 @@
   "dependencies": {},
   "devDependencies": {
     "async": "^1.4.2",
-    "babel": "^5.8.23",
-    "babel-core": "^5.8.25",
-    "babel-loader": "^5.3.2",
+    "babel-core": "^6.0.0",
+    "babel-loader": "^6.0.0",
+    "babel-preset-es2015-mod": "^6.3.13",
     "chai": "^3.3.0",
     "colors": "^1.1.2",
     "eslint": "^1.6.0",
     "grunt": "^0.4.5",
-    "grunt-babel": "^5.0.3",
+    "grunt-babel": "^6.0.0",
     "grunt-clean": "^0.4.0",
     "grunt-cli": "^0.1.13",
     "grunt-contrib-clean": "^0.6.0",
@@ -47,7 +47,7 @@
     "grunt-mocha-istanbul": "^3.0.1",
     "grunt-mocha-test": "^0.12.7",
     "grunt-webpack": "^1.0.11",
-    "istanbul": "^0.3.22",
+    "istanbul": "github:kpdecker/istanbul",
     "karma": "^0.13.11",
     "karma-mocha": "^0.2.0",
     "karma-mocha-reporter": "^1.1.1",
@@ -61,5 +61,13 @@
     "webpack": "^1.12.2",
     "webpack-dev-server": "^1.12.0"
   },
-  "optionalDependencies": {}
+  "optionalDependencies": {},
+  "babel": {
+    "sourceMaps": "inline",
+    "presets": [
+      "es2015-mod"
+    ],
+    "auxiliaryCommentBefore": "istanbul ignore start",
+    "auxiliaryCommentAfter": "istanbul ignore end"
+  }
 }
