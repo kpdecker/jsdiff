@@ -101,7 +101,7 @@ or
     This method will iterate over the contents of the patch and apply to data provided through callbacks. The general flow for each patch index is:
 
     - `options.loadFile(index, callback)` is called. The caller should then load the contents of the file and then pass that to the `callback(err, data)` callback. Passing an `err` will terminate further patch execution.
-    - `options.patched(index, content)` is called once the patch has been applied. `content` will be the return value frmo `applyPatch`.
+    - `options.patched(index, content)` is called once the patch has been applied. `content` will be the return value from `applyPatch`.
 
     Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
 
