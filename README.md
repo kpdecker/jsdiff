@@ -70,10 +70,10 @@ or
 
     Just like JsDiff.createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
-    
+
 * `JsDiff.structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)` - returns an object with an array of hunk objects.
 
-    This method is similar to createTwoFilesPatch, but returns a data structure 
+    This method is similar to createTwoFilesPatch, but returns a data structure
     suitable for further processing. Parameters are the same as createTwoFilesPatch. The data structure returned may look like this:
 
     ```js
@@ -115,7 +115,7 @@ or
 All methods above which accept the optional `callback` method will run in sync mode when that parameter is omitted and in async mode when supplied. This allows for larger diffs without blocking the event loop. This may be passed either directly as the final parameter or as the `callback` field in the `options` object.
 
 ### Change Objects
-Many of the methods above return change objects. These objects are consist of the following fields:
+Many of the methods above return change objects. These objects consist of the following fields:
 
 * `value`: Text content
 * `added`: True if the value was inserted into the new string
