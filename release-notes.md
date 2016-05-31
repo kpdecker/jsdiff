@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.2...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.3...master)
+
+## v2.2.3 - May 31st, 2016
+- [#118](https://github.com/kpdecker/jsdiff/pull/118) - Add a fix for applying 0-length destination patches ([@chaaz](https://api.github.com/users/chaaz))
+- [#115](https://github.com/kpdecker/jsdiff/pull/115) - Fixed grammar in README ([@krizalys](https://api.github.com/users/krizalys))
+- [#113](https://github.com/kpdecker/jsdiff/pull/113) - fix typo ([@vmazare](https://api.github.com/users/vmazare))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.2...v2.2.3)
 
 ## v2.2.2 - March 13th, 2016
 - [#102](https://github.com/kpdecker/jsdiff/issues/102) - diffJson with dates, returns empty curly braces  ([@dr-dimitru](https://api.github.com/users/dr-dimitru))
