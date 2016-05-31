@@ -81,6 +81,7 @@ export function applyPatch(source, uniDiff, options = {}) {
   for (let i = 0; i < hunks.length; i++) {
     let hunk = hunks[i],
         toPos = hunk.offset + hunk.newStart - 1;
+    if (hunk.newLines == 0) { toPos++; }
 
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],

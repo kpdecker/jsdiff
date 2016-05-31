@@ -416,6 +416,23 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    it('should erase a file', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,4 +0,0 @@\n'
+          + '-line1\n'
+          + '-line2\n'
+          + '-line3\n'
+          + '-line4\n'))
+        .to.equal('');
+    });
+
     it('should allow custom line comparison', function() {
       expect(applyPatch(
           'line2\n'
