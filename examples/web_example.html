@@ -7,7 +7,7 @@ var one = 'beep boop',
     span = null;
 
 var diff = JsDiff.diffChars(one, other),
-    display = document.getElementById('display');
+    display = document.getElementById('display'),
     fragment = document.createDocumentFragment();
 
 diff.forEach(function(part){
