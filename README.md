@@ -156,23 +156,28 @@ Basic example in a web page
 <pre id="display"></pre>
 <script src="diff.js"></script>
 <script>
-var one = 'beep boop';
-var other = 'beep boob blah';
+var one = 'beep boop',
+    other = 'beep boob blah',
+    color = '',
+    span = null;
 
-var diff = JsDiff.diffChars(one, other);
-var display = document.getElementById('display');
+var diff = JsDiff.diffChars(one, other),
+    display = document.getElementById('display');
+    fragment = document.createDocumentFragment();
 
 diff.forEach(function(part){
   // green for additions, red for deletions
   // grey for common parts
-  var color = part.added ? 'green' :
+  color = part.added ? 'green' :
     part.removed ? 'red' : 'grey';
-  var span = document.createElement('span');
+  span = document.createElement('span');
   span.style.color = color;
   span.appendChild(document
     .createTextNode(part.value));
-  display.appendChild(span);
+  fragment.appendChild(span);
 });
+
+display.appendChild(fragment);
 </script>
 ```
 
