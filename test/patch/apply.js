@@ -3,6 +3,7 @@ import {parsePatch} from '../../lib/patch/parse';
 import {createPatch} from '../../lib/patch/create';
 
 import {expect} from 'chai';
+import deindent from 'deindent';
 
 describe('patch/apply', function() {
   describe('#applyPatch', function() {
@@ -589,6 +590,61 @@ describe('patch/apply', function() {
             + ' foo3\n'
             + '+foo4\n'
             + ' foo5\n';
+
+      applyPatches(patch, {
+        loadFile(index, callback) {
+          callback(undefined, contents[index.oldFileName]);
+        },
+        patched(index, content) {
+          expect(content)
+              .to.equal(expected[index.newFileName])
+              .to.not.be.undefined;
+        },
+        complete: done
+      });
+    });
+
+    it('should handle file names containing spaces', done => {
+      const patch = deindent
+        `===================================================================
+        --- test file\theader1
+        +++ test file\theader2
+        @@ -1,2 +1,3 @@
+         line1
+        +line2
+         line3
+        ===================================================================
+        --- test file 2\theader1
+        +++ test file 2\theader2
+        @@ -1,2 +1,3 @@
+         foo1
+        +foo2
+         foo3
+        `;
+
+      const contents = {
+        'test file': deindent
+          `line1
+          line3
+          `,
+        'test file 2': deindent
+          `foo1
+          foo3
+          `
+      };
+
+      const expected = {
+        'test file': deindent
+          `line1
+          line2
+          line3
+          `,
+        'test file 2': deindent
+          `foo1
+          foo2
+          foo3
+          `
+      };
 
       applyPatches(patch, {
         loadFile(index, callback) {
