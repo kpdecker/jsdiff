@@ -260,7 +260,7 @@ describe('patch/apply', function() {
         + 'new value 2\n'
         + 'context\n'
         + 'context';
-      let diffFile =
+      const diffFile =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
