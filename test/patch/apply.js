@@ -8,7 +8,7 @@ import deindent from 'deindent';
 describe('patch/apply', function() {
   describe('#applyPatch', function() {
     it('should accept parsed patches', function() {
-      let patch = parsePatch(
+      const patch = parsePatch(
           'Index: test\n'
           + '===================================================================\n'
           + '--- test\theader1\n'
