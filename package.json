@@ -33,7 +33,6 @@
     "babel-preset-es2015-mod": "^6.3.13",
     "chai": "^3.3.0",
     "colors": "^1.1.2",
-    "deindent": "^0.1.0",
     "eslint": "^1.6.0",
     "grunt": "^0.4.5",
     "grunt-babel": "^6.0.0",
