@@ -311,12 +311,12 @@ describe('patch/apply', function() {
 
       expect(applyPatch(oldFile, diffFile)).to.equal(newFile);
 
-      diffFile =
+      const identityFile =
         'Index: testFileName\n'
         + '===================================================================\n'
         + '--- testFileName\tOld Header\n'
         + '+++ testFileName\tNew Header\n';
-      expect(applyPatch(oldFile, diffFile)).to.equal(oldFile);
+      expect(applyPatch(oldFile, identityFile)).to.equal(oldFile);
     });
 
     it('should apply patches that lack an index header', function() {
