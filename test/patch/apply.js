@@ -539,10 +539,12 @@ describe('patch/apply', function() {
         loadFile(index, callback) {
           callback(undefined, contents[index.index]);
         },
-        patched(index, content) {
+        patched(index, content, callback) {
           expect(content)
               .to.equal(expected[index.index])
               .to.not.be.undefined;
+
+          callback();
         },
         complete: done
       });
@@ -552,10 +554,12 @@ describe('patch/apply', function() {
         loadFile(index, callback) {
           callback(undefined, contents[index.index]);
         },
-        patched(index, content) {
+        patched(index, content, callback) {
           expect(content)
               .to.equal(expected[index.index])
               .to.not.be.undefined;
+
+          callback();
         },
         complete: done
       });
@@ -594,10 +598,12 @@ describe('patch/apply', function() {
         loadFile(index, callback) {
           callback(undefined, contents[index.oldFileName]);
         },
-        patched(index, content) {
+        patched(index, content, callback) {
           expect(content)
               .to.equal(expected[index.newFileName])
               .to.not.be.undefined;
+
+          callback();
         },
         complete: done
       });
@@ -649,10 +655,12 @@ foo3
         loadFile(index, callback) {
           callback(undefined, contents[index.oldFileName]);
         },
-        patched(index, content) {
+        patched(index, content, callback) {
           expect(content)
               .to.equal(expected[index.newFileName])
               .to.not.be.undefined;
+
+          callback();
         },
         complete: done
       });

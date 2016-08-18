@@ -137,9 +137,13 @@ export function applyPatches(uniDiff, options) {
       }
 
       let updatedContent = applyPatch(data, index, options);
-      options.patched(index, updatedContent);
+      options.patched(index, updatedContent, function(err) {
+        if (err) {
+          return options.complete(err);
+        }
 
-      setTimeout(processIndex, 0);
+        processIndex();
+      });
     });
   }
   processIndex();
