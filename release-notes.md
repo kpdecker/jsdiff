@@ -2,7 +2,18 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.3...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.0.0...master)
+
+## v3.0.0 - August 23rd, 2016
+- [#130](https://github.com/kpdecker/jsdiff/pull/130) - Add callback argument to applyPatches `patched` option ([@piranna](https://api.github.com/users/piranna))
+- [#120](https://github.com/kpdecker/jsdiff/pull/120) - Correctly handle file names containing spaces ([@adius](https://api.github.com/users/adius))
+- [#119](https://github.com/kpdecker/jsdiff/pull/119) - Do single reflow ([@wifiextender](https://api.github.com/users/wifiextender))
+- [#117](https://github.com/kpdecker/jsdiff/pull/117) - Make more usable with long strings. ([@abnbgist](https://api.github.com/users/abnbgist))
+
+Compatibility notes:
+- applyPatches patch callback now is async and requires the callback be called to continue operation
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v2.2.3...v3.0.0)
 
 ## v2.2.3 - May 31st, 2016
 - [#118](https://github.com/kpdecker/jsdiff/pull/118) - Add a fix for applying 0-length destination patches ([@chaaz](https://api.github.com/users/chaaz))
