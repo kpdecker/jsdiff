@@ -71,9 +71,9 @@ export function parsePatch(uniDiff, options = {}) {
         chunkHeader = chunkHeaderLine.split(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
 
     let hunk = {
-      oldStart: +chunkHeader[1],
+      oldStart: (isNaN(chunkHeader[1])) ? -1 : +chunkHeader[1],
       oldLines: +chunkHeader[2] || 1,
-      newStart: +chunkHeader[3],
+      newStart: (isNaN(chunkHeader[3])) ? -1 : +chunkHeader[3],
       newLines: +chunkHeader[4] || 1,
       lines: []
     };
