@@ -81,6 +81,14 @@ export function parsePatch(uniDiff, options = {}) {
     let addCount = 0,
         removeCount = 0;
     for (; i < diffstr.length; i++) {
+      // Lines starting with '---' could be mistaken for the "remove line" operation
+      // But they could be the header for the next file. Therefore prune such cases out.
+      if (diffstr[i].indexOf('--- ') === 0
+            && (i + 2 < diffstr.length)
+            && diffstr[i + 1].indexOf('+++ ') === 0
+            && diffstr[i + 2].indexOf('@@') === 0) {
+          break;
+      }
       let operation = diffstr[i][0];
 
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
