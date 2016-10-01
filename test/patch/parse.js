@@ -171,6 +171,59 @@ Index: test2
         }]);
     });
 
+    it('should parse multiple files without the Index line', function() {
+      expect(parsePatch(
+`--- from\theader1
++++ to\theader2
+@@ -1,3 +1,4 @@
+ line2
+ line3
++line4
+ line5
+--- from\theader1
++++ to\theader2
+@@ -1,3 +1,4 @@
+ line2
+ line3
++line4
+ line5`))
+        .to.eql([{
+          oldFileName: 'from',
+          oldHeader: 'header1',
+          newFileName: 'to',
+          newHeader: 'header2',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
+              ]
+            }
+          ]
+        }, {
+          oldFileName: 'from',
+          oldHeader: 'header1',
+          newFileName: 'to',
+          newHeader: 'header2',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
+              ]
+            }
+          ]
+        }]);
+    });
+
     it('should note added EOFNL', function() {
       expect(parsePatch(
 `@@ -1,3 +1,4 @@
