@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v3.0.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.0.1...master)
+
+## v3.0.1 - October 9th, 2016
+- [#139](https://github.com/kpdecker/jsdiff/pull/139) - Make README.md look nicer in npmjs.com ([@takenspc](https://api.github.com/users/takenspc))
+- [#135](https://github.com/kpdecker/jsdiff/issues/135) - parsePatch combines patches from multiple files into a single IUniDiff when there is no "Index" line ([@ramya-rao-a](https://api.github.com/users/ramya-rao-a))
+- [#124](https://github.com/kpdecker/jsdiff/issues/124) - IE7/IE8 failure since 2.0.0 ([@boneskull](https://api.github.com/users/boneskull))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.0.0...v3.0.1)
 
 ## v3.0.0 - August 23rd, 2016
 - [#130](https://github.com/kpdecker/jsdiff/pull/130) - Add callback argument to applyPatches `patched` option ([@piranna](https://api.github.com/users/piranna))
