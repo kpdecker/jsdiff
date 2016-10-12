@@ -15,7 +15,8 @@ export function applyPatch(source, uniDiff, options = {}) {
   }
 
   // Apply the diff to the input
-  let lines = source.split('\n'),
+  let lines = source.split(/\r\n|[\n\v\f\r\x85\u2028\u2029]/),
+      delimiters = source.match(/\r\n|[\n\v\f\r\x85\u2028\u2029]/g),
       hunks = uniDiff.hunks,
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
@@ -86,15 +87,18 @@ export function applyPatch(source, uniDiff, options = {}) {
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
           operation = line[0],
-          content = line.substr(1);
+          content = line.substr(1),
+          delimiter = hunk.linedelimiters[j];
 
       if (operation === ' ') {
         toPos++;
       } else if (operation === '-') {
         lines.splice(toPos, 1);
+        delimiters.splice(toPos, 1);
       /* istanbul ignore else */
       } else if (operation === '+') {
         lines.splice(toPos, 0, content);
+        delimiters.splice(toPos, 0, delimiter);
         toPos++;
       } else if (operation === '\\') {
         let previousOperation = hunk.lines[j - 1] ? hunk.lines[j - 1][0] : null;
@@ -111,11 +115,16 @@ export function applyPatch(source, uniDiff, options = {}) {
   if (removeEOFNL) {
     while (!lines[lines.length - 1]) {
       lines.pop();
+      delimiters.pop()
     }
   } else if (addEOFNL) {
     lines.push('');
+    delimiters.push('\n');
   }
-  return lines.join('\n');
+  for(var _k = 0; _k < lines.length; _k ++){
+  	lines[_k] = lines[_k] + delimiters[_k];
+  }
+  return lines.join('');
 }
 
 // Wrapper that supports multiple file patches via callbacks.
