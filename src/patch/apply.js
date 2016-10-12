@@ -115,13 +115,13 @@ export function applyPatch(source, uniDiff, options = {}) {
   if (removeEOFNL) {
     while (!lines[lines.length - 1]) {
       lines.pop();
-      delimiters.pop()
+      delimiters.pop();
     }
   } else if (addEOFNL) {
     lines.push('');
     delimiters.push('\n');
   }
-  for(var _k = 0; _k < lines.length; _k ++){
+  for (let _k = 0; _k < lines.length; _k++) {
   	lines[_k] = lines[_k] + delimiters[_k];
   }
   return lines.join('');
