@@ -122,7 +122,7 @@ export function applyPatch(source, uniDiff, options = {}) {
     delimiters.push('\n');
   }
   for (let _k = 0; _k < lines.length; _k++) {
-  	lines[_k] = lines[_k] + delimiters[_k];
+    lines[_k] = lines[_k] + delimiters[_k];
   }
   return lines.join('');
 }

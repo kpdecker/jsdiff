@@ -77,7 +77,7 @@ export function parsePatch(uniDiff, options = {}) {
       newStart: +chunkHeader[3],
       newLines: +chunkHeader[4] || 1,
       lines: [],
-      linedelimiters:[]
+      linedelimiters: []
     };
 
     let addCount = 0,
