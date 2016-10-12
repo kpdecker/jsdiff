@@ -1,6 +1,6 @@
 export function parsePatch(uniDiff, options = {}) {
-  let diffstr = uniDiff.split(/\r\n|[\n\v\f\r\x85\u2028\u2029]/),
-      delimiters = uniDiff.match(/\r\n|[\n\v\f\r\x85\u2028\u2029]/g),
+  let diffstr = uniDiff.split(/\r\n|[\n\v\f\r\x85]/),
+      delimiters = uniDiff.match(/\r\n|[\n\v\f\r\x85]/g) || [],
       list = [],
       i = 0;
 
@@ -95,7 +95,7 @@ export function parsePatch(uniDiff, options = {}) {
 
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
         hunk.lines.push(diffstr[i]);
-        hunk.linedelimiters.push(delimiters[i]);
+        hunk.linedelimiters.push(delimiters[i] || '\n');
 
         if (operation === '+') {
           addCount++;
