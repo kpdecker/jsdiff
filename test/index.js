@@ -16,6 +16,8 @@ describe('root exports', function() {
     expect(Diff.diffCss).to.exist;
     expect(Diff.diffJson).to.exist;
 
+    expect(Diff.diffArrays).to.exist;
+
     expect(Diff.structuredPatch).to.exist;
     expect(Diff.createTwoFilesPatch).to.exist;
     expect(Diff.createPatch).to.exist;
