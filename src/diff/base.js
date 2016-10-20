@@ -160,6 +160,9 @@ Diff.prototype = {
   },
   tokenize(value) {
     return value.split('');
+  },
+  join(chars) {
+    return chars.join('');
   }
 };
 
@@ -179,9 +182,9 @@ function buildValues(diff, components, newString, oldString, useLongestToken) {
           return oldValue.length > value.length ? oldValue : value;
         });
 
-        component.value = value.join('');
+        component.value = diff.join(value);
       } else {
-        component.value = newString.slice(newPos, newPos + component.count).join('');
+        component.value = diff.join(newString.slice(newPos, newPos + component.count));
       }
       newPos += component.count;
 
@@ -190,7 +193,7 @@ function buildValues(diff, components, newString, oldString, useLongestToken) {
         oldPos += component.count;
       }
     } else {
-      component.value = oldString.slice(oldPos, oldPos + component.count).join('');
+      component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
       oldPos += component.count;
 
       // Reverse add and remove so removes are output first to match common convention
