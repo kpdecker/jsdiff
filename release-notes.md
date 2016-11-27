@@ -2,7 +2,13 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v3.0.1...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.1.0...master)
+
+## v3.1.0 - November 27th, 2016
+- [#146](https://github.com/kpdecker/jsdiff/pull/146) - JsDiff.diffArrays to compare arrays ([@wvanderdeijl](https://api.github.com/users/wvanderdeijl))
+- [#144](https://github.com/kpdecker/jsdiff/pull/144) - Split file using all possible line delimiter instead of hard-coded "/n" and join lines back using the original delimiters ([@soulbeing](https://api.github.com/users/soulbeing))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.0.1...v3.1.0)
 
 ## v3.0.1 - October 9th, 2016
 - [#139](https://github.com/kpdecker/jsdiff/pull/139) - Make README.md look nicer in npmjs.com ([@takenspc](https://api.github.com/users/takenspc))
