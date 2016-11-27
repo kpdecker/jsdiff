@@ -55,6 +55,10 @@ or
 
     Returns a list of change objects (See below).
 
+* `JsDiff.diffArrays(oldArr, newArr[, options])` - diffs two arrays, comparing each item for strict equality (===).
+
+    Returns a list of change objects (See below).
+
 * `JsDiff.createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 
     Parameters:

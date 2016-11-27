@@ -23,6 +23,8 @@ import {diffSentences} from './diff/sentence';
 import {diffCss} from './diff/css';
 import {diffJson, canonicalize} from './diff/json';
 
+import {diffArrays} from './diff/array';
+
 import {applyPatch, applyPatches} from './patch/apply';
 import {parsePatch} from './patch/parse';
 import {structuredPatch, createTwoFilesPatch, createPatch} from './patch/create';
@@ -42,6 +44,8 @@ export {
 
   diffCss,
   diffJson,
+
+  diffArrays,
 
   structuredPatch,
   createTwoFilesPatch,
