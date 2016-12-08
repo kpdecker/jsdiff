@@ -11,14 +11,21 @@ jsonDiff.useLongestToken = true;
 
 jsonDiff.tokenize = lineDiff.tokenize;
 jsonDiff.castInput = function(value) {
-  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value), undefined, '  ');
+  const {undefinedReplacement} = this.options;
+
+  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value), function(k, v) {
+    if (typeof v === 'undefined') {
+      return undefinedReplacement;
+    }
+
+    return v;
+  }, '  ');
 };
 jsonDiff.equals = function(left, right) {
   return Diff.prototype.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
 };
 
-export function diffJson(oldObj, newObj, callback) { return jsonDiff.diff(oldObj, newObj, callback); }
-
+export function diffJson(oldObj, newObj, options) { return jsonDiff.diff(oldObj, newObj, options); }
 
 // This function handles the presence of circular references by bailing out when encountering an
 // object that is already on the "stack" of items being processed.
