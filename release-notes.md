@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v3.1.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.2.0...master)
+
+## v3.2.0 - December 26th, 2016
+- [#156](https://github.com/kpdecker/jsdiff/pull/156) - Add `undefinedReplacement` option to `diffJson` ([@ewnd9](https://api.github.com/users/ewnd9))
+- [#154](https://github.com/kpdecker/jsdiff/pull/154) - Add `examples` and `images` to `.npmignore`. ([@wtgtybhertgeghgtwtg](https://api.github.com/users/wtgtybhertgeghgtwtg))
+- [#153](https://github.com/kpdecker/jsdiff/pull/153) - feat(structuredPatch): Pass options to diffLines ([@Kiougar](https://api.github.com/users/Kiougar))
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.1.0...v3.2.0)
 
 ## v3.1.0 - November 27th, 2016
 - [#146](https://github.com/kpdecker/jsdiff/pull/146) - JsDiff.diffArrays to compare arrays ([@wvanderdeijl](https://api.github.com/users/wvanderdeijl))
