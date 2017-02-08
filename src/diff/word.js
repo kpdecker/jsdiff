@@ -29,22 +29,14 @@ wordDiff.equals = function(left, right) {
     return true;
   }
 
-  let ignoreWhitespaceComparator = (left, right) => {
-    return this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right);
-  };
-
   if (this.options.ignoreCase) {
-      left = left.toLowerCase();
-      right = right.toLowerCase();
-      if (left === right) {
-        return true;
-      }
-      if (ignoreWhitespaceComparator(left, right)) {
-        return true;
-      }
-  } else {
-    return ignoreWhitespaceComparator(left, right);
+    left = left.toLowerCase();
+    right = right.toLowerCase();
+    if (left === right) {
+      return true;
+    }
   }
+  return this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right);
 };
 wordDiff.tokenize = function(value) {
   let tokens = value.split(/(\s+|\b)/);
