@@ -25,7 +25,9 @@ const reWhitespace = /\S/;
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right) {
-  return left === right || (this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
+  return (left === right)
+    || (this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right))
+    || (this.options.ignoreCase && left.toLowerCase() === right.toLowerCase());
 };
 wordDiff.tokenize = function(value) {
   let tokens = value.split(/(\s+|\b)/);
