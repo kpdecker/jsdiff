@@ -22,7 +22,7 @@ jsonDiff.castInput = function(value) {
   }, '  ');
 };
 jsonDiff.equals = function(left, right) {
-  return Diff.prototype.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
+  return Diff.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
 };
 
 export function diffJson(oldObj, newObj, options) { return jsonDiff.diff(oldObj, newObj, options); }

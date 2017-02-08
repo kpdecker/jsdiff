@@ -23,9 +23,15 @@ or
 
     Returns a list of change objects (See below).
 
+    Options
+    * `ignoreCase`: `true` to ignore casing difference. Defaults to `false`.
+
 * `JsDiff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, comparing word by word, ignoring whitespace.
 
     Returns a list of change objects (See below).
+
+    Options
+    * `ignoreCase`: Same as in `diffChars`.
 
 * `JsDiff.diffWordsWithSpace(oldStr, newStr[, options])` - diffs two blocks of text, comparing word by word, treating whitespace as significant.
 

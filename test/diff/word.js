@@ -190,5 +190,17 @@ describe('WordDiff', function() {
         done();
       });
     });
+
+    describe('case insensitivity', function() {
+      it("is considered when there's a difference", function() {
+        const diffResult = diffWordsWithSpace('new value', 'New  ValueMoreData', {ignoreCase: true});
+        expect(convertChangesToXML(diffResult)).to.equal('New<del> value</del><ins>  ValueMoreData</ins>');
+      });
+
+      it("is considered when there's no difference", function() {
+        const diffResult = diffWordsWithSpace('new value', 'New Value', {ignoreCase: true});
+        expect(convertChangesToXML(diffResult)).to.equal('New Value');
+      });
+    });
   });
 });
