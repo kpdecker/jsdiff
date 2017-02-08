@@ -25,9 +25,26 @@ const reWhitespace = /\S/;
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right) {
-  return (left === right)
-    || (this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right))
-    || (this.options.ignoreCase && left.toLowerCase() === right.toLowerCase());
+  if (left === right) {
+    return true;
+  }
+
+  let ignoreWhitespaceComparator = (left, right) => {
+    return this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right);
+  };
+
+  if (this.options.ignoreCase) {
+      left = left.toLowerCase();
+      right = right.toLowerCase();
+      if (left === right) {
+        return true;
+      }
+      if (ignoreWhitespaceComparator(left, right)) {
+        return true;
+      }
+  } else {
+    return ignoreWhitespaceComparator(left, right);
+  }
 };
 wordDiff.tokenize = function(value) {
   let tokens = value.split(/(\s+|\b)/);
@@ -47,10 +64,11 @@ wordDiff.tokenize = function(value) {
   return tokens;
 };
 
-export function diffWords(oldStr, newStr, callback) {
-  let options = generateOptions(callback, {ignoreWhitespace: true});
+export function diffWords(oldStr, newStr, options) {
+  options = generateOptions(options, {ignoreWhitespace: true});
   return wordDiff.diff(oldStr, newStr, options);
 }
-export function diffWordsWithSpace(oldStr, newStr, callback) {
-  return wordDiff.diff(oldStr, newStr, callback);
+
+export function diffWordsWithSpace(oldStr, newStr, options) {
+  return wordDiff.diff(oldStr, newStr, options);
 }
