@@ -57,7 +57,11 @@ export function parsePatch(uniDiff, options = {}) {
     const fileHeader = headerPattern.exec(diffstr[i]);
     if (fileHeader) {
       let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
-      index[keyPrefix + 'FileName'] = fileHeader[2];
+      let fileName = fileHeader[2].replace(/\\\\/g, '\\');
+      if (fileName.startsWith('"') && fileName.endsWith('"')) {
+        fileName = fileName.substr(1, fileName.length - 2);
+      }
+      index[keyPrefix + 'FileName'] = fileName;
       index[keyPrefix + 'Header'] = fileHeader[3];
 
       i++;
