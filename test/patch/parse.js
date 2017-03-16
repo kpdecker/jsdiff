@@ -276,6 +276,44 @@ Index: test2
         }]);
     });
 
+ it('should parse patches with filenames having quotes and back slashes', function() {
+      expect(parsePatch(
+`Index: test
+===================================================================
+--- "from\\\\a\\\\file\\\\with\\\\quotes\\\\and\\\\backslash"\theader1
++++ "to\\\\a\\\\file\\\\with\\\\quotes\\\\and\\\\backslash"\theader2
+@@ -1,3 +1,4 @@
+ line2
+ line3
++line4
+ line5`))
+        .to.eql([{
+          index: 'test',
+          oldFileName: 'from\\a\\file\\with\\quotes\\and\\backslash',
+          oldHeader: 'header1',
+          newFileName: 'to\\a\\file\\with\\quotes\\and\\backslash',
+          newHeader: 'header2',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line2',
+                ' line3',
+                '+line4',
+                ' line5'
+              ],
+              linedelimiters: [
+                '\n',
+                '\n',
+                '\n',
+                '\n'
+              ]
+            }
+          ]
+        }]);
+    });
+
     it('should note added EOFNL', function() {
       expect(parsePatch(
 `@@ -1,3 +1,4 @@
