@@ -144,7 +144,8 @@ Diff.prototype = {
   },
 
   equals(left, right) {
-    return left === right;
+    return left === right
+      || (this.options.ignoreCase && left.toLowerCase() === right.toLowerCase());
   },
   removeEmpty(array) {
     let ret = [];
