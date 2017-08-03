@@ -144,8 +144,15 @@ Diff.prototype = {
   },
 
   equals(left, right) {
-    return left === right
-      || (this.options.ignoreCase && left.toLowerCase() === right.toLowerCase());
+    if (this.options.comparator) {
+      if (Array.isArray(right)) {
+        right = right[0];
+      }
+      return this.options.comparator(left, right);
+    } else {
+      return left === right
+        || (this.options.ignoreCase && left.toLowerCase() === right.toLowerCase());
+    }
   },
   removeEmpty(array) {
     let ret = [];

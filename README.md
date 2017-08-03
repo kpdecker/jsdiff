@@ -63,6 +63,9 @@ bower install jsdiff --save
 
 * `JsDiff.diffArrays(oldArr, newArr[, options])` - diffs two arrays, comparing each item for strict equality (===).
 
+    Options
+    * `comparator`: `function(left, right)` for custom equality checks
+
     Returns a list of change objects (See below).
 
 * `JsDiff.createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
