@@ -4,27 +4,17 @@ import {parsePatch} from './parse';
 import {arrayEqual, arrayStartsWith} from '../util/array';
 
 export function calcLineCount(hunk) {
-  let conflicted = false;
+  const {oldLines, newLines} = calcOldNewLineCount(hunk.lines);
 
-  hunk.oldLines = 0;
-  hunk.newLines = 0;
-
-  hunk.lines.forEach(function(line) {
-    if (typeof line !== 'string') {
-      conflicted = true;
-      return;
-    }
-
-    if (line[0] === '+' || line[0] === ' ') {
-      hunk.newLines++;
-    }
-    if (line[0] === '-' || line[0] === ' ') {
-      hunk.oldLines++;
-    }
-  });
-
-  if (conflicted) {
+  if (oldLines !== undefined) {
+    hunk.oldLines = oldLines;
+  } else {
     delete hunk.oldLines;
+  }
+
+  if (newLines !== undefined) {
+    hunk.newLines = newLines;
+  } else {
     delete hunk.newLines;
   }
 }
@@ -346,4 +336,41 @@ function skipRemoveSuperset(state, removeChanges, delta) {
 
   state.index += delta;
   return true;
+}
+
+function calcOldNewLineCount(lines) {
+  let oldLines = 0;
+  let newLines = 0;
+
+  lines.forEach(function(line) {
+    if (typeof line !== 'string') {
+      let myCount = calcOldNewLineCount(line.mine);
+      let theirCount = calcOldNewLineCount(line.theirs);
+
+      if (oldLines !== undefined) {
+        if (myCount.oldLines === theirCount.oldLines) {
+          oldLines += myCount.oldLines;
+        } else {
+          oldLines = undefined;
+        }
+      }
+
+      if (newLines !== undefined) {
+        if (myCount.newLines === theirCount.newLines) {
+          newLines += myCount.newLines;
+        } else {
+          newLines = undefined;
+        }
+      }
+    } else {
+      if (newLines !== undefined && (line[0] === '+' || line[0] === ' ')) {
+        newLines++;
+      }
+      if (oldLines !== undefined && (line[0] === '-' || line[0] === ' ')) {
+        oldLines++;
+      }
+    }
+  });
+
+  return {oldLines, newLines};
 }
