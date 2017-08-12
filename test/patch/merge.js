@@ -354,7 +354,9 @@ describe('patch/merge', function() {
             {
               conflict: true,
               oldStart: 1,
+              oldLines: 6,
               newStart: 1,
+              newLines: 3,
               lines: [
                 ' line2',
                 ' line3',
@@ -407,6 +409,7 @@ describe('patch/merge', function() {
               conflict: true,
               oldStart: 1,
               newStart: 1,
+              newLines: 4,
               lines: [
                 ' line2',
                 ' line3',
@@ -454,6 +457,7 @@ describe('patch/merge', function() {
             {
               conflict: true,
               oldStart: 1,
+              oldLines: 3,
               newStart: 1,
               lines: [
                 ' line2',
@@ -499,6 +503,7 @@ describe('patch/merge', function() {
             {
               conflict: true,
               oldStart: 1,
+              oldLines: 3,
               newStart: 1,
               lines: [
                 ' line2',
@@ -538,6 +543,7 @@ describe('patch/merge', function() {
             {
               conflict: true,
               oldStart: 1,
+              oldLines: 2,
               newStart: 1,
               lines: [
                 ' line2',
@@ -829,6 +835,7 @@ describe('patch/merge', function() {
             {
               conflict: true,
               oldStart: 1,
+              oldLines: 4,
               newStart: 1,
               lines: [
                 '-line2',
@@ -936,6 +943,7 @@ describe('patch/merge', function() {
             {
               conflict: true,
               oldStart: 1,
+              oldLines: 6,
               newStart: 1,
               lines: [
                 '-line2',
@@ -1003,7 +1011,150 @@ describe('patch/merge', function() {
         swapConflicts(expected);
         expect(merge(theirs, mine)).to.eql(expected);
       });
-      it('should conflict context mismatch', function() {
+
+      it('should handle multiple conflicts in one hunk', function() {
+        const mine =
+              '@@ -1,10 +1,10 @@\n'
+              + ' line1\n'
+              + '-line2\n'
+              + '+line2-1\n'
+              + ' line3\n'
+              + ' line4\n'
+              + ' line5\n'
+              + '-line6\n'
+              + '+line6-1\n'
+              + ' line7\n';
+        const theirs =
+              '@@ -1,10 +1,10 @@\n'
+              + ' line1\n'
+              + '-line2\n'
+              + '+line2-2\n'
+              + ' line3\n'
+              + ' line4\n'
+              + ' line5\n'
+              + '-line6\n'
+              + '+line6-2\n'
+              + ' line7\n';
+        const expected = {
+          hunks: [
+            {
+              conflict: true,
+              oldStart: 1,
+              oldLines: 7,
+              newStart: 1,
+              newLines: 7,
+              lines: [
+                ' line1',
+                {
+                  conflict: true,
+                  mine: [
+                    '-line2',
+                    '+line2-1'
+                  ],
+                  theirs: [
+                    '-line2',
+                    '+line2-2'
+                  ]
+                },
+                ' line3',
+                ' line4',
+                ' line5',
+                {
+                  conflict: true,
+                  mine: [
+                    '-line6',
+                    '+line6-1'
+                  ],
+                  theirs: [
+                    '-line6',
+                    '+line6-2'
+                  ]
+                },
+                ' line7'
+              ]
+            }
+          ]
+        };
+
+        expect(merge(mine, theirs)).to.eql(expected);
+
+        swapConflicts(expected);
+        expect(merge(theirs, mine)).to.eql(expected);
+      });
+
+      it('should remove oldLines if base differs', function() {
+        const mine =
+              '@@ -1,10 +1,10 @@\n'
+              + ' line1\n'
+              + '-line2\n'
+              + '-line2-0\n'
+              + '+line2-1\n'
+              + ' line3\n'
+              + ' line4\n'
+              + ' line5\n'
+              + '-line6\n'
+              + '+line6-1\n'
+              + ' line7\n';
+        const theirs =
+              '@@ -1,10 +1,10 @@\n'
+              + ' line1\n'
+              + '-line2\n'
+              + '+line2-2\n'
+              + '+line2-3\n'
+              + ' line3\n'
+              + ' line4\n'
+              + ' line5\n'
+              + '-line6\n'
+              + '+line6-2\n'
+              + ' line7\n';
+        const expected = {
+          hunks: [
+            {
+              conflict: true,
+              oldStart: 1,
+              newStart: 1,
+              lines: [
+                ' line1',
+                {
+                  conflict: true,
+                  mine: [
+                    '-line2',
+                    '-line2-0',
+                    '+line2-1'
+                  ],
+                  theirs: [
+                    '-line2',
+                    '+line2-2',
+                    '+line2-3'
+                  ]
+                },
+                ' line3',
+                ' line4',
+                ' line5',
+                {
+                  conflict: true,
+                  mine: [
+                    '-line6',
+                    '+line6-1'
+                  ],
+                  theirs: [
+                    '-line6',
+                    '+line6-2'
+                  ]
+                },
+                ' line7'
+              ]
+            }
+          ]
+        };
+
+        expect(merge(mine, theirs)).to.eql(expected);
+
+        swapConflicts(expected);
+        expect(merge(theirs, mine)).to.eql(expected);
+      });
+
+      it('should handle multiple conflict sections', function() {
         const mine =
               '@@ -1,3 +1,4 @@\n'
               + ' line2\n'
@@ -1017,7 +1168,9 @@ describe('patch/merge', function() {
             {
               conflict: true,
               oldStart: 1,
+              oldLines: 2,
               newStart: 1,
+              newLines: 2,
               lines: [
                 {
                   conflict: true,
