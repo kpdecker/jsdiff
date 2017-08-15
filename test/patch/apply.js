@@ -461,6 +461,23 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    it('should create a file', function() {
+      expect(applyPatch('',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -0,0 +1,4 @@\n'
+          + '+line1\n'
+          + '+line2\n'
+          + '+line3\n'
+          + '+line4\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n');
+    });
+
     it('should erase a file', function() {
       expect(applyPatch(
           'line1\n'
