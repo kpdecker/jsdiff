@@ -85,6 +85,10 @@ export function applyPatch(source, uniDiff, options = {}) {
         toPos = hunk.oldStart + hunk.offset + diffOffset - 1;
     diffOffset += hunk.newLines - hunk.oldLines;
 
+    if (toPos < 0) { // Creating a new file
+      toPos = 0;
+    }
+
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
           operation = line[0],
