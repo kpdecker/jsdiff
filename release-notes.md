@@ -2,7 +2,22 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v3.2.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.3.0...master)
+
+## v3.3.0 - July 5th, 2017
+- [#114](https://github.com/kpdecker/jsdiff/issues/114) - /patch/merge not exported
+- Gracefully accept invalid newStart in hunks, same as patch(1) does. - d8a3635
+- Use regex rather than starts/ends with for parsePatch - 6cab62c
+- Add browser flag - e64f674
+- refactor: simplified code a bit more - 8f8e0f2
+- refactor: simplified code a bit - b094a6f
+- fix: some corrections re ignoreCase option - 3c78fd0
+- ignoreCase option - 3cbfbb5
+- Sanitize filename while parsing patches - 2fe8129
+- Added better installation methods - aced50b
+- Simple export of functionality - 8690f31
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.2.0...v3.3.0)
 
 ## v3.2.0 - December 26th, 2016
 - [#156](https://github.com/kpdecker/jsdiff/pull/156) - Add `undefinedReplacement` option to `diffJson` ([@ewnd9](https://api.github.com/users/ewnd9))
