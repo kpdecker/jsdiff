@@ -39,7 +39,7 @@ export default function(start, minLine, maxLine) {
       return iterator();
     }
 
-    // We tried to fit hunk before text beginning and beyond text lenght, then
+    // We tried to fit hunk before text beginning and beyond text length, then
     // hunk can't fit on the text. Return undefined
   };
 }
