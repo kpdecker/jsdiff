@@ -2,22 +2,9 @@
   "env": {
     "browser": true
   },
-  "ecmaFeatures": {
-    // Enabling features that can be implemented without polyfills. Want to avoid polyfills at this time.
-    "arrowFunctions": true,
-    "blockBindings": true,
-    "classes": false,
-    "defaultParams": true,
-    "destructuring": true,
-    "modules": true,
-    "objectLiteralComputedProperties": true,
-    "objectLiteralDuplicateProperties": true,
-    "objectLiteralShorthandMethods": true,
-    "objectLiteralShorthandProperties": true,
-    "regexUFlag": true,
-    "restParams": true,
-    "spread": true,
-    "templateStrings": true
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
   },
   "rules": {
     // Possible Errors //
@@ -78,7 +65,6 @@
     "no-caller": 2,
     "no-div-regex": 1,
     "no-else-return": 0,
-    "no-empty-label": 2,
     "no-eq-null": 0,
     "no-eval": 2,
     "no-extend-native": 2,
@@ -90,7 +76,6 @@
     "no-labels": 2,
     "no-lone-blocks": 2,
     "no-loop-func": 0,
-    "no-multi-spaces": 2,
     "no-multi-str": 1,
     "no-native-reassign": 2,
     "no-new": 2,
@@ -181,13 +166,12 @@
     "semi": 2,
     "semi-spacing": [2, {"before": false, "after": true}],
     "sort-vars": 0,
-    "space-after-keywords": [2, "always"],
+    "keyword-spacing": [2, {"after": true}],
     "space-before-blocks": [2, "always"],
     "space-before-function-paren": [2, {"anonymous": "never", "named": "never"}],
     "space-in-brackets": 0,
     "space-in-parens": [2, "never"],
     "space-infix-ops": 2,
-    "space-return-throw-case": 2,
     "space-unary-ops": 2,
     "spaced-comment": [2, "always"],
     "wrap-regex": 1,
