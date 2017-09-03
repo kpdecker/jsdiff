@@ -1,5 +1,7 @@
 # jsdiff
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/kpdecker/jsdiff.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://secure.travis-ci.org/kpdecker/jsdiff.svg)](http://travis-ci.org/kpdecker/jsdiff)
 [![Sauce Test Status](https://saucelabs.com/buildstatus/jsdiff)](https://saucelabs.com/u/jsdiff)
 
