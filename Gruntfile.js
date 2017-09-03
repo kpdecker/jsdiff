@@ -1,7 +1,5 @@
 /* eslint-env node */
 /* eslint-disable no-process-env, camelcase */
-const Path = require('path');
-
 module.exports = function(grunt) {
 
   grunt.initConfig({
@@ -30,9 +28,9 @@ module.exports = function(grunt) {
     },
     webpack: {
       options: {
-        context: Path.resolve(__dirname, './lib/'),
+        context: 'lib/',
         output: {
-          path: Path.resolve(__dirname, './dist/'),
+          path: 'dist/',
           library: 'JsDiff',
           libraryTarget: 'umd'
         }
@@ -84,7 +82,7 @@ module.exports = function(grunt) {
       },
       sauce: {
         singleRun: true,
-        browsers: ['sl_chrome', 'sl_firefox', 'sl_safari', 'sl_ie_11']
+        browsers: ['sl_chrome', 'sl_firefox', 'sl_safari', 'sl_ie_11', 'sl_ie_9']
       }
     },
 
