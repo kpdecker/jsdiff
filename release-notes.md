@@ -2,7 +2,14 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v3.3.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.3.1...master)
+
+## v3.3.1 - September 3rd, 2017
+- [#141](https://github.com/kpdecker/jsdiff/issues/141) - Cannot apply patch because my file delimiter is "/r/n" instead of "/n"
+- [#192](https://github.com/kpdecker/jsdiff/pull/192) - Fix: Bad merge when adding new files (#189)
+- correct spelling mistake - 21fa478
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.3.0...v3.3.1)
 
 ## v3.3.0 - July 5th, 2017
 - [#114](https://github.com/kpdecker/jsdiff/issues/114) - /patch/merge not exported
