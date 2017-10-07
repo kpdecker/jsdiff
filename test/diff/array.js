@@ -15,5 +15,20 @@ describe('diff/array', function() {
           {count: 1, value: [c], removed: true, added: undefined}
       ]);
     });
+
+    it('Should diff arrays with comparator', function() {
+      const a = {a: 0}, b = {a: 1}, c = {a: 2}, d = {a: 3};
+      function comparator(left, right) {
+        return left.a === right.a;
+      }
+      const diffResult = diffArrays([a, b, c], [a, b, d], { comparator: comparator });
+      console.log(diffResult);
+      expect(diffResult).to.deep.equals([
+          {count: 2, value: [a, b]},
+          {count: 1, value: [c], removed: true, added: undefined},
+          {count: 1, value: [d], removed: undefined, added: true}
+      ]);
+    });
+
   });
 });
