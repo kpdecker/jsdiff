@@ -2,7 +2,18 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v3.3.1...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.4.0...master)
+
+## v3.4.0 - October 7th, 2017
+- [#183](https://github.com/kpdecker/jsdiff/issues/183) - Feature request: ability to specify a custom equality checker for `diffArrays`
+- [#173](https://github.com/kpdecker/jsdiff/issues/173) - Bug: diffArrays gives wrong result on array of booleans
+- [#158](https://github.com/kpdecker/jsdiff/issues/158) - diffArrays will not compare the empty string in array?
+- comparator for custom equality checks - 30e141e
+- count oldLines and newLines when there are conflicts - 53bf384
+- Fix: diffArrays can compare falsey items - 9e24284
+- Docs: Replace grunt with npm test - 00e2f94
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.3.1...v3.4.0)
 
 ## v3.3.1 - September 3rd, 2017
 - [#141](https://github.com/kpdecker/jsdiff/issues/141) - Cannot apply patch because my file delimiter is "/r/n" instead of "/n"
