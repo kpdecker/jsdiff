@@ -141,7 +141,7 @@ Note that some cases may omit a particular flag field. Comparison on the flag fi
 Basic example in Node
 
 ```js
-require('colors')
+require('colors');
 var jsdiff = require('diff');
 
 var one = 'beep boop';
@@ -157,7 +157,7 @@ diff.forEach(function(part){
   process.stderr.write(part.value[color]);
 });
 
-console.log()
+console.log();
 ```
 Running the above program should yield
 
