@@ -1,10 +1,10 @@
 import Diff from './base';
 
 export const arrayDiff = new Diff();
-arrayDiff.tokenize = arrayDiff.join = function(value) {
+arrayDiff.tokenize = function(value) {
   return value.slice();
 };
-arrayDiff.removeEmpty = function(value) {
+arrayDiff.join = arrayDiff.removeEmpty = function(value) {
   return value;
 };
 
