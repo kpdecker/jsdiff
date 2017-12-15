@@ -107,7 +107,7 @@ bower install jsdiff --save
     The optional `options` object may have the following keys:
 
     - `fuzzFactor`: Number of lines that are allowed to differ before rejecting a patch. Defaults to 0.
-    - `compareLine(lineNumber, line, operation, patchContent)`: Callback used to compare to given lines to determine if they should be considered equal when patching. Defaults to strict equality but may be overriden to provide fuzzier comparison. Should return false if the lines should be rejected.
+    - `compareLine(lineNumber, line, operation, patchContent)`: Callback used to compare to given lines to determine if they should be considered equal when patching. Defaults to strict equality but may be overridden to provide fuzzier comparison. Should return false if the lines should be rejected.
 
 * `JsDiff.applyPatches(patch, options)` - applies one or more patches.
 
