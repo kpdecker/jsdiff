@@ -63,14 +63,5 @@
     "webpack": "^1.12.2",
     "webpack-dev-server": "^1.12.0"
   },
-  "optionalDependencies": {},
-  "babel": {
-    "sourceMaps": "inline",
-    "presets": [
-      "es3",
-      "es2015-mod"
-    ],
-    "auxiliaryCommentBefore": "istanbul ignore start",
-    "auxiliaryCommentAfter": "istanbul ignore end"
-  }
+  "optionalDependencies": {}
 }
