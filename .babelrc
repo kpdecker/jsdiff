@@ -1,0 +1,6 @@
+{
+  "sourceMaps": "inline",
+  "presets": ["es3", "es2015-mod"],
+  "auxiliaryCommentBefore": "istanbul ignore start",
+  "auxiliaryCommentAfter": "istanbul ignore end"
+}
