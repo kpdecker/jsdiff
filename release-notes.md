@@ -119,7 +119,7 @@ Compatibility notes:
 - [#69](https://github.com/kpdecker/jsdiff/issues/69) - Missing count ([@wfalkwallace](https://api.github.com/users/wfalkwallace))
 - [#68](https://github.com/kpdecker/jsdiff/issues/68) - diffLines seems broken ([@wfalkwallace](https://api.github.com/users/wfalkwallace))
 - [#60](https://github.com/kpdecker/jsdiff/issues/60) - Support multiple diff hunks ([@piranna](https://api.github.com/users/piranna))
-- [#54](https://github.com/kpdecker/jsdiff/issues/54) - Feature Reuqest: 3-way merge ([@mog422](https://api.github.com/users/mog422))
+- [#54](https://github.com/kpdecker/jsdiff/issues/54) - Feature Request: 3-way merge ([@mog422](https://api.github.com/users/mog422))
 - [#42](https://github.com/kpdecker/jsdiff/issues/42) - Fuzz factor for applyPatch ([@stuartpb](https://api.github.com/users/stuartpb))
 - Move whitespace ignore out of equals method - 542063c
 - Include source maps in babel output - 7f7ab21
@@ -152,7 +152,7 @@ Compatibility notes:
 - [#29](https://github.com/kpdecker/jsdiff/issues/29) - word tokenizer works only for 7 bit ascii ([@plasmagunman](https://api.github.com/users/plasmagunman))
 
 Compatibility notes:
-- `this.removeEmpty` is now called automatically for all instances. If this is not desired, this may be overriden on a per instance basis.
+- `this.removeEmpty` is now called automatically for all instances. If this is not desired, this may be overridden on a per instance basis.
 - The library has been refactored to use some ES6 features. The external APIs should remain the same, but bower projects that directly referenced the repository will now have to point to the [components/jsdiff](https://github.com/components/jsdiff) repository.
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/v1.4.0...v2.0.0)
