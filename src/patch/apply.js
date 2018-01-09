@@ -34,8 +34,8 @@ export function applyPatch(source, uniDiff, options = {}) {
   function hunkFits(hunk, toPos) {
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
-          operation = line.length>0 ? line[0] : ' ',
-          content = line.length>0 ? line.substr(1) : line;
+          operation = (line.length > 0 ? line[0] : ' '),
+          content = (line.length > 0 ? line.substr(1) : line);
 
       if (operation === ' ' || operation === '-') {
         // Context sanity check
@@ -91,8 +91,8 @@ export function applyPatch(source, uniDiff, options = {}) {
 
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
-          operation = line.length>0 ? line[0] : ' ',
-          content = line.length>0 ? line.substr(1) : line,
+          operation = (line.length > 0 ? line[0] : ' '),
+          content = (line.length > 0 ? line.substr(1) : line),
           delimiter = hunk.linedelimiters[j];
 
       if (operation === ' ') {
