@@ -95,7 +95,7 @@ export function parsePatch(uniDiff, options = {}) {
             && diffstr[i + 2].indexOf('@@') === 0) {
           break;
       }
-      let operation = (diffstr[i].length==0 && i!=diffstr.length-1) ? ' ' : diffstr[i][0];
+      let operation = (diffstr[i].length == 0 && i != (diffstr.length - 1)) ? ' ' : diffstr[i][0];
 
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
         hunk.lines.push(diffstr[i]);
