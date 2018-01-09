@@ -91,8 +91,8 @@ export function applyPatch(source, uniDiff, options = {}) {
 
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
-          operation = line[0],
-          content = line.substr(1),
+          operation = line.length>0 ? line[0] : ' ',
+          content = line.length>0 ? line.substr(1) : line,
           delimiter = hunk.linedelimiters[j];
 
       if (operation === ' ') {
