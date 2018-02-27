@@ -11,15 +11,9 @@ jsonDiff.useLongestToken = true;
 
 jsonDiff.tokenize = lineDiff.tokenize;
 jsonDiff.castInput = function(value) {
-  const {undefinedReplacement} = this.options;
+  const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = this.options;
 
-  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value), function(k, v) {
-    if (typeof v === 'undefined') {
-      return undefinedReplacement;
-    }
-
-    return v;
-  }, '  ');
+  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
 };
 jsonDiff.equals = function(left, right) {
   return Diff.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
@@ -28,10 +22,14 @@ jsonDiff.equals = function(left, right) {
 export function diffJson(oldObj, newObj, options) { return jsonDiff.diff(oldObj, newObj, options); }
 
 // This function handles the presence of circular references by bailing out when encountering an
-// object that is already on the "stack" of items being processed.
-export function canonicalize(obj, stack, replacementStack) {
+// object that is already on the "stack" of items being processed. Accepts an optional replacer
+export function canonicalize(obj, stack, replacementStack, replacer, key) {
   stack = stack || [];
   replacementStack = replacementStack || [];
+
+  if (replacer) {
+    obj = replacer(key, obj);
+  }
 
   let i;
 
@@ -48,7 +46,7 @@ export function canonicalize(obj, stack, replacementStack) {
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack);
+      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, key);
     }
     stack.pop();
     replacementStack.pop();
@@ -74,7 +72,7 @@ export function canonicalize(obj, stack, replacementStack) {
     sortedKeys.sort();
     for (i = 0; i < sortedKeys.length; i += 1) {
       key = sortedKeys[i];
-      canonicalizedObj[key] = canonicalize(obj[key], stack, replacementStack);
+      canonicalizedObj[key] = canonicalize(obj[key], stack, replacementStack, replacer, key);
     }
     stack.pop();
     replacementStack.pop();
