@@ -11,6 +11,15 @@
 - Optimize parch header parser - 2aec429
 - Fix typos - e89c832
 
+[Commits](https://github.com/kpdecker/jsdiff/compare/v3.5.0...v3.5.0)
+
+## v3.5.0 - March 4th, 2018
+- Omit redundant slice in join method of diffArrays - 1023590
+- Support patches with empty lines - fb0f208
+- Accept a custom JSON replacer function for JSON diffing - 69c7f0a
+- Optimize parch header parser - 2aec429
+- Fix typos - e89c832
+
 [Commits](https://github.com/kpdecker/jsdiff/compare/v3.4.0...v3.5.0)
 
 ## v3.4.0 - October 7th, 2017
