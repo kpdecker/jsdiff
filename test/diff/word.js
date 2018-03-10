@@ -184,6 +184,31 @@ describe('WordDiff', function() {
       expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
     });
 
+    it('should inserts values in parenthesis', function() {
+      const diffResult = diffWordsWithSpace('()', '(word)');
+      expect(convertChangesToXML(diffResult)).to.equal('(<ins>word</ins>)');
+    });
+
+    it('should inserts values in brackets', function() {
+      const diffResult = diffWordsWithSpace('[]', '[word]');
+      expect(convertChangesToXML(diffResult)).to.equal('[<ins>word</ins>]');
+    });
+
+    it('should inserts values in curly braces', function() {
+      const diffResult = diffWordsWithSpace('{}', '{word}');
+      expect(convertChangesToXML(diffResult)).to.equal('{<ins>word</ins>}');
+    });
+
+    it('should inserts values in quotes', function() {
+      const diffResult = diffWordsWithSpace("''", "'word'");
+      expect(convertChangesToXML(diffResult)).to.equal("'<ins>word</ins>'");
+    });
+
+    it('should inserts values in double quotes', function() {
+      const diffResult = diffWordsWithSpace('""', '"word"');
+      expect(convertChangesToXML(diffResult)).to.equal('&quot;<ins>word</ins>&quot;');
+    });
+
     it('should perform async operations', function(done) {
       diffWordsWithSpace('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
