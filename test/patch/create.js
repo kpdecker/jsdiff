@@ -89,6 +89,22 @@ describe('patch/create', function() {
         + '+line4\n');
     });
 
+    it('should output "no newline" at end of file message on both missing nl', function() {
+      expect(createPatch('test', 'line1\nline2\nline3\nline4', 'line1\nline2\nline3\nline44', 'header1', 'header2')).to.equal(
+        'Index: test\n'
+        + '===================================================================\n'
+        + '--- test\theader1\n'
+        + '+++ test\theader2\n'
+        + '@@ -1,4 +1,4 @@\n'
+        + ' line1\n'
+        + ' line2\n'
+        + ' line3\n'
+        + '-line4\n'
+        + '\\ No newline at end of file\n'
+        + '+line44\n'
+        + '\\ No newline at end of file\n');
+    });
+
     it('should output "no newline" at end of file message on context missing nl', function() {
       expect(createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2')).to.equal(
         'Index: test\n'
@@ -101,6 +117,33 @@ describe('patch/create', function() {
         + ' line2\n'
         + ' line3\n'
         + ' line4\n'
+        + '\\ No newline at end of file\n');
+    });
+
+    it('should output only one "no newline" at end of file message on empty file', function() {
+      expect(createPatch('test', '', 'line1\nline2\nline3\nline4', 'header1', 'header2')).to.equal(
+        'Index: test\n'
+        + '===================================================================\n'
+        + '--- test\theader1\n'
+        + '+++ test\theader2\n'
+        + '@@ -1,0 +1,4 @@\n'
+        + '\\ No newline at end of file\n'
+        + '+line1\n'
+        + '+line2\n'
+        + '+line3\n'
+        + '+line4\n'
+        + '\\ No newline at end of file\n');
+
+      expect(createPatch('test', 'line1\nline2\nline3\nline4', '', 'header1', 'header2')).to.equal(
+        'Index: test\n'
+        + '===================================================================\n'
+        + '--- test\theader1\n'
+        + '+++ test\theader2\n'
+        + '@@ -1,4 +1,0 @@\n'
+        + '-line1\n'
+        + '-line2\n'
+        + '-line3\n'
+        + '-line4\n'
         + '\\ No newline at end of file\n');
     });
 

@@ -71,10 +71,12 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
             // EOF is inside this hunk
             let oldEOFNewline = (/\n$/.test(oldStr));
             let newEOFNewline = (/\n$/.test(newStr));
-            if (lines.length == 0 && !oldEOFNewline) {
+            let noNlBeforeAdds = lines.length == 0 && curRange.length > hunk.oldLines;
+            if (!oldEOFNewline && noNlBeforeAdds) {
               // special case: old has no eol and no trailing context; no-nl can end up before adds
               curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file');
-            } else if (!oldEOFNewline || !newEOFNewline) {
+            }
+            if ((!oldEOFNewline && !noNlBeforeAdds) || !newEOFNewline) {
               curRange.push('\\ No newline at end of file');
             }
           }
