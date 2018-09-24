@@ -63,6 +63,12 @@ module.exports = function(config) {
     autoWatch: true,
     singleRun: false,
 
-    browsers: ['PhantomJS']
+    browsers: ['HeadlessChrome']
+      customLaunchers: {
+        HeadlessChrome: {
+          base: 'ChromeHeadless',
+          flags: [ '--no-sandbox', ],
+           },
+          },
   });
 };
