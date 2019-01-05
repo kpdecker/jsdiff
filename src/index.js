@@ -10,6 +10,8 @@
  *
  * JsDiff.diffCss: Diff targeted at CSS content
  *
+ * JsDiff.diffBytes: Diff targeted at buffers (byte arrays)
+ *
  * These methods are based on the implementation proposed in
  * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
@@ -24,6 +26,8 @@ import {diffCss} from './diff/css';
 import {diffJson, canonicalize} from './diff/json';
 
 import {diffArrays} from './diff/array';
+
+import {diffBytes} from './diff/buffer';
 
 import {applyPatch, applyPatches} from './patch/apply';
 import {parsePatch} from './patch/parse';
@@ -47,6 +51,8 @@ export {
   diffJson,
 
   diffArrays,
+
+  diffBytes,
 
   structuredPatch,
   createTwoFilesPatch,

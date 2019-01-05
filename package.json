@@ -26,7 +26,9 @@
   "scripts": {
     "test": "grunt"
   },
-  "dependencies": {},
+  "dependencies": {
+    "buffer": "^5.0.8"
+  },
   "devDependencies": {
     "async": "^1.4.2",
     "babel-core": "^6.0.0",
