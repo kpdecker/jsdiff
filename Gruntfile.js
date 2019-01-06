@@ -75,7 +75,7 @@ module.exports = function(grunt) {
       },
       sauce: {
         singleRun: true,
-        browsers: ['sl_chrome', 'sl_firefox', 'sl_safari', 'sl_ie_11', 'sl_ie_9']
+        browsers: ['sl_chrome', 'sl_firefox', 'sl_safari', 'sl_ie_11']
       }
     },
 
