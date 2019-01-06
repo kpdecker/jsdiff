@@ -9,7 +9,7 @@ script: grunt travis
 
 matrix:
   include:
-    - node_js: "5"
+    - node_js: '10'
       env: KARMA=
 
 cache:
