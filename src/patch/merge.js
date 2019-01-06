@@ -97,7 +97,7 @@ export function merge(mine, theirs, base) {
 
 function loadPatch(param, base) {
   if (typeof param === 'string') {
-    if (/^@@/m.test(param) || (/^Index:/m.test(param))) {
+    if ((/^@@/m).test(param) || ((/^Index:/m).test(param))) {
       return parsePatch(param)[0];
     }
 

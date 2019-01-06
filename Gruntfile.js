@@ -1,5 +1,8 @@
 /* eslint-env node */
 /* eslint-disable no-process-env, camelcase */
+const pkg = require('./package.json');
+const babel = require('rollup-plugin-babel');
+
 module.exports = function(grunt) {
 
   grunt.initConfig({
@@ -26,27 +29,17 @@ module.exports = function(grunt) {
         }]
       }
     },
-    webpack: {
-      options: {
-        context: 'lib/',
-        output: {
-          path: 'dist/',
-          library: 'JsDiff',
-          libraryTarget: 'umd'
-        }
-      },
-      dist: {
-        entry: './index.js',
-        output: {
-          filename: 'diff.js'
-        }
+
+    exec: {
+      rollup: {
+        command: 'rollup -c'
       }
     },
 
     mochaTest: {
       test: {
         options: {
-          require: ['babel-core/register'],
+          require: ['@babel/register'],
           reporter: 'dot'
         },
         src: ['test/**/*.js']
@@ -116,12 +109,6 @@ module.exports = function(grunt) {
         files: [
           {expand: true, cwd: 'dist/', src: ['*.js'], dest: 'dist/'}
         ]
-      },
-      components: {
-        files: [
-          {expand: true, cwd: 'components/', src: ['**'], dest: 'dist/components'},
-          {expand: true, cwd: 'dist/', src: ['*.js'], dest: 'dist/components'}
-        ]
       }
     },
 
@@ -138,11 +125,11 @@ module.exports = function(grunt) {
   });
 
   // Build a new version of the library
-  this.registerTask('build', 'Builds a distributable version of the current project', ['eslint', 'babel', 'webpack']);
+  this.registerTask('build', 'Builds a distributable version of the current project', ['eslint', 'babel', 'exec:rollup']);
   this.registerTask('test', ['build', 'mochaTest', 'karma:unit']);
   this.registerTask('cover', ['mocha_istanbul:coverage', 'istanbul_check_coverage']);
 
-  this.registerTask('release', ['clean', 'test', 'uglify', 'copy:dist', 'copy:components']);
+  this.registerTask('release', ['clean', 'test', 'uglify', 'copy:dist']);
 
   // Load tasks from npm
   grunt.loadNpmTasks('grunt-contrib-clean');
@@ -154,7 +141,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-mocha-istanbul');
-  grunt.loadNpmTasks('grunt-webpack');
+  grunt.loadNpmTasks('grunt-exec');
 
   grunt.task.loadTasks('tasks');
 

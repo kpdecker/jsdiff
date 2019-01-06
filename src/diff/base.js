@@ -66,7 +66,7 @@ Diff.prototype = {
           basePath = clonePath(removePath);
           self.pushComponent(basePath.components, undefined, true);
         } else {
-          basePath = addPath;   // No need to clone, we've pulled it from the list
+          basePath = addPath; // No need to clone, we've pulled it from the list
           basePath.newPos++;
           self.pushComponent(basePath.components, true, undefined);
         }

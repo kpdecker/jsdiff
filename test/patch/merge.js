@@ -803,7 +803,7 @@ describe('patch/merge', function() {
                     '+line4'
                   ]
                 },
-                    ' line3',   // TODO: Fix
+                    ' line3', // TODO: Fix
                 ' line5'
               ]
             }

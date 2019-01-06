@@ -19,6 +19,10 @@ module.exports = function(config) {
       base: 'SauceLabs',
       browserName: 'internet explorer',
       version: '11'
+    },
+    HeadlessChrome: {
+      base: 'ChromeHeadless',
+      flags: ['--no-sandbox']
     }
   };
 
@@ -37,7 +41,7 @@ module.exports = function(config) {
     webpack: {
       devtool: 'eval',
       module: {
-        loaders: [
+        rules: [
           {
             test: /\.jsx?$/,
             exclude: /node_modules/,
@@ -63,12 +67,6 @@ module.exports = function(config) {
     autoWatch: true,
     singleRun: false,
 
-    browsers: ['HeadlessChrome']
-      customLaunchers: {
-        HeadlessChrome: {
-          base: 'ChromeHeadless',
-          flags: [ '--no-sandbox', ],
-           },
-          },
+    browsers: ['HeadlessChrome'],
   });
 };

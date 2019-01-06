@@ -9,7 +9,7 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   }
 
   const diff = diffLines(oldStr, newStr, options);
-  diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
+  diff.push({value: '', lines: []}); // Append an empty value to make cleanup easier
 
   function contextLines(lines) {
     return lines.map(function(entry) { return ' ' + entry; });
@@ -69,8 +69,8 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
           };
           if (i >= diff.length - 2 && lines.length <= options.context) {
             // EOF is inside this hunk
-            let oldEOFNewline = (/\n$/.test(oldStr));
-            let newEOFNewline = (/\n$/.test(newStr));
+            let oldEOFNewline = ((/\n$/).test(oldStr));
+            let newEOFNewline = ((/\n$/).test(newStr));
             let noNlBeforeAdds = lines.length == 0 && curRange.length > hunk.oldLines;
             if (!oldEOFNewline && noNlBeforeAdds) {
               // special case: old has no eol and no trailing context; no-nl can end up before adds

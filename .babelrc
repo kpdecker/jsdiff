@@ -1,6 +1,6 @@
 {
   "sourceMaps": "inline",
-  "presets": ["es3", "es2015-mod"],
+  "presets": ["@babel/preset-env"],
   "auxiliaryCommentBefore": "istanbul ignore start",
   "auxiliaryCommentAfter": "istanbul ignore end"
 }

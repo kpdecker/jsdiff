@@ -13,7 +13,7 @@ export function parsePatch(uniDiff, options = {}) {
       let line = diffstr[i];
 
       // File header found, end parsing diff metadata
-      if (/^(\-\-\-|\+\+\+|@@)\s/.test(line)) {
+      if ((/^(\-\-\-|\+\+\+|@@)\s/).test(line)) {
         break;
       }
 
@@ -37,9 +37,9 @@ export function parsePatch(uniDiff, options = {}) {
     while (i < diffstr.length) {
       let line = diffstr[i];
 
-      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(line)) {
+      if ((/^(Index:|diff|\-\-\-|\+\+\+)\s/).test(line)) {
         break;
-      } else if (/^@@/.test(line)) {
+      } else if ((/^@@/).test(line)) {
         index.hunks.push(parseHunk());
       } else if (line && options.strict) {
         // Ignore unexpected content unless in strict mode
@@ -58,7 +58,7 @@ export function parsePatch(uniDiff, options = {}) {
       let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
       const data = fileHeader[2].split('\t', 2);
       let fileName = data[0].replace(/\\\\/g, '\\');
-      if (/^".*"$/.test(fileName)) {
+      if ((/^".*"$/).test(fileName)) {
         fileName = fileName.substr(1, fileName.length - 2);
       }
       index[keyPrefix + 'FileName'] = fileName;

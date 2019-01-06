@@ -12,10 +12,6 @@ Based on the algorithm proposed in
 ```bash
 npm install diff --save
 ```
-or
-```bash
-bower install jsdiff --save
-```
 
 ## API
 
