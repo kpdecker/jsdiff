@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v4.0.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v4.0.1...master)
+
+## v4.0.1 - January 6th, 2019
+- Fix main reference path - b826104
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v4.0.0...v4.0.1)
 
 ## v4.0.0 - January 5th, 2019
 - [#94](https://github.com/kpdecker/jsdiff/issues/94) - Missing "No newline at end of file" when comparing two texts that do not end in newlines ([@federicotdn](https://api.github.com/users/federicotdn))
