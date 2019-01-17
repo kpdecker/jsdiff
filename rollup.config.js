@@ -7,7 +7,7 @@ export default [
     input: 'src/index.js',
     output: [
       {
-        name: 'Diff',
+        name: 'JsDiff',
         file: pkg.browser,
         format: 'umd'
       },
