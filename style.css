@@ -43,6 +43,10 @@ ins {
 	text-decoration: none;
 }
 
+#result {
+	white-space: pre-wrap;
+}
+
 #settings {
 	position: absolute;
 	top: 0;
