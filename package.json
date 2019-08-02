@@ -29,6 +29,10 @@
     "build:node": "yarn babel --out-dir lib  --source-maps=inline src",
     "test": "grunt"
   },
+  "files": [
+    "dist",
+    "lib"
+  ],
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
