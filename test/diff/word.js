@@ -171,6 +171,29 @@ describe('WordDiff', function() {
         done();
       });
     });
+
+    // With custom tokenizer
+    it('should utilize a custom tokenizer', function() {
+
+      const diff = diffWords('foo_bar', 'something_bar', {
+        tokenizer: /(\s+|[()[\]{}_'"]|\b)/
+      });
+
+      expect(diff).to.eql([{
+        count: 1,
+        added: undefined,
+        removed: true,
+        value: 'foo'
+      }, {
+        count: 1,
+        added: true,
+        removed: undefined,
+        value: 'something'
+      }, {
+        count: 2,
+        value: '_bar'
+      }]);
+    });
   });
 
   describe('#diffWordsWithSpace', function() {
