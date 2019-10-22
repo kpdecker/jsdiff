@@ -9,6 +9,7 @@ test
 .gitignore
 .travis.yml
 .npmignore
+.vscode
 Gruntfile.js
 index.html
 karma.conf.js
