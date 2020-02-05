@@ -138,17 +138,17 @@ Basic example in Node
 
 ```js
 require('colors');
-var Diff = require('diff');
+const Diff = require('diff');
 
-var one = 'beep boop';
-var other = 'beep boob blah';
+const one = 'beep boop';
+const other = 'beep boob blah';
 
-var diff = Diff.diffChars(one, other);
+const diff = Diff.diffChars(one, other);
 
-diff.forEach(function(part){
+diff.forEach((part) => {
   // green for additions, red for deletions
   // grey for common parts
-  var color = part.added ? 'green' :
+  const color = part.added ? 'green' :
     part.removed ? 'red' : 'grey';
   process.stderr.write(part.value[color]);
 });
@@ -165,19 +165,19 @@ Basic example in a web page
 <pre id="display"></pre>
 <script src="diff.js"></script>
 <script>
-var one = 'beep boop',
+const one = 'beep boop',
     other = 'beep boob blah',
     color = '',
     span = null;
 
-var diff = Diff.diffChars(one, other),
+const diff = Diff.diffChars(one, other),
     display = document.getElementById('display'),
     fragment = document.createDocumentFragment();
 
-diff.forEach(function(part){
+diff.forEach((part) => {
   // green for additions, red for deletions
   // grey for common parts
-  color = part.added ? 'green' :
+  const color = part.added ? 'green' :
     part.removed ? 'red' : 'grey';
   span = document.createElement('span');
   span.style.color = color;
