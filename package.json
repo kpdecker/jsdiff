@@ -4,6 +4,12 @@
   "description": "A javascript text diff implementation.",
   "keywords": [
     "diff",
+    "jsdiff",
+    "compare",
+    "patch",
+    "text",
+    "json",
+    "css",
     "javascript"
   ],
   "maintainers": [
