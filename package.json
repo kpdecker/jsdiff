@@ -27,6 +27,7 @@
   "scripts": {
     "clean": "rm -rf lib/ dist/",
     "build:node": "yarn babel --out-dir lib  --source-maps=inline src",
+    "build:browser": "rollup --config",
     "test": "grunt"
   },
   "devDependencies": {
