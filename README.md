@@ -73,7 +73,9 @@ npm install diff --save
     * `newStr` : New string value
     * `oldHeader` : Additional information to include in the old file header
     * `newHeader` : Additional information to include in the new file header
-    * `options` : An object with options. Currently, only `context` is supported and describes how many lines of context should be included.
+    * `options` : An object with options.
+        * `context` : describes how many lines of context should be included.
+        * `tokenizer` : Overrides the default regex used to split text into words. supported by `diffWords` and `diffWordsWithSpace`
 
 * `Diff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 

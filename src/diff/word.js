@@ -32,7 +32,8 @@ wordDiff.equals = function(left, right) {
   return left === right || (this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
 };
 wordDiff.tokenize = function(value) {
-  let tokens = value.split(/(\s+|[()[\]{}'"]|\b)/);
+  const tokenizer = this.options.tokenizer || /(\s+|[()[\]{}'"]|\b)/; // Use the tokenizer regex in the options or use the default regex
+  const tokens = value.split(tokenizer); // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
 
   // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
   for (let i = 0; i < tokens.length - 1; i++) {
