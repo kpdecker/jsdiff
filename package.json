@@ -30,6 +30,7 @@
   "main": "./lib/index.js",
   "module": "./lib/index.es6.js",
   "browser": "./dist/diff.js",
+  "unpkg": "./dist/diff.js",
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
