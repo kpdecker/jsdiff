@@ -99,12 +99,10 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   };
 }
 
-export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-  const diff = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
-
+export function formatPatch(diff) {
   const ret = [];
-  if (oldFileName == newFileName) {
-    ret.push('Index: ' + oldFileName);
+  if (diff.oldFileName == diff.newFileName) {
+    ret.push('Index: ' + diff.oldFileName);
   }
   ret.push('===================================================================');
   ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
@@ -121,6 +119,10 @@ export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, ol
   }
 
   return ret.join('\n') + '\n';
+}
+
+export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+  return formatPatch(structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options));
 }
 
 export function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {

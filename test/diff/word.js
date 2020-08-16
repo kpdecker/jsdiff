@@ -209,6 +209,15 @@ describe('WordDiff', function() {
       expect(convertChangesToXML(diffResult)).to.equal('&quot;<ins>word</ins>&quot;');
     });
 
+    it('should threat newline as separate token (issues #180, #211)', function() {
+      // #180
+      const diffResult1 = diffWordsWithSpace('foo\nbar', 'foo\n\n\nbar');
+      expect(convertChangesToXML(diffResult1)).to.equal('foo\n<ins>\n\n</ins>bar');
+      // #211
+      const diffResult2 = diffWordsWithSpace('A\n\nB\n', 'A\nB\n');
+      expect(convertChangesToXML(diffResult2)).to.equal('A\n<del>\n</del>B\n');
+    });
+
     it('should perform async operations', function(done) {
       diffWordsWithSpace('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');

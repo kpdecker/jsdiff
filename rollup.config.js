@@ -8,10 +8,16 @@ export default [
     output: [
       {
         name: 'Diff',
-        file: pkg.browser,
-        format: 'umd'
+        format: 'umd',
+        file: pkg.browser
       },
-      { file: pkg.module, format: 'es' }
+      {
+        format: 'esm',
+        file: pkg.module
+      }, {
+        format: 'esm',
+        file: pkg['exports']['.'].import
+      }
     ],
     plugins: [
       babel({
