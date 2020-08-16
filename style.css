@@ -79,3 +79,9 @@ ins {
 		height: 99%; /* Hide scroll bar in Firefox */
 	}
 }
+
+// for readability, wrap words in results, 
+// in case the original text does not have line breaks
+#result {
+    white-space: pre-wrap;
+}
