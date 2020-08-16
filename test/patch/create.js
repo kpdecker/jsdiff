@@ -1,5 +1,5 @@
 import {diffWords} from '../../lib';
-import {createPatch, createTwoFilesPatch, structuredPatch} from '../../lib/patch/create';
+import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../lib/patch/create';
 
 import {expect} from 'chai';
 
@@ -649,6 +649,21 @@ describe('patch/create', function() {
           lines: [' line2', ' line3', '-line4', '+line5', '\\ No newline at end of file']
         }]
       });
+    });
+  });
+
+  describe('#formatPatch', function() {
+    it('should generate a patch string from an input diff', function() {
+      const res = formatPatch(structuredPatch(
+        'oldfile', 'newfile',
+        'line2\nline3\nline4\n', 'line2\nline3\nline5',
+        'header1', 'header2'
+      ));
+      expect(res).to.equal(createTwoFilesPatch(
+        'oldfile', 'newfile',
+        'line2\nline3\nline4\n', 'line2\nline3\nline5',
+        'header1', 'header2'
+      ));
     });
   });
 });
