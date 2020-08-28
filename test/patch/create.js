@@ -120,14 +120,13 @@ describe('patch/create', function() {
         + '\\ No newline at end of file\n');
     });
 
-    it('should output only one "no newline" at end of file message on empty file', function() {
+    it('should output no "no newline" at end of file message on empty file', function() {
       expect(createPatch('test', '', 'line1\nline2\nline3\nline4', 'header1', 'header2')).to.equal(
         'Index: test\n'
         + '===================================================================\n'
         + '--- test\theader1\n'
         + '+++ test\theader2\n'
-        + '@@ -1,0 +1,4 @@\n'
-        + '\\ No newline at end of file\n'
+        + '@@ -0,0 +1,4 @@\n'
         + '+line1\n'
         + '+line2\n'
         + '+line3\n'
@@ -139,7 +138,7 @@ describe('patch/create', function() {
         + '===================================================================\n'
         + '--- test\theader1\n'
         + '+++ test\theader2\n'
-        + '@@ -1,4 +1,0 @@\n'
+        + '@@ -1,4 +0,0 @@\n'
         + '-line1\n'
         + '-line2\n'
         + '-line3\n'
@@ -528,7 +527,7 @@ describe('patch/create', function() {
       expect(diffResult).to.equal(expectedResult);
     });
 
-    it('should generatea a patch with context size 0', function() {
+    it('should generate a patch with context size 0', function() {
       const expectedResult =
         'Index: testFileName\n'
         + '===================================================================\n'
@@ -538,11 +537,11 @@ describe('patch/create', function() {
         + '-value\n'
         + '+new value\n'
         + '+new value 2\n'
-        + '@@ -11,1 +12,0 @@\n'
+        + '@@ -11,1 +11,0 @@\n'
         + '-remove value\n'
-        + '@@ -21,1 +21,0 @@\n'
+        + '@@ -21,1 +20,0 @@\n'
         + '-remove value\n'
-        + '@@ -30,0 +29,1 @@\n'
+        + '@@ -29,0 +29,1 @@\n'
         + '+add value\n'
         + '@@ -34,1 +34,2 @@\n'
         + '-value\n'

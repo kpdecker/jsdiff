@@ -77,12 +77,22 @@ export function parsePatch(uniDiff, options = {}) {
 
     let hunk = {
       oldStart: +chunkHeader[1],
-      oldLines: +chunkHeader[2] || 1,
+      oldLines: typeof chunkHeader[2] === 'undefined' ? 1 : +chunkHeader[2],
       newStart: +chunkHeader[3],
-      newLines: +chunkHeader[4] || 1,
+      newLines: typeof chunkHeader[4] === 'undefined' ? 1 : +chunkHeader[4],
       lines: [],
       linedelimiters: []
     };
+
+    // Unified Diff Format quirk: If the chunk size is 0,
+    // the first number is one lower than one would expect.
+    // https://www.artima.com/weblogs/viewpost.jsp?thread=164293
+    if (hunk.oldLines === 0) {
+      hunk.oldStart += 1;
+    }
+    if (hunk.newLines === 0) {
+      hunk.newStart += 1;
+    }
 
     let addCount = 0,
         removeCount = 0;
