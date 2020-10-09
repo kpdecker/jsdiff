@@ -167,8 +167,9 @@ Basic example in a web page
 <script>
 const one = 'beep boop',
     other = 'beep boob blah',
-    color = '',
-    span = null;
+    color = '';
+    
+let span = null;
 
 const diff = Diff.diffChars(one, other),
     display = document.getElementById('display'),
