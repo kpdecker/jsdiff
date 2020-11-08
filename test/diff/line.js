@@ -64,17 +64,52 @@ describe('diff/line', function() {
     });
 
     it('should ignore leading and trailing whitespace', function() {
-      const diffResult = diffTrimmedLines(
+      const diffResult1 = diffTrimmedLines(
         'line\nvalue \nline',
         'line\nvalue\nline');
-      expect(convertChangesToXML(diffResult)).to.equal('line\nvalue\nline');
+      expect(convertChangesToXML(diffResult1)).to.equal('line\nvalue\nline');
+
+      const diffResult2 = diffTrimmedLines(
+        'line\nvalue\nline',
+        'line\nvalue \nline');
+      expect(convertChangesToXML(diffResult2)).to.equal('line\nvalue \nline');
+
+      const diffResult3 = diffTrimmedLines(
+        'line\n value\nline',
+        'line\nvalue\nline');
+      expect(convertChangesToXML(diffResult3)).to.equal('line\nvalue\nline');
+
+      const diffResult4 = diffTrimmedLines(
+        'line\nvalue\nline',
+        'line\n value\nline');
+      expect(convertChangesToXML(diffResult4)).to.equal('line\n value\nline');
+    });
+
+    it('should keep leading and trailing whitespace in the output', function() {
+      function stringify(value) {
+        return JSON.stringify(value, null, 2);
+      }
+      const diffResult = diffTrimmedLines(
+        stringify([10, 20, 30]),
+        stringify({ data: [10, 42, 30] }));
+      expect(convertChangesToXML(diffResult)).to.equal([
+        '<del>[\n</del>',
+        '<ins>{\n',
+        '  "data": [\n</ins>',
+        '    10,\n',
+        '<del>  20,\n</del>',
+        '<ins>    42,\n</ins>',
+        '    30\n',
+        '<del>]</del><ins>  ]\n',
+        '}</ins>'
+      ].join('').replace(/"/g, '&quot;'));
     });
 
     it('should handle windows line endings', function() {
       const diffResult = diffTrimmedLines(
         'line\r\nold value \r\nline',
         'line\r\nnew value\r\nline');
-      expect(convertChangesToXML(diffResult)).to.equal('line\r\n<del>old value\r\n</del><ins>new value\r\n</ins>line');
+      expect(convertChangesToXML(diffResult)).to.equal('line\r\n<del>old value \r\n</del><ins>new value\r\n</ins>line');
     });
   });
 
