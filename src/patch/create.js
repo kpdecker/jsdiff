@@ -72,8 +72,9 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
             let oldEOFNewline = ((/\n$/).test(oldStr));
             let newEOFNewline = ((/\n$/).test(newStr));
             let noNlBeforeAdds = lines.length == 0 && curRange.length > hunk.oldLines;
-            if (!oldEOFNewline && noNlBeforeAdds) {
+            if (!oldEOFNewline && noNlBeforeAdds && oldStr.length > 0) {
               // special case: old has no eol and no trailing context; no-nl can end up before adds
+              // however, if the old file is empty, do not output the no-nl line
               curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file');
             }
             if ((!oldEOFNewline && !noNlBeforeAdds) || !newEOFNewline) {
@@ -110,6 +111,15 @@ export function formatPatch(diff) {
 
   for (let i = 0; i < diff.hunks.length; i++) {
     const hunk = diff.hunks[i];
+    // Unified Diff Format quirk: If the chunk size is 0,
+    // the first number is one lower than one would expect.
+    // https://www.artima.com/weblogs/viewpost.jsp?thread=164293
+    if (hunk.oldLines === 0) {
+      hunk.oldStart -= 1;
+    }
+    if (hunk.newLines === 0) {
+      hunk.newStart -= 1;
+    }
     ret.push(
       '@@ -' + hunk.oldStart + ',' + hunk.oldLines
       + ' +' + hunk.newStart + ',' + hunk.newLines

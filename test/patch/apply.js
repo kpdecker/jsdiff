@@ -355,6 +355,160 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    it('should apply single line patches with zero context and zero removed', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -2,0 +3 @@\n'
+          + '+line4\n'))
+        .to.equal(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('should apply multiline patches with zero context and zero removed', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line7\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -2,0 +3,3 @@\n'
+          + '+line4\n'
+          + '+line5\n'
+          + '+line6\n'))
+        .to.equal(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n'
+          + 'line6\n'
+          + 'line7\n');
+    });
+
+    it('should apply single line patches with zero context and zero removed at start of file', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -0,0 +1 @@\n'
+          + '+line1\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n');
+    });
+
+    it('should apply multi line patches with zero context and zero removed at start of file', function() {
+      expect(applyPatch(
+          'line3\n'
+          + 'line4\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -0,0 +1,2 @@\n'
+          + '+line1\n'
+          + '+line2\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n');
+    });
+
+    it('should apply multi line patches with zero context and zero removed at end of file', function() {
+      expect(applyPatch(
+          'line1\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,0 +2 @@\n'
+          + '+line2\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n');
+    });
+
+    it('should apply multi line patches with zero context and zero removed at end of file', function() {
+      expect(applyPatch(
+          'line1\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,0 +2,2 @@\n'
+          + '+line2\n'
+          + '+line3\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n');
+    });
+
+    it('should apply single line patches with zero context and zero added at beginning of file', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1 +0,0 @@\n'
+          + '-line1\n'))
+        .to.equal(
+          'line2\n');
+    });
+
+    it('should apply multi line patches with zero context and zero added at beginning of file', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,2 +0,0 @@\n'
+          + '-line1\n'
+          + '-line2\n'))
+        .to.equal(
+          'line3\n');
+    });
+
+    it('should apply single line patches with zero context and zero added at end of file', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -2 +1,0 @@\n'
+          + '-line2\n'))
+        .to.equal(
+          'line1\n');
+    });
+
+    it('should apply multi line patches with zero context and zero added at end of file', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -2,2 +1,0 @@\n'
+          + '-line2\n'
+          + '-line3\n'))
+        .to.equal(
+          'line1\n');
+    });
+
     it('should fail on mismatch', function() {
       expect(applyPatch(
           'line2\n'
