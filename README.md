@@ -6,7 +6,7 @@
 A javascript text differencing implementation.
 
 Based on the algorithm proposed in
-["An O(ND) Difference Algorithm and its Variations" (Myers, 1986)](http://xmailserver.org/diff2.pdf).
+["An O(ND) Difference Algorithm and its Variations" (Myers, 1986)](http://se-pubs.dbs.uni-leipzig.de/files/Myers1986AnONDDifferenceAlgorithm.pdf).
 
 ## Installation
 ```bash
