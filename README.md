@@ -17,21 +17,21 @@ npm install diff --save
 
 * `Diff.diffChars(oldStr, newStr[, options])` - diffs two blocks of text, comparing character by character.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
     Options
     * `ignoreCase`: `true` to ignore casing difference. Defaults to `false`.
 
 * `Diff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, comparing word by word, ignoring whitespace.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
     Options
     * `ignoreCase`: Same as in `diffChars`.
 
 * `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - diffs two blocks of text, comparing word by word, treating whitespace as significant.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
 * `Diff.diffLines(oldStr, newStr[, options])` - diffs two blocks of text, comparing line by line.
 
@@ -39,30 +39,30 @@ npm install diff --save
     * `ignoreWhitespace`: `true` to ignore leading and trailing whitespace. This is the same as `diffTrimmedLines`
     * `newlineIsToken`: `true` to treat newline characters as separate tokens.  This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines` and `diffLines` is better suited for patches and other computer friendly output.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
 * `Diff.diffTrimmedLines(oldStr, newStr[, options])` - diffs two blocks of text, comparing line by line, ignoring leading and trailing whitespace.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
 * `Diff.diffSentences(oldStr, newStr[, options])` - diffs two blocks of text, comparing sentence by sentence.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
 * `Diff.diffCss(oldStr, newStr[, options])` - diffs two blocks of text, comparing CSS tokens.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
 * `Diff.diffJson(oldObj, newObj[, options])` - diffs two JSON objects, comparing the fields defined on each. The order of fields, etc does not matter in this comparison.
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
 * `Diff.diffArrays(oldArr, newArr[, options])` - diffs two arrays, comparing each item for strict equality (===).
 
     Options
     * `comparator`: `function(left, right)` for custom equality checks
 
-    Returns a list of change objects (See below).
+    Returns a list of [change objects](#change-objects).
 
 * `Diff.createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 
