@@ -56,6 +56,10 @@ npm install diff --save
 * `Diff.diffJson(oldObj, newObj[, options])` - diffs two JSON objects, comparing the fields defined on each. The order of fields, etc does not matter in this comparison.
 
     Returns a list of change objects (See below).
+    
+    Options
+    * `stringifyReplacer`: A custom replacer function, operates similarly to the parameter to [JSON.stringify()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter), but must be a function. `undefined` will _not_ be replaced by this function, see the next option
+    *  `undefinedReplacement`: A value to replace `undefined` with. By default it will not be replaced, and replacements for `undefined` from `stringifyReplacer` will not be used.
 
 * `Diff.diffArrays(oldArr, newArr[, options])` - diffs two arrays, comparing each item for strict equality (===).
 
