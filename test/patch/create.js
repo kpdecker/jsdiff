@@ -631,6 +631,37 @@ describe('patch/create', function() {
       const diffResult = createTwoFilesPatch('foo', 'bar', '', '');
       expect(diffResult).to.equal(expectedResult);
     });
+
+    describe('ignoreWhitespace', function() {
+      it('ignoreWhitespace: false', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n'
+          + '@@ -1,2 +1,2 @@\n'
+          + '-line   \n'
+          + '- line\n'
+          + '\\ No newline at end of file\n'
+          + '+line\n'
+          + '+line\n'
+          + '\\ No newline at end of file\n';
+
+        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: false});
+        expect(diffResult).to.equal(expectedResult);
+      });
+
+      it('ignoreWhitespace: true', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n';
+
+        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: true});
+        expect(diffResult).to.equal(expectedResult);
+      });
+    });
   });
 
   describe('#structuredPatch', function() {
