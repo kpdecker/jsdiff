@@ -76,6 +76,7 @@ npm install diff --save
     * `options` : An object with options. 
       - `context` describes how many lines of context should be included.
       - `ignoreWhitespace`: `true` to ignore leading and trailing whitespace.
+      - `newlineIsToken`: `true` to treat newline characters as separate tokens. This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines` and `diffLines` is better suited for patches and other computer friendly output.
 
 * `Diff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 
