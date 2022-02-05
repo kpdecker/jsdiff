@@ -3,6 +3,11 @@ import {generateOptions} from '../util/params';
 
 export const lineDiff = new Diff();
 lineDiff.tokenize = function(value) {
+  if(this.options.stripTrailingCr) {
+    // remove all CR (\r) characters from the input string
+    value = value.replace(/\r+\n/g, '\n');
+  }
+
   let retLines = [],
       linesAndNewlines = value.split(/(\n|\r\n)/);
 
