@@ -705,6 +705,45 @@ describe('patch/create', function() {
     });
   });
 
+  describe('stripTrailingCr', function() {
+    it('stripTrailingCr: false', function() {
+      const expectedResult =
+      '===================================================================\n'
+      + '--- foo\n'
+      + '+++ bar\n'
+      + '@@ -1,2 +1,2 @@\n'
+      + '\-line\n'
+      + '\+line\r\n'
+      + '\ line\n'
+      + '\\ No newline at end of file\n';
+      expect(createTwoFilesPatch(
+        'foo',
+        'bar',
+        'line\nline',
+        'line\r\nline',
+        undefined,
+        undefined,
+        {stripTrailingCr: false}
+      )).to.equal(expectedResult);
+    });
+
+    it('stripTrailingCr: true', function() {
+      const expectedResult =
+        '===================================================================\n'
+        + '--- foo\n'
+        + '+++ bar\n';
+      expect(createTwoFilesPatch(
+        'foo',
+        'bar',
+        'line\nline',
+        'line\r\nline',
+        undefined,
+        undefined,
+        {stripTrailingCr: true}
+      )).to.equal(expectedResult);
+    });
+  });
+
   describe('#structuredPatch', function() {
     it('should handle files with the last line changed', function() {
       const res = structuredPatch(
