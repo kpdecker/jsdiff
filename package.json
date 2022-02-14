@@ -37,7 +37,7 @@
       "require": "./lib/index.js"
     },
     "./package.json": "./package.json",
-    "./": "./"
+    "./*": "./*"
   },
   "scripts": {
     "clean": "rm -rf lib/ dist/",
