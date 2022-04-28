@@ -29,7 +29,7 @@ Diff.prototype = {
 
     let newLen = newString.length, oldLen = oldString.length;
     let editLength = 1;
-    let maxEditLength = newLen + oldLen;
+    let maxEditLength = options.maxEditLength || newLen + oldLen;
     let bestPath = [{ newPos: -1, components: [] }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
@@ -87,12 +87,11 @@ Diff.prototype = {
 
     // Performs the length of edit iteration. Is a bit fugly as this has to support the
     // sync and async mode which is never fun. Loops over execEditLength until a value
-    // is produced.
+    // is produced, or until the edit length exceeds options.maxEditLength (if given),
+    // in which case it will return undefined.
     if (callback) {
       (function exec() {
         setTimeout(function() {
-          // This should not happen, but we want to be safe.
-          /* istanbul ignore next */
           if (editLength > maxEditLength) {
             return callback();
           }
