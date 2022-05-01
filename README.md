@@ -195,7 +195,7 @@ Open the above .html file in a browser and you should see
 
 <img src="images/web_example.png" alt="Node Example">
 
-**[Full online demo](http://kpdecker.github.com/jsdiff)**
+**[Full online demo](http://incaseofstairs.com/jsdiff/)**
 
 ## Compatibility
 
