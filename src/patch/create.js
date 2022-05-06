@@ -9,6 +9,10 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   }
 
   const diff = diffLines(oldStr, newStr, options);
+  if(!diff) {
+    return;
+  }
+
   diff.push({value: '', lines: []}); // Append an empty value to make cleanup easier
 
   function contextLines(lines) {

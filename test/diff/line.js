@@ -46,6 +46,24 @@ describe('diff/line', function() {
         '');
       expect(convertChangesToXML(diffResult)).to.equal('<del>line\n\nold value \n\nline</del>');
     });
+
+    describe('given options.maxEditLength', function() {
+      it('terminates early', function() {
+        const diffResult = diffLines(
+          'line\nold value\nline',
+          'line\nnew value\nline', { maxEditLength: 1 });
+        expect(diffResult).to.be.undefined;
+      });
+      it('terminates early - async', function(done) {
+        function callback(diffResult) {
+          expect(diffResult).to.be.undefined;
+          done();
+        }
+        diffLines(
+          'line\nold value\nline',
+          'line\nnew value\nline', { callback, maxEditLength: 1 });
+      });
+    });
   });
 
   // Trimmed Line Diff
