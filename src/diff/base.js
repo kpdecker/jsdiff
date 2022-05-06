@@ -29,7 +29,11 @@ Diff.prototype = {
 
     let newLen = newString.length, oldLen = oldString.length;
     let editLength = 1;
-    let maxEditLength = options.maxEditLength || newLen + oldLen;
+    let maxEditLength = newLen + oldLen;
+    if(options.maxEditLength) {
+      maxEditLength = Math.min(maxEditLength, options.maxEditLength);
+    }
+
     let bestPath = [{ newPos: -1, components: [] }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
