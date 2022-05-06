@@ -631,6 +631,78 @@ describe('patch/create', function() {
       const diffResult = createTwoFilesPatch('foo', 'bar', '', '');
       expect(diffResult).to.equal(expectedResult);
     });
+
+    describe('ignoreWhitespace', function() {
+      it('ignoreWhitespace: false', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n'
+          + '@@ -1,2 +1,2 @@\n'
+          + '-line   \n'
+          + '- line\n'
+          + '\\ No newline at end of file\n'
+          + '+line\n'
+          + '+line\n'
+          + '\\ No newline at end of file\n';
+
+        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: false});
+        expect(diffResult).to.equal(expectedResult);
+      });
+
+      it('ignoreWhitespace: true', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n';
+
+        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: true});
+        expect(diffResult).to.equal(expectedResult);
+      });
+    });
+
+    describe('newlineIsToken', function() {
+      it('newlineIsToken: false', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n'
+          + '@@ -1,2 +1,2 @@\n'
+
+          // Diff is shown as entire row, eventhough text is unchanged
+          + '-line\n'
+          + '+line\r\n'
+
+          + ' line\n'
+          + '\\ No newline at end of file\n';
+
+        const diffResult = createPatch('testFileName', 'line\nline', 'line\r\nline', undefined, undefined, {newlineIsToken: false});
+        expect(diffResult).to.equal(expectedResult);
+      });
+
+      it('newlineIsToken: true', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n'
+          + '@@ -1,3 +1,3 @@\n'
+          + ' line\n'
+
+          // Newline change is shown as a single diff
+          + '-\n'
+          + '+\r\n'
+
+          + ' line\n'
+          + '\\ No newline at end of file\n';
+
+        const diffResult = createPatch('testFileName', 'line\nline', 'line\r\nline', undefined, undefined, {newlineIsToken: true});
+        expect(diffResult).to.equal(expectedResult);
+      });
+    });
   });
 
   describe('#structuredPatch', function() {
