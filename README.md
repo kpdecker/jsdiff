@@ -3,7 +3,7 @@
 [![Build Status](https://secure.travis-ci.org/kpdecker/jsdiff.svg)](http://travis-ci.org/kpdecker/jsdiff)
 [![Sauce Test Status](https://saucelabs.com/buildstatus/jsdiff)](https://saucelabs.com/u/jsdiff)
 
-A javascript text differencing implementation.
+A javascript text differencing implementation. Try it out in the **[online demo](https://kpdecker.github.io/jsdiff)**.
 
 Based on the algorithm proposed in
 ["An O(ND) Difference Algorithm and its Variations" (Myers, 1986)](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927).
@@ -197,8 +197,6 @@ display.appendChild(fragment);
 Open the above .html file in a browser and you should see
 
 <img src="images/web_example.png" alt="Node Example">
-
-**[Full online demo](https://kpdecker.github.io/jsdiff)**
 
 ## Compatibility
 
