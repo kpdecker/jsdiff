@@ -721,6 +721,29 @@ describe('patch/apply', function() {
       expect(applyPatch(oldtext, diffed)).to.equal(newtext);
     });
 
+    it('should apply patch without linedelimiter when assumeLineDelimiter option is set', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n',
+          {
+            oldFileName: 'file.txt',
+            newFileName: 'file.txt',
+            oldHeader: 'header',
+            newHeader: 'header',
+            hunks: [{
+              oldStart: 1,
+              newStart: 1,
+              oldLines: 2,
+              newLines: 1,
+              lines: ['-line2']
+            }]
+          },
+          {
+            assumeLineDelimiter: '\n'
+          }))
+        .to.equal(
+          'line1\n');
+    });
 
   });
 

@@ -24,6 +24,7 @@ export function applyPatch(source, uniDiff, options = {}) {
       fuzzFactor = options.fuzzFactor || 0,
       minLine = 0,
       offset = 0,
+      assumeLineDelimiter = options.assumeLineDelimiter,
 
       removeEOFNL,
       addEOFNL;
@@ -89,7 +90,7 @@ export function applyPatch(source, uniDiff, options = {}) {
       let line = hunk.lines[j],
           operation = (line.length > 0 ? line[0] : ' '),
           content = (line.length > 0 ? line.substr(1) : line),
-          delimiter = hunk.linedelimiters[j];
+          delimiter = assumeLineDelimiter || hunk.linedelimiters[j];
 
       if (operation === ' ') {
         toPos++;

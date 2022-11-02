@@ -107,6 +107,7 @@ npm install diff --save
 
     - `fuzzFactor`: Number of lines that are allowed to differ before rejecting a patch. Defaults to 0.
     - `compareLine(lineNumber, line, operation, patchContent)`: Callback used to compare to given lines to determine if they should be considered equal when patching. Defaults to strict equality but may be overridden to provide fuzzier comparison. Should return false if the lines should be rejected.
+    - `assumeLineDelimiter`: String for line delimiters. When no line delimiter is set in the given patch, this method assumes line delimiter is the string. This option is useful when applying patch from `structuredPatch`.
 
 * `Diff.applyPatches(patch, options)` - applies one or more patches.
 
