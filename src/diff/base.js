@@ -167,7 +167,7 @@ Diff.prototype = {
     return value;
   },
   tokenize(value) {
-    return value.split('');
+    return Array.from(value);
   },
   join(chars) {
     return chars.join('');
