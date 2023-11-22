@@ -34,7 +34,7 @@ Diff.prototype = {
       maxEditLength = Math.min(maxEditLength, options.maxEditLength);
     }
 
-    let bestPath = [{ newPos: -1, components: [] }];
+    let bestPath = [{ newPos: -1, lastComponent: undefined }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
     let oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
@@ -67,19 +67,16 @@ Diff.prototype = {
         // path whose position in the new string is the farthest from the origin
         // and does not pass the bounds of the diff graph
         if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
-          basePath = clonePath(removePath);
-          self.pushComponent(basePath.components, undefined, true);
+          basePath = self.addToPath(removePath, undefined, true, 0);
         } else {
-          basePath = addPath; // No need to clone, we've pulled it from the list
-          basePath.newPos++;
-          self.pushComponent(basePath.components, true, undefined);
+          basePath = self.addToPath(addPath, true, undefined, 1);
         }
 
         oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
 
         // If we have hit the end of both strings, then we are done
         if (basePath.newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
-          return done(buildValues(self, basePath.components, newString, oldString, self.useLongestToken));
+          return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken));
         } else {
           // Otherwise track this path as a potential candidate and continue.
           bestPath[diagonalPath] = basePath;
@@ -115,14 +112,18 @@ Diff.prototype = {
     }
   },
 
-  pushComponent(components, added, removed) {
-    let last = components[components.length - 1];
+  addToPath(path, added, removed, newPosInc) {
+    let last = path.lastComponent;
     if (last && last.added === added && last.removed === removed) {
-      // We need to clone here as the component clone operation is just
-      // as shallow array clone
-      components[components.length - 1] = {count: last.count + 1, added: added, removed: removed };
+      return {
+        newPos: path.newPos + newPosInc,
+        lastComponent: {count: last.count + 1, added: added, removed: removed, previousComponent: last.previousComponent }
+      };
     } else {
-      components.push({count: 1, added: added, removed: removed });
+      return {
+        newPos: path.newPos + newPosInc,
+        lastComponent: {count: 1, added: added, removed: removed, previousComponent: last }
+      };
     }
   },
   extractCommon(basePath, newString, oldString, diagonalPath) {
@@ -139,7 +140,7 @@ Diff.prototype = {
     }
 
     if (commonCount) {
-      basePath.components.push({count: commonCount});
+      basePath.lastComponent = {count: commonCount, previousComponent: basePath.lastComponent};
     }
 
     basePath.newPos = newPos;
@@ -174,7 +175,19 @@ Diff.prototype = {
   }
 };
 
-function buildValues(diff, components, newString, oldString, useLongestToken) {
+function buildValues(diff, lastComponent, newString, oldString, useLongestToken) {
+  // First we convert our linked list of components in reverse order to an
+  // array in the right order:
+  const components = [];
+  let nextComponent;
+  while (lastComponent) {
+    components.push(lastComponent);
+    nextComponent = lastComponent.previousComponent;
+    delete lastComponent.previousComponent;
+    lastComponent = nextComponent;
+  }
+  components.reverse();
+
   let componentPos = 0,
       componentLen = components.length,
       newPos = 0,
@@ -218,18 +231,14 @@ function buildValues(diff, components, newString, oldString, useLongestToken) {
   // Special case handle for when one terminal is ignored (i.e. whitespace).
   // For this case we merge the terminal into the prior string and drop the change.
   // This is only available for string mode.
-  let lastComponent = components[componentLen - 1];
+  let finalComponent = components[componentLen - 1];
   if (componentLen > 1
-      && typeof lastComponent.value === 'string'
-      && (lastComponent.added || lastComponent.removed)
-      && diff.equals('', lastComponent.value)) {
-    components[componentLen - 2].value += lastComponent.value;
+      && typeof finalComponent.value === 'string'
+      && (finalComponent.added || finalComponent.removed)
+      && diff.equals('', finalComponent.value)) {
+    components[componentLen - 2].value += finalComponent.value;
     components.pop();
   }
 
   return components;
-}
-
-function clonePath(path) {
-  return { newPos: path.newPos, components: path.components.slice(0) };
 }
