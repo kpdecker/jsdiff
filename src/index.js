@@ -3,7 +3,7 @@
 /*
  * Text diff implementation.
  *
- * This library supports the following APIS:
+ * This library supports the following APIs:
  * JsDiff.diffChars: Character by character diff
  * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
  * JsDiff.diffLines: Line based diff

@@ -1,7 +1,7 @@
 {
   "name": "jsdiff",
   "repo": "kpdecker/jsdiff",
-  "description": "A javascript text diff implementation.",
+  "description": "A JavaScript text diff implementation.",
   "keywords": [
     "diff",
     "text"
