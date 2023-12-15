@@ -62,6 +62,6 @@ module.exports = function(config) {
     autoWatch: true,
     singleRun: false,
 
-    browsers: ['HeadlessChrome'],
+    browsers: ['HeadlessChrome']
   });
 };
