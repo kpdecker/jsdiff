@@ -1,15 +1,15 @@
-require('colors')
-var Diff = require('../');
+require('colors');
+let Diff = require('../');
 
-var one = 'beep boop';
-var other = 'beep boob blah';
+let one = 'beep boop';
+let other = 'beep boob blah';
 
-var diff = Diff.diffChars(one, other);
+let diff = Diff.diffChars(one, other);
 
-diff.forEach(function(part){
+diff.forEach(function(part) {
   // green for additions, red for deletions
   // grey for common parts
-  var color = part.added ? 'green' :
+  let color = part.added ? 'green' :
     part.removed ? 'red' : 'grey';
   process.stderr.write(part.value[color]);
 });
