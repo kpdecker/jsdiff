@@ -58,7 +58,7 @@ npm install diff --save
     Returns a list of change objects (See below).
     
     Options
-    * `stringifyReplacer`: A custom replacer function, operates similarly to the parameter to [JSON.stringify()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter), but must be a function. `undefined` will _not_ be replaced by this function, see the next option
+    * `stringifyReplacer`: A custom replacer function. Operates similarly to the `replacer` parameter to [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter), but must be a function. `undefined` will _not_ be replaced by this function; see the next option
     *  `undefinedReplacement`: A value to replace `undefined` with. By default it will not be replaced, and replacements for `undefined` from `stringifyReplacer` will not be used.
 
 * `Diff.diffArrays(oldArr, newArr[, options])` - diffs two arrays, comparing each item for strict equality (===).
