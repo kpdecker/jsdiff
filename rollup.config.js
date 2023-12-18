@@ -16,13 +16,13 @@ export default [
         file: pkg.module
       }, {
         format: 'esm',
-        file: pkg['exports']['.'].import
+        file: pkg.exports['.']['import']
       }
     ],
     plugins: [
       babel({
         babelrc: false,
-        presets: [['@babel/preset-env', { targets: {ie: '11'}, modules: false }]],
+        presets: [['@babel/preset-env', { targets: {ie: '11'}, modules: false }]]
       })
     ]
   }
