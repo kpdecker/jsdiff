@@ -721,6 +721,19 @@ describe('patch/create', function() {
         }]
       });
     });
+
+    describe('given options.maxEditLength', function() {
+      const options = { maxEditLength: 1 };
+
+      it('terminates early', function() {
+        const res = structuredPatch(
+          'oldfile', 'newfile',
+          'line2\nline3\nline4\n', 'line2\nline3\nline5',
+          'header1', 'header2', options
+        );
+        expect(res).to.be.undefined;
+      });
+    });
   });
 
   describe('#formatPatch', function() {
