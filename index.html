@@ -31,7 +31,7 @@ var b = document.getElementById('b');
 var result = document.getElementById('result');
 
 function changed() {
-	var diff = JsDiff[window.diffType](a.textContent, b.textContent);
+	var diff = Diff[window.diffType](a.textContent, b.textContent);
 	var fragment = document.createDocumentFragment();
 	for (var i=0; i < diff.length; i++) {
 
