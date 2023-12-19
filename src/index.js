@@ -4,11 +4,11 @@
  * Text diff implementation.
  *
  * This library supports the following APIs:
- * JsDiff.diffChars: Character by character diff
- * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
- * JsDiff.diffLines: Line based diff
+ * Diff.diffChars: Character by character diff
+ * Diff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
+ * Diff.diffLines: Line based diff
  *
- * JsDiff.diffCss: Diff targeted at CSS content
+ * Diff.diffCss: Diff targeted at CSS content
  *
  * These methods are based on the implementation proposed in
  * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
