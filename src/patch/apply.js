@@ -15,8 +15,8 @@ export function applyPatch(source, uniDiff, options = {}) {
   }
 
   // Apply the diff to the input
-  let lines = source.split(/\r\n|[\n\v\f\r\x85]/),
-      delimiters = source.match(/\r\n|[\n\v\f\r\x85]/g) || [],
+  let lines = source.split(/\r?\n/),
+      delimiters = source.match(/\r?\n/g) || [],
       hunks = uniDiff.hunks,
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
