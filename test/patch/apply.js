@@ -1,6 +1,7 @@
 import {applyPatch, applyPatches} from '../../lib/patch/apply';
 import {parsePatch} from '../../lib/patch/parse';
 import {createPatch} from '../../lib/patch/create';
+import {structuredPatch} from '../../lib/patch/create';
 
 import {expect} from 'chai';
 
@@ -721,7 +722,20 @@ describe('patch/apply', function() {
       expect(applyPatch(oldtext, diffed)).to.equal(newtext);
     });
 
+    it('should accept structured patches', function() {
+      const oldContent = [
+        'line1',
+        'line2',
+        ''
+      ].join('\n');
+      const newContent = [
+        'line1',
+        'line02'
+      ].join('\n');
+      const patch = structuredPatch('test.txt', 'test.txt', oldContent, newContent);
 
+      expect(applyPatch(oldContent, patch)).to.equal(newContent);
+    });
   });
 
   describe('#applyPatches', function() {
