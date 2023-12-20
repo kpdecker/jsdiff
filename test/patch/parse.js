@@ -411,5 +411,58 @@ Index: test2
     it('should handle OOM case', function() {
       parsePatch('Index: \n===================================================================\n--- \n+++ \n@@ -1,1 +1,2 @@\n-1\n\\ No newline at end of file\n+1\n+2\n');
     });
+
+    it('should treat vertical tabs like ordinary characters', function() {
+      // Patch below was generated as follows:
+      // 1. From Node, run:
+      //      fs.writeFileSync("foo", "foo\nbar\vbar\nbaz\nqux")
+      //      fs.writeFileSync("bar", "foo\nbarry\vbarry\nbaz\nqux")
+      // 2. From shell, run:
+      //      diff -u foo bar > diff.txt
+      // 3. From Node, run
+      //      fs.readFileSync("diff.txt")
+      //    and copy the string literal you get.
+      // This patch illustrates how the Unix `diff` and `patch` tools handle
+      // characters like vertical tabs - namely, they simply treat them as
+      // ordinary characters, NOT as line breaks. JsDiff used to treat them as
+      // line breaks but this breaks its parsing of patches like this one; this
+      // test was added to demonstrate the brokenness and prevent us from
+      // reintroducing it.
+      const patch = '--- foo\t2023-12-20 16:11:20.908225554 +0000\n' +
+      '+++ bar\t2023-12-20 16:11:34.391473579 +0000\n' +
+      '@@ -1,4 +1,4 @@\n' +
+      ' foo\n' +
+      '-bar\x0Bbar\n' +
+      '+barry\x0Bbarry\n' +
+      ' baz\n' +
+      ' qux\n' +
+      '\\ No newline at end of file\n';
+
+      expect(parsePatch(patch)).to.eql([
+        {
+          oldFileName: 'foo',
+          oldHeader: '2023-12-20 16:11:20.908225554 +0000',
+          newFileName: 'bar',
+          newHeader: '2023-12-20 16:11:34.391473579 +0000',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 4,
+              newStart: 1,
+              newLines: 4,
+              lines: [
+                ' foo',
+                '-bar\x0Bbar',
+                '+barry\x0Bbarry',
+                ' baz',
+                ' qux',
+                '\\ No newline at end of file'
+              ],
+              linedelimiters: [ '\n', '\n', '\n', '\n', '\n', '\n' ]
+            }
+          ]
+        }
+      ]);
+    });
   });
 });
