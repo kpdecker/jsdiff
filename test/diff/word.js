@@ -181,7 +181,7 @@ describe('WordDiff', function() {
 
     it('should diff multiple whitespace values', function() {
       const diffResult = diffWordsWithSpace('New Value  ', 'New  ValueMoreData ');
-      expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
+      expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del>  <ins>ValueMoreData </ins>');
     });
 
     it('should inserts values in parenthesis', function() {
@@ -220,7 +220,7 @@ describe('WordDiff', function() {
 
     it('should perform async operations', function(done) {
       diffWordsWithSpace('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
+        expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del>  <ins>ValueMoreData </ins>');
         done();
       });
     });
