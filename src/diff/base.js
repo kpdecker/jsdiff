@@ -221,15 +221,6 @@ function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
     } else {
       component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
       oldPos += component.count;
-
-      // Reverse add and remove so removes are output first to match common convention
-      // The diffing algorithm is tied to add then remove output and this is the simplest
-      // route to get the desired output with minimal overhead.
-      if (componentPos && components[componentPos - 1].added) {
-        let tmp = components[componentPos - 1];
-        components[componentPos - 1] = components[componentPos];
-        components[componentPos] = tmp;
-      }
     }
   }
 
