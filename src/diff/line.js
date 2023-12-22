@@ -4,8 +4,8 @@ import {generateOptions} from '../util/params';
 export const lineDiff = new Diff();
 lineDiff.tokenize = function(value) {
   if(this.options.stripTrailingCr) {
-    // remove all CR (\r) characters from the input string
-    value = value.replace(/\r+\n/g, '\n');
+    // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
+    value = value.replace(/\r\n/g, '\n');
   }
 
   let retLines = [],
