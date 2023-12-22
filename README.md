@@ -84,7 +84,7 @@ npm install diff --save
       - `ignoreWhitespace`: `true` to ignore leading and trailing whitespace.
       - `newlineIsToken`: `true` to treat newline characters as separate tokens. This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines` and `diffLines` is better suited for patches and other computer friendly output.
       - `stripTrailingCr`: `true` to remove all trailing CR (`\r`) characters before perfoming the diff. 
-        This helps to get a useful diff when comparing files from UNIX/Windows respectively.
+        This helps to get a useful diff when diffing UNIX text files against Windows text files.
 
 * `Diff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
 
