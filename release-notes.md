@@ -2,7 +2,13 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v5.0.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v5.1.0...master)
+
+## v5.1.0
+
+- [#365](https://github.com/kpdecker/jsdiff/issues/365) Allow early termination to limit execution time with degenerate cases
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v5.0.0...v5.1.0)
 
 ## v5.0.0
 
