@@ -672,7 +672,7 @@ describe('patch/create', function() {
           + '+++ testFileName\n'
           + '@@ -1,2 +1,2 @@\n'
 
-          // Diff is shown as entire row, eventhough text is unchanged
+          // Diff is shown as entire row, even though text is unchanged
           + '-line\n'
           + '+line\r\n'
 

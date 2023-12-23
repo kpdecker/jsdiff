@@ -89,7 +89,7 @@ export function applyPatch(source, uniDiff, options = {}) {
       let line = hunk.lines[j],
           operation = (line.length > 0 ? line[0] : ' '),
           content = (line.length > 0 ? line.substr(1) : line),
-          delimiter = hunk.linedelimiters[j];
+          delimiter = hunk.linedelimiters && hunk.linedelimiters[j] || '\n';
 
       if (operation === ' ') {
         toPos++;
