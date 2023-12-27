@@ -71,9 +71,7 @@ Diff.prototype = {
         // Select the diagonal that we want to branch from. We select the prior
         // path whose position in the old string is the farthest from the origin
         // and does not pass the bounds of the diff graph
-        // TODO: Remove the `+ 1` here to make behavior match Myers algorithm
-        //       and prefer to order removals before insertions.
-        if (!canRemove || (canAdd && removePath.oldPos + 1 < addPath.oldPos)) {
+        if (!canRemove || (canAdd && removePath.oldPos < addPath.oldPos)) {
           basePath = self.addToPath(addPath, true, undefined, 0);
         } else {
           basePath = self.addToPath(removePath, undefined, true, 1);
