@@ -1,4 +1,5 @@
 import {parsePatch} from '../../lib/patch/parse';
+import {createPatch} from '../../lib/patch/create';
 
 import {expect} from 'chai';
 
@@ -444,6 +445,39 @@ Index: test2
           oldHeader: '2023-12-20 16:11:20.908225554 +0000',
           newFileName: 'bar',
           newHeader: '2023-12-20 16:11:34.391473579 +0000',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 4,
+              newStart: 1,
+              newLines: 4,
+              lines: [
+                ' foo',
+                '-bar\x0Bbar',
+                '+barry\x0Bbarry',
+                ' baz',
+                ' qux',
+                '\\ No newline at end of file'
+              ],
+              linedelimiters: [ '\n', '\n', '\n', '\n', '\n', '\n' ]
+            }
+          ]
+        }
+      ]);
+    });
+
+    it('should treat vertical tabs in a way consistent with createPatch', function() {
+      // This is basically the same as the test above, but this time we create
+      // the patch USING JsDiff instead of testing one created with Unix diff
+      const patch = createPatch('foo', 'foo\nbar\vbar\nbaz\nqux', 'foo\nbarry\vbarry\nbaz\nqux');
+
+      expect(parsePatch(patch)).to.eql([
+        {
+          oldFileName: 'foo',
+          oldHeader: '',
+          newFileName: 'foo',
+          newHeader: '',
+          index: 'foo',
           hunks: [
             {
               oldStart: 1,
