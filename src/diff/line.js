@@ -3,6 +3,11 @@ import {generateOptions} from '../util/params';
 
 export const lineDiff = new Diff();
 lineDiff.tokenize = function(value) {
+  if(this.options.stripTrailingCr) {
+    // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
+    value = value.replace(/\r\n/g, '\n');
+  }
+
   let retLines = [],
       linesAndNewlines = value.split(/(\n|\r\n)/);
 

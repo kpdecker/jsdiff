@@ -106,4 +106,10 @@ describe('diff/line', function() {
       {value: '\nhello', count: 2, added: true, removed: undefined}
     ]);
   });
+
+  describe('Strip trailing CR', function() {
+    expect(diffLines('line\nline', 'line\r\nline', {stripTrailingCr: true})).to.eql([
+      {value: 'line\nline', count: 2}
+    ]);
+  });
 });
