@@ -69,7 +69,7 @@ Diff.prototype = {
         }
 
         // Select the diagonal that we want to branch from. We select the prior
-        // path whose position in the new string is the farthest from the origin
+        // path whose position in the old string is the farthest from the origin
         // and does not pass the bounds of the diff graph
         // TODO: Remove the `+ 1` here to make behavior match Myers algorithm
         //       and prefer to order removals before insertions.
