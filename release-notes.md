@@ -1,5 +1,11 @@
 # Release Notes
 
+## Future breaking 6.0.0 release
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/master...v6.0.0-staging)
+
+- [#435](https://github.com/kpdecker/jsdiff/pull/435) Fix `parsePatch` handling of control characters. `parsePatch` used to interpret various unusual control characters - namely vertical tabs, form feeds, lone carriage returns without a line feed, and EBCDIC NELs - as line breaks when parsing a patch file. This was inconsistent with the behavior of both JsDiff's own `diffLines` method and also the Unix `diff` and `patch` utils, which all simply treat those control characters as ordinary characters. The result of this discrepancy was that some well-formed patches - produced either by `diff` or by JsDiff itself and handled properly by the `patch` util - would be wrongly parsed by `parsePatch`, with the effect that it would disregard the remainder of a hunk after encountering one of these control characters.
+
 ## Development
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/v5.1.0...master)
