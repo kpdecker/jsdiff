@@ -2,7 +2,17 @@
 
 ## Development
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v5.0.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/v5.1.0...master)
+
+- [#411](https://github.com/kpdecker/jsdiff/pull/411) Big performance improvement. Previously an O(n) array-copying operation inside the innermost loop of jsdiff's base diffing code increased the overall worst-case time complexity of computing a diff from O(n²) to O(n³). This is now fixed, bringing the worst-case time complexity down to what it theoretically should be for a Myers diff implementation.
+- [#351](https://github.com/kpdecker/jsdiff/issues/351) Importing from the lib folder - e.g. `require("diff/lib/diff/word.js")` - will work again now. This had been broken for users on the latest version of Node since Node 17.5.0, which changed how Node interprets the `exports` property in jsdiff's `package.json` file.
+- [#344](https://github.com/kpdecker/jsdiff/issues/344) `diffLines`, `createTwoFilesPatch`, and other patch-creation methods now take an optional `stripTrailingCr: true` option which causes Windows-style `\r\n` line endings to be replaced with Unix-style `\n` line endings before calculating the diff, just like GNU `diff`'s `--strip-trailing-cr` flag.
+
+## v5.1.0
+
+- [#365](https://github.com/kpdecker/jsdiff/issues/365) Allow early termination to limit execution time with degenerate cases
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v5.0.0...v5.1.0)
 
 ## v5.0.0
 
