@@ -525,6 +525,7 @@ describe('patch/apply', function() {
           + ' line5\n'))
         .to.equal(false);
     });
+
     it('should succeed within fuzz factor', function() {
       expect(applyPatch(
           'line2\n'
