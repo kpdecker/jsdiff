@@ -737,6 +737,24 @@ describe('patch/apply', function() {
 
       expect(applyPatch(oldContent, patch)).to.equal(newContent);
     });
+
+    // Regression test based on bug https://github.com/kpdecker/jsdiff/issues/177
+    it('should correctly apply a patch that truncates an entire file', function() {
+      const patch = parsePatch(
+        '===================================================================\n'
+        + '--- index.js\n'
+        + '+++ index.js\n'
+        + '@@ -1,3 +1,0 @@\n'
+        + '-this\n'
+        + '-\n'
+        + '-tos\n'
+        + '\\ No newline at end of file\n'
+      );
+      const fileContents = 'this\n\ntos';
+
+      expect(applyPatch(fileContents, patch))
+        .to.equal('');
+    });
   });
 
   describe('#applyPatches', function() {
