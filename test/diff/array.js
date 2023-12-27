@@ -10,9 +10,9 @@ describe('diff/array', function() {
       console.log(diffResult);
       expect(diffResult).to.deep.equals([
           {count: 1, value: [a]},
-          {count: 1, value: [c], removed: undefined, added: true},
-          {count: 1, value: [b]},
-          {count: 1, value: [c], removed: true, added: undefined}
+          {count: 1, value: [b], removed: true, added: undefined},
+          {count: 1, value: [c]},
+          {count: 1, value: [b], removed: undefined, added: true}
       ]);
     });
     it('should diff falsey values', function() {
@@ -20,17 +20,17 @@ describe('diff/array', function() {
       const b = 0;
       const c = '';
       // Example sequences from Myers 1986
-      const arrayA = [c, b, a, b, a, c];
-      const arrayB = [a, b, c, a, b, b, a];
+      const arrayA = [a, b, c, a, b, b, a];
+      const arrayB = [c, b, a, b, a, c];
       const diffResult = diffArrays(arrayA, arrayB);
       expect(diffResult).to.deep.equals([
-        {count: 2, value: [a, b], removed: undefined, added: true},
+        {count: 2, value: [a, b], removed: true, added: undefined},
         {count: 1, value: [c]},
-        {count: 1, value: [b], removed: true, added: undefined},
-        {count: 2, value: [a, b]},
         {count: 1, value: [b], removed: undefined, added: true},
+        {count: 2, value: [a, b]},
+        {count: 1, value: [b], removed: true, added: undefined},
         {count: 1, value: [a]},
-        {count: 1, value: [c], removed: true, added: undefined}
+        {count: 1, value: [c], removed: undefined, added: true}
       ]);
     });
     describe('anti-aliasing', function() {

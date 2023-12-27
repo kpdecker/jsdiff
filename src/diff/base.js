@@ -71,9 +71,7 @@ Diff.prototype = {
         // Select the diagonal that we want to branch from. We select the prior
         // path whose position in the old string is the farthest from the origin
         // and does not pass the bounds of the diff graph
-        // TODO: Remove the `+ 1` here to make behavior match Myers algorithm
-        //       and prefer to order removals before insertions.
-        if (!canRemove || (canAdd && removePath.oldPos + 1 < addPath.oldPos)) {
+        if (!canRemove || (canAdd && removePath.oldPos < addPath.oldPos)) {
           basePath = self.addToPath(addPath, true, undefined, 0);
         } else {
           basePath = self.addToPath(removePath, undefined, true, 1);
@@ -223,15 +221,6 @@ function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
     } else {
       component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
       oldPos += component.count;
-
-      // Reverse add and remove so removes are output first to match common convention
-      // The diffing algorithm is tied to add then remove output and this is the simplest
-      // route to get the desired output with minimal overhead.
-      if (componentPos && components[componentPos - 1].added) {
-        let tmp = components[componentPos - 1];
-        components[componentPos - 1] = components[componentPos];
-        components[componentPos] = tmp;
-      }
     }
   }
 
