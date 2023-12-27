@@ -34,11 +34,11 @@ Diff.prototype = {
       maxEditLength = Math.min(maxEditLength, options.maxEditLength);
     }
 
-    let bestPath = [{ newPos: -1, lastComponent: undefined }];
+    let bestPath = [{ oldPos: -1, lastComponent: undefined }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
-    let oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
-    if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
+    let newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
       // Identity per the equality and tokenizer
       return done([{value: this.join(newString), count: newString.length}]);
     }
@@ -47,16 +47,21 @@ Diff.prototype = {
     function execEditLength() {
       for (let diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
         let basePath;
-        let addPath = bestPath[diagonalPath - 1],
-            removePath = bestPath[diagonalPath + 1],
-            oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
-        if (addPath) {
+        let removePath = bestPath[diagonalPath - 1],
+            addPath = bestPath[diagonalPath + 1];
+        if (removePath) {
           // No one else is going to attempt to use this value, clear it
           bestPath[diagonalPath - 1] = undefined;
         }
 
-        let canAdd = addPath && addPath.newPos + 1 < newLen,
-            canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
+        let canAdd = false;
+        if (addPath) {
+          // what newPos will be after we do an insertion:
+          const addPathNewPos = addPath.oldPos - diagonalPath;
+          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
+        }
+
+        let canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
           bestPath[diagonalPath] = undefined;
@@ -64,18 +69,20 @@ Diff.prototype = {
         }
 
         // Select the diagonal that we want to branch from. We select the prior
-        // path whose position in the new string is the farthest from the origin
+        // path whose position in the old string is the farthest from the origin
         // and does not pass the bounds of the diff graph
-        if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
-          basePath = self.addToPath(removePath, undefined, true, 0);
+        // TODO: Remove the `+ 1` here to make behavior match Myers algorithm
+        //       and prefer to order removals before insertions.
+        if (!canRemove || (canAdd && removePath.oldPos + 1 < addPath.oldPos)) {
+          basePath = self.addToPath(addPath, true, undefined, 0);
         } else {
-          basePath = self.addToPath(addPath, true, undefined, 1);
+          basePath = self.addToPath(removePath, undefined, true, 1);
         }
 
-        oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
+        newPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
 
         // If we have hit the end of both strings, then we are done
-        if (basePath.newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
+        if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken));
         } else {
           // Otherwise track this path as a potential candidate and continue.
@@ -112,16 +119,16 @@ Diff.prototype = {
     }
   },
 
-  addToPath(path, added, removed, newPosInc) {
+  addToPath(path, added, removed, oldPosInc) {
     let last = path.lastComponent;
     if (last && last.added === added && last.removed === removed) {
       return {
-        newPos: path.newPos + newPosInc,
+        oldPos: path.oldPos + oldPosInc,
         lastComponent: {count: last.count + 1, added: added, removed: removed, previousComponent: last.previousComponent }
       };
     } else {
       return {
-        newPos: path.newPos + newPosInc,
+        oldPos: path.oldPos + oldPosInc,
         lastComponent: {count: 1, added: added, removed: removed, previousComponent: last }
       };
     }
@@ -129,8 +136,8 @@ Diff.prototype = {
   extractCommon(basePath, newString, oldString, diagonalPath) {
     let newLen = newString.length,
         oldLen = oldString.length,
-        newPos = basePath.newPos,
-        oldPos = newPos - diagonalPath,
+        oldPos = basePath.oldPos,
+        newPos = oldPos - diagonalPath,
 
         commonCount = 0;
     while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
@@ -143,8 +150,8 @@ Diff.prototype = {
       basePath.lastComponent = {count: commonCount, previousComponent: basePath.lastComponent};
     }
 
-    basePath.newPos = newPos;
-    return oldPos;
+    basePath.oldPos = oldPos;
+    return newPos;
   },
 
   equals(left, right) {
