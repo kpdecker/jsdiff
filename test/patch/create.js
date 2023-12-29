@@ -1,5 +1,6 @@
 import {diffWords} from '../../lib';
 import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../lib/patch/create';
+import {parsePatch} from '../../lib/patch/parse';
 
 import {expect} from 'chai';
 
@@ -787,6 +788,103 @@ describe('patch/create', function() {
         'line2\nline3\nline4\n', 'line2\nline3\nline5',
         'header1', 'header2'
       ));
+    });
+    it('supports serializing an array of structured patch objects into a single patch file in unified diff format', function() {
+      const patch = [
+        {
+          oldFileName: 'foo',
+          oldHeader: '2023-12-29 15:48:17.976616966 +0000',
+          newFileName: 'bar',
+          newHeader: '2023-12-29 15:48:21.400516845 +0000',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              lines: [
+                '-xxx',
+                '+yyy'
+              ],
+              linedelimiters: [
+                '\n',
+                '\n'
+              ]
+            }
+          ]
+        },
+        {
+          oldFileName: 'baz',
+          oldHeader: '2023-12-29 15:48:29.376283616 +0000',
+          newFileName: 'qux',
+          newHeader: '2023-12-29 15:48:32.908180343 +0000',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              lines: [
+                '-aaa',
+                '+bbb'
+              ],
+              linedelimiters: [
+                '\n',
+                '\n'
+              ]
+            }
+          ]
+        }
+      ];
+      expect(formatPatch(patch)).to.equal(
+        '===================================================================\n' +
+        '--- foo\t2023-12-29 15:48:17.976616966 +0000\n' +
+        '+++ bar\t2023-12-29 15:48:21.400516845 +0000\n' +
+        '@@ -1,1 +1,1 @@\n' +
+        '-xxx\n' +
+        '+yyy\n' +
+        '\n' +
+        '===================================================================\n' +
+        '--- baz\t2023-12-29 15:48:29.376283616 +0000\n' +
+        '+++ qux\t2023-12-29 15:48:32.908180343 +0000\n' +
+        '@@ -1,1 +1,1 @@\n' +
+        '-aaa\n' +
+        '+bbb\n'
+      );
+    });
+    it('should roughly be the inverse of parsePatch', function() {
+      // There are so many differences in how a semantically-equivalent patch
+      // can be formatted in unified diff format, AND in JsDiff's structured
+      // patch format as long as https://github.com/kpdecker/jsdiff/issues/434
+      // goes unresolved, that a stronger claim than "roughly the inverse" is
+      // sadly not possible here.
+
+      // Check 1: starting with a patch in uniform diff format, does
+      // formatPatch(parsePatch(...)) round-trip?
+      const uniformPatch = '===================================================================\n' +
+        '--- baz\t2023-12-29 15:48:29.376283616 +0000\n' +
+        '+++ qux\t2023-12-29 15:48:32.908180343 +0000\n' +
+        '@@ -1,1 +1,1 @@\n' +
+        '-aaa\n' +
+        '+bbb\n';
+      expect(formatPatch(parsePatch(uniformPatch))).to.equal(uniformPatch);
+
+      // Check 2: starting with a structuredPatch, does formatting and then
+      // parsing again basically round-trip as long as we wrap it in an array
+      // to match the output of parsePatch and delete the linedelimiters that
+      // parsePatch puts in?
+      const patchObj = structuredPatch(
+        'oldfile', 'newfile',
+        'line2\nline3\nline4\n', 'line2\nline3\nline5',
+        'header1', 'header2'
+      );
+
+      const roundTrippedPatch = parsePatch(formatPatch([patchObj]));
+      for (const hunk of roundTrippedPatch[0].hunks) {
+        delete hunk.linedelimiters;
+      }
+
+      expect(roundTrippedPatch).to.deep.equal([patchObj]);
     });
   });
 });

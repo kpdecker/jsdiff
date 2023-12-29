@@ -105,6 +105,10 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
 }
 
 export function formatPatch(diff) {
+  if (Array.isArray(diff)) {
+    return diff.map(formatPatch).join('\n');
+  }
+
   const ret = [];
   if (diff.oldFileName == diff.newFileName) {
     ret.push('Index: ' + diff.oldFileName);

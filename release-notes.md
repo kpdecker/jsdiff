@@ -8,6 +8,7 @@
 - [#448](https://github.com/kpdecker/jsdiff/pull/411) Performance improvement. Diagonals whose furthest-reaching D-path would go off the edge of the edit graph are now skipped, rather than being pointlessly considered as called for by the original Myers diff algorithm. This dramatically speeds up computing diffs where the new text just appends or truncates content at the end of the old text.
 - [#351](https://github.com/kpdecker/jsdiff/issues/351) Importing from the lib folder - e.g. `require("diff/lib/diff/word.js")` - will work again now. This had been broken for users on the latest version of Node since Node 17.5.0, which changed how Node interprets the `exports` property in jsdiff's `package.json` file.
 - [#344](https://github.com/kpdecker/jsdiff/issues/344) `diffLines`, `createTwoFilesPatch`, and other patch-creation methods now take an optional `stripTrailingCr: true` option which causes Windows-style `\r\n` line endings to be replaced with Unix-style `\n` line endings before calculating the diff, just like GNU `diff`'s `--strip-trailing-cr` flag.
+- [#451](https://github.com/kpdecker/jsdiff/pull/451) Added `diff.formatPatch`.
 
 ## v5.1.0
 
