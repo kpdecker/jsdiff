@@ -28,6 +28,7 @@ import {diffArrays} from './diff/array';
 import {applyPatch, applyPatches} from './patch/apply';
 import {parsePatch} from './patch/parse';
 import {merge} from './patch/merge';
+import {reversePatch} from './patch/reverse';
 import {structuredPatch, createTwoFilesPatch, createPatch, formatPatch} from './patch/create';
 
 import {convertChangesToDMP} from './convert/dmp';
@@ -56,6 +57,7 @@ export {
   applyPatches,
   parsePatch,
   merge,
+  reversePatch,
   convertChangesToDMP,
   convertChangesToXML,
   canonicalize
