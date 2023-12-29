@@ -43,9 +43,32 @@ Diff.prototype = {
       return done([{value: this.join(newString), count: newString.length}]);
     }
 
+    // Once we hit the right edge of the edit graph on some diagonal k, we can
+    // definitely reach the end of the edit graph in no more than k edits, so
+    // there's no point in considering any moves to diagonal k+1 any more (from
+    // which we're guaranteed to need at least k+1 more edits).
+    // Similarly, once we've reached the bottom of the edit graph, there's no
+    // point considering moves to lower diagonals.
+    // We record this fact by setting minDiagonalToConsider and
+    // maxDiagonalToConsider to some finite value once we've hit the edge of
+    // the edit graph.
+    // This optimization is not faithful to the original algorithm presented in
+    // Myers's paper, which instead pointlessly extends D-paths off the end of
+    // the edit graph - see page 7 of Myers's paper which notes this point
+    // explicitly and illustrates it with a diagram. This has major performance
+    // implications for some common scenarios. For instance, to compute a diff
+    // where the new text simply appends d characters on the end of the
+    // original text of length n, the true Myers algorithm will take O(n+d^2)
+    // time while this optimization needs only O(n+d) time.
+    let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
+
     // Main worker method. checks all permutations of a given edit length for acceptance.
     function execEditLength() {
-      for (let diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
+      for (
+        let diagonalPath = Math.max(minDiagonalToConsider, -editLength);
+        diagonalPath <= Math.min(maxDiagonalToConsider, editLength);
+        diagonalPath += 2
+      ) {
         let basePath;
         let removePath = bestPath[diagonalPath - 1],
             addPath = bestPath[diagonalPath + 1];
@@ -81,12 +104,17 @@ Diff.prototype = {
 
         newPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
 
-        // If we have hit the end of both strings, then we are done
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+          // If we have hit the end of both strings, then we are done
           return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken));
         } else {
-          // Otherwise track this path as a potential candidate and continue.
           bestPath[diagonalPath] = basePath;
+          if (basePath.oldPos + 1 >= oldLen) {
+            maxDiagonalToConsider = Math.min(maxDiagonalToConsider, diagonalPath - 1);
+          }
+          if (newPos + 1 >= newLen) {
+            minDiagonalToConsider = Math.max(minDiagonalToConsider, diagonalPath + 1);
+          }
         }
       }
 
