@@ -90,6 +90,9 @@ npm install diff --save
 
     Just like Diff.createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
+* `Diff.formatPatch(patch)` - creates a unified diff patch.
+
+    The argument provided can either be an object representing a structured patch (like returned by `structuredPatch`) or an array of such objects (like returned by `parsePatch`).
 
 * `Diff.structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)` - returns an object with an array of hunk objects.
 
