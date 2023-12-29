@@ -26,7 +26,7 @@ If you notice any problems, please report them to the GitHub issue tracker at
 
 ## Releasing
 
-JsDiff utilizes the [release yeoman generator][generator-release] to perform most release tasks.
+jsdiff utilizes the [release yeoman generator][generator-release] to perform most release tasks.
 
 A full release may be completed with the following:
 

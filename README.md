@@ -90,6 +90,9 @@ npm install diff --save
 
     Just like Diff.createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
+* `Diff.formatPatch(patch)` - creates a unified diff patch.
+
+    The argument provided can either be an object representing a structured patch (like returned by `structuredPatch`) or an array of such objects (like returned by `parsePatch`).
 
 * `Diff.structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)` - returns an object with an array of hunk objects.
 
@@ -215,3 +218,10 @@ jsdiff supports all ES3 environments with some known issues on IE8 and below. Un
 ## License
 
 See [LICENSE](https://github.com/kpdecker/jsdiff/blob/master/LICENSE).
+
+## Deviations from the published Myers diff algorithm
+
+jsdiff deviates from the published algorithm in a couple of ways that don't affect results but do affect performance:
+
+* jsdiff keeps track of the diff for each diagonal using a linked list of change objects for each diagonal, rather than the historical array of furthest-reaching D-paths on each diagonal contemplated on page 8 of Myers's paper.
+* jsdiff skips considering diagonals where the furthest-reaching D-path would go off the edge of the edit graph. This dramatically reduces the time cost (from quadratic to linear) in cases where the new text just appends or truncates content at the end of the old text.
