@@ -218,7 +218,7 @@ See [LICENSE](https://github.com/kpdecker/jsdiff/blob/master/LICENSE).
 
 ## Deviations from the published Myers diff algorithm
 
-JsDiff deviates from the published algorithm in a couple of ways that don't affect results but do affect performance:
+jsdiff deviates from the published algorithm in a couple of ways that don't affect results but do affect performance:
 
-* JsDiff keeps track of the diff for each diagonal using a linked list of change objects for each diagonal, rather than the historical array of furthest-reaching D-paths on each diagonal contemplated on page 8 of Myers's paper.
-* JsDiff skips considering diagonals where the furthest-reaching D-path would go off the edge of the edit graph. This dramatically reduces the time cost (from quadratic to linear) in cases where the new text just appends or truncates content at the end of the old text.
+* jsdiff keeps track of the diff for each diagonal using a linked list of change objects for each diagonal, rather than the historical array of furthest-reaching D-paths on each diagonal contemplated on page 8 of Myers's paper.
+* jsdiff skips considering diagonals where the furthest-reaching D-path would go off the edge of the edit graph. This dramatically reduces the time cost (from quadratic to linear) in cases where the new text just appends or truncates content at the end of the old text.
