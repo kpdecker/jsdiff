@@ -92,7 +92,7 @@ npm install diff --save
 
 * `Diff.formatPatch(patch)` - creates a unified diff patch.
 
-    The argument provided can either be an object representing a structured patch (like returned by `structuredPatch`) or an array of such objects (like returned by `parsePatch`).
+    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
 
 * `Diff.structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)` - returns an object with an array of hunk objects.
 
@@ -131,6 +131,10 @@ npm install diff --save
 * `Diff.parsePatch(diffStr)` - Parses a patch into structured data
 
     Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `Diff.structuredPatch`.
+
+* `Diff.reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
+
+    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
 
 * `convertChangesToXML(changes)` - converts a list of changes to a serialized XML format
 
