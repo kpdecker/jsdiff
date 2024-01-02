@@ -9,10 +9,10 @@ describe('diff/array', function() {
       const diffResult = diffArrays([a, b, c], [a, c, b]);
       console.log(diffResult);
       expect(diffResult).to.deep.equals([
-          {count: 1, value: [a]},
-          {count: 1, value: [b], removed: true, added: undefined},
-          {count: 1, value: [c]},
-          {count: 1, value: [b], removed: undefined, added: true}
+          {count: 1, value: [a], removed: false, added: false},
+          {count: 1, value: [b], removed: true, added: false},
+          {count: 1, value: [c], removed: false, added: false},
+          {count: 1, value: [b], removed: false, added: true}
       ]);
     });
     it('should diff falsey values', function() {
@@ -24,20 +24,20 @@ describe('diff/array', function() {
       const arrayB = [c, b, a, b, a, c];
       const diffResult = diffArrays(arrayA, arrayB);
       expect(diffResult).to.deep.equals([
-        {count: 2, value: [a, b], removed: true, added: undefined},
-        {count: 1, value: [c]},
-        {count: 1, value: [b], removed: undefined, added: true},
-        {count: 2, value: [a, b]},
-        {count: 1, value: [b], removed: true, added: undefined},
-        {count: 1, value: [a]},
-        {count: 1, value: [c], removed: undefined, added: true}
+        {count: 2, value: [a, b], removed: true, added: false},
+        {count: 1, value: [c], removed: false, added: false},
+        {count: 1, value: [b], removed: false, added: true},
+        {count: 2, value: [a, b], removed: false, added: false},
+        {count: 1, value: [b], removed: true, added: false},
+        {count: 1, value: [a], removed: false, added: false},
+        {count: 1, value: [c], removed: false, added: true}
       ]);
     });
     describe('anti-aliasing', function() {
       // Test apparent contract that no chunk value is ever an input argument.
       const value = [0, 1, 2];
       const expected = [
-        {count: value.length, value: value}
+        {count: value.length, value: value, removed: false, added: false}
       ];
 
       const input = value.slice();
@@ -70,9 +70,9 @@ describe('diff/array', function() {
       const diffResult = diffArrays([a, b, c], [a, b, d], { comparator: comparator });
       console.log(diffResult);
       expect(diffResult).to.deep.equals([
-          {count: 2, value: [a, b]},
-          {count: 1, value: [c], removed: true, added: undefined},
-          {count: 1, value: [d], removed: undefined, added: true}
+          {count: 2, value: [a, b], removed: false, added: false},
+          {count: 1, value: [c], removed: true, added: false},
+          {count: 1, value: [d], removed: false, added: true}
       ]);
     });
   });

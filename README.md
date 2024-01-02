@@ -145,10 +145,8 @@ All methods above which accept the optional `callback` method will run in sync m
 Many of the methods above return change objects. These objects consist of the following fields:
 
 * `value`: Text content
-* `added`: True if the value was inserted into the new string
-* `removed`: True if the value was removed from the old string
-
-Note that some cases may omit a particular flag field. Comparison on the flag fields should always be done in a truthy or falsy manner.
+* `added`: true if the value was inserted into the new string, otherwise false
+* `removed`: true if the value was removed from the old string, otherwise false
 
 ## Examples
 
