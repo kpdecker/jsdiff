@@ -113,18 +113,18 @@ describe('diff/line', function() {
 
   describe('#diffLinesNL', function() {
     expect(diffLines('restaurant', 'restaurant\n', {newlineIsToken: true})).to.eql([
-      {value: 'restaurant', count: 1},
-      {value: '\n', count: 1, added: true, removed: undefined}
+      {value: 'restaurant', count: 1, added: false, removed: false},
+      {value: '\n', count: 1, added: true, removed: false}
     ]);
     expect(diffLines('restaurant', 'restaurant\nhello', {newlineIsToken: true})).to.eql([
-      {value: 'restaurant', count: 1},
-      {value: '\nhello', count: 2, added: true, removed: undefined}
+      {value: 'restaurant', count: 1, added: false, removed: false},
+      {value: '\nhello', count: 2, added: true, removed: false}
     ]);
   });
 
   describe('Strip trailing CR', function() {
     expect(diffLines('line\nline', 'line\r\nline', {stripTrailingCr: true})).to.eql([
-      {value: 'line\nline', count: 2}
+      {value: 'line\nline', count: 2, added: false, removed: false}
     ]);
   });
 });
