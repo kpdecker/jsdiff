@@ -13,41 +13,57 @@ Based on the algorithm proposed in
 npm install diff --save
 ```
 
-## API
+## Usage
 
-* `Diff.diffChars(oldStr, newStr[, options])` - diffs two blocks of text, comparing character by character.
+Broadly, jsdiff's diff functions all take an old text and a new text and perform three steps:
+
+1. Split both texts into arrays of "tokens". What constitutes a token varies; in `diffChars`, each character is a token, while in `diffLines`, each line is a token.
+
+2. Find the smallest set of single-token *insertions* and *deletions* needed to transform the first array of tokens into the second.
+
+   This step depends upon having some notion of a token from the old array being "equal" to one from the new array, and this notion of equality affects the results. Usually two tokens are equal if `===` considers them equal, but some of the diff functions use an alternative notion of equality or have options to configure it. For instance, by default `diffChars("Foo", "FOOD")` will require two deletions (`o`, `o`) and three insertions (`O`, `O`, `D`), but `diffChars("Foo", "FOOD", {ignoreCase: true})` will require just one insertion (of a `D`), since `ignoreCase` causes `o` and `O` to be considered equal.
+
+3. Return an array representing the transformation computed in the previous step as a series of [change objects](#change-objects). The array is ordered from the start of the input to the end, and each change object represents *inserting* one or more tokens, *deleting* one or more tokens, or *keeping* one or more tokens.
+
+### API
+
+* `Diff.diffChars(oldStr, newStr[, options])` - diffs two blocks of text, treating each character as a token.
 
     Returns a list of [change objects](#change-objects).
 
     Options
-    * `ignoreCase`: `true` to ignore casing difference. Defaults to `false`.
+    * `ignoreCase`: If `true`, the uppercase and lowercase forms of a character are considered equal. Defaults to `false`.
 
-* `Diff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, comparing word by word, ignoring whitespace.
+* `Diff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, treating each word and each word separator (punctuation, newline, or run of whitespace) as a token.
+
+  (Whitespace-only tokens are automatically treated as equal to each other, so changes like changing a space to a newline or a run of multiple spaces will be ignored.)
 
     Returns a list of [change objects](#change-objects).
 
     Options
-    * `ignoreCase`: Same as in `diffChars`.
+    * `ignoreCase`: Same as in `diffChars`. Defaults to false.
 
-* `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - diffs two blocks of text, comparing word by word, treating whitespace as significant.
+* `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - same as `diffWords`, except whitespace-only tokens are not automatically considered equal, so e.g. changing a space to a tab is considered a change.
 
-    Returns a list of [change objects](#change-objects).
-
-* `Diff.diffLines(oldStr, newStr[, options])` - diffs two blocks of text, comparing line by line.
+* `Diff.diffLines(oldStr, newStr[, options])` - diffs two blocks of text, treating each line as a token.
 
     Options
-    * `ignoreWhitespace`: `true` to ignore leading and trailing whitespace. This is the same as `diffTrimmedLines`
-    * `stripTrailingCr`: `true` to remove all trailing CR (`\r`) characters before perfoming the diff. 
+    * `ignoreWhitespace`: `true` to strip all leading and trailing whitespace characters from each line before performing the diff. Defaults to `false`.
+    * `stripTrailingCr`: `true` to remove all trailing CR (`\r`) characters before performing the diff. Defaults to `false`.
       This helps to get a useful diff when diffing UNIX text files against Windows text files.
-    * `newlineIsToken`: `true` to treat newline characters as separate tokens.  This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines` and `diffLines` is better suited for patches and other computer friendly output.
+    * `newlineIsToken`: `true` to treat the newline character at the end of each line as its own token. This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines`; the default behavior with this option turned off is better suited for patches and other computer friendly output. Defaults to `false`.
 
     Returns a list of [change objects](#change-objects).
 
-* `Diff.diffTrimmedLines(oldStr, newStr[, options])` - diffs two blocks of text, comparing line by line, ignoring leading and trailing whitespace.
+* `Diff.diffTrimmedLines(oldStr, newStr[, options])` - diffs two blocks of text, comparing line by line, after stripping leading and trailing whitespace. Equivalent to calling `diffLines` with `ignoreWhitespace: true`.
+
+    Options
+    * `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
+    * `newlineIsToken`: Same as in `diffLines`. Defaults to `false`.
 
     Returns a list of [change objects](#change-objects).
 
-* `Diff.diffSentences(oldStr, newStr[, options])` - diffs two blocks of text, comparing sentence by sentence.
+* `Diff.diffSentences(oldStr, newStr[, options])` - diffs two blocks of text, treating each sentence as a token.
 
     Returns a list of [change objects](#change-objects).
 
@@ -55,7 +71,7 @@ npm install diff --save
 
     Returns a list of [change objects](#change-objects).
 
-* `Diff.diffJson(oldObj, newObj[, options])` - diffs two JSON objects, comparing the fields defined on each. The order of fields, etc does not matter in this comparison.
+* `Diff.diffJson(oldObj, newObj[, options])` - diffs two JSON-serializable objects by first serializing them to prettily-formatted JSON and then treating each line of the JSON as a token. Object properties are ordered alphabetically in the serialized JSON, so the order of properties in the objects being compared doesn't affect the result.
 
     Returns a list of [change objects](#change-objects).
     
@@ -63,30 +79,29 @@ npm install diff --save
     * `stringifyReplacer`: A custom replacer function. Operates similarly to the `replacer` parameter to [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter), but must be a function.
     *  `undefinedReplacement`: A value to replace `undefined` with. Ignored if a `stringifyReplacer` is provided.
 
-* `Diff.diffArrays(oldArr, newArr[, options])` - diffs two arrays, comparing each item for strict equality (===).
+* `Diff.diffArrays(oldArr, newArr[, options])` - diffs two arrays of tokens, comparing each item for strict equality (===).
 
     Options
     * `comparator`: `function(left, right)` for custom equality checks
 
     Returns a list of [change objects](#change-objects).
 
-* `Diff.createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
+* `Diff.createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch by first computing a diff with `diffLines` and then serializing it to unified diff format.
 
     Parameters:
     * `oldFileName` : String to be output in the filename section of the patch for the removals
     * `newFileName` : String to be output in the filename section of the patch for the additions
     * `oldStr` : Original string value
     * `newStr` : New string value
-    * `oldHeader` : Additional information to include in the old file header
-    * `newHeader` : Additional information to include in the new file header
+    * `oldHeader` : Optional additional information to include in the old file header. Default: `undefined`.
+    * `newHeader` : Optional additional information to include in the new file header. Default: `undefined`.
     * `options` : An object with options. 
       - `context` describes how many lines of context should be included.
-      - `ignoreWhitespace`: `true` to ignore leading and trailing whitespace.
-      - `newlineIsToken`: `true` to treat newline characters as separate tokens. This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines` and `diffLines` is better suited for patches and other computer friendly output.
-      - `stripTrailingCr`: `true` to remove all trailing CR (`\r`) characters before perfoming the diff. 
-        This helps to get a useful diff when diffing UNIX text files against Windows text files.
+      - `ignoreWhitespace`: Same as in `diffLines`. Defaults to `false`.
+      - `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
+      - `newlineIsToken`: Same as in `diffLines`. Defaults to `false`.
 
-* `Diff.createPatch(fileName, oldStr, newStr, oldHeader, newHeader)` - creates a unified diff patch.
+* `Diff.createPatch(fileName, oldStr, newStr[, oldHeader[, newHeader]])` - creates a unified diff patch.
 
     Just like Diff.createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
@@ -94,7 +109,7 @@ npm install diff --save
 
     `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
 
-* `Diff.structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options)` - returns an object with an array of hunk objects.
+* `Diff.structuredPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - returns an object with an array of hunk objects.
 
     This method is similar to createTwoFilesPatch, but returns a data structure
     suitable for further processing. Parameters are the same as createTwoFilesPatch. The data structure returned may look like this:
@@ -121,6 +136,8 @@ npm install diff --save
 
 * `Diff.applyPatches(patch, options)` - applies one or more patches.
 
+    `patch` may be either an array of structured patch objects, or a string representing a patch in unified diff format (which may patch one or more files).
+
     This method will iterate over the contents of the patch and apply to data provided through callbacks. The general flow for each patch index is:
 
     - `options.loadFile(index, callback)` is called. The caller should then load the contents of the file and then pass that to the `callback(err, data)` callback. Passing an `err` will terminate further patch execution.
@@ -136,17 +153,37 @@ npm install diff --save
 
     `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
 
-* `convertChangesToXML(changes)` - converts a list of changes to a serialized XML format
+* `Diff.convertChangesToXML(changes)` - converts a list of change objects to a serialized XML format
 
+* `Diff.convertChangesToDMP(changes` - converts a list of change objects to the format returned by Google's [diff-match-patch](https://github.com/google/diff-match-patch) library
 
 All methods above which accept the optional `callback` method will run in sync mode when that parameter is omitted and in async mode when supplied. This allows for larger diffs without blocking the event loop. This may be passed either directly as the final parameter or as the `callback` field in the `options` object.
+
+### Defining custom diffing behaviors
+
+If you need behavior a little different to what any of the text diffing functions above offer, you can roll your own by customizing both the tokenization behavior used and the notion of equality used to determine if two characters are equal.
+
+The simplest way to customize tokenization behavior is to simply tokenize the texts you want to diff yourself, with your own code, then pass the arrays of tokens to `diffArrays`. For instance, if you wanted a semantically-aware diff of some code, you could try tokenizing it using a parser specific to the programming language the code is in, then passing the arrays of tokens to `diffArrays`.
+
+To customize the notion of token equality used, use the `comparator` option to `diffArrays`.
+
+For even more customisation of the diffing behavior, you can create a `new Diff.Diff()` object, overwrite its `castInput`, `tokenize`, `removeEmpty`, `equals`, and `join` properties with your own functions, then call its `diff(oldString, newString[, options])` method. The methods you can overwrite are used as follows:
+
+* `castInput(value)`: used to transform the `oldString` and `newString` before any other steps in the diffing algorithm happen. For instance, `diffJson` uses `castInput` to serialize the objects being diffed to JSON. Defaults to a no-op.
+* `tokenize(value)`: used to convert each of `oldString` and `newString` (after they've gone through `castInput`) to an array of tokens. Defaults to returning `value.split('')` (returning an array of individual characters).
+* `removeEmpty(array)`: called on the arrays of tokens returned by `tokenize` and can be used to modify them. Defaults to stripping out falsey tokens, such as empty strings. `diffArrays` overrides this to simply return the `array`, which means that falsey values like empty strings can be handled like any other token by `diffArrays`.
+* `equals(left, right)`: called to determine if two tokens (one from the old string, one from the new string) should be considered equal. Defaults to comparing them with `===`.
+* `join(tokens)`: gets called with an array of consecutive tokens that have either all been added, all been removed, or are all common. Needs to join them into a single value that can be used as the `value` property of the [change object](#change-objects) for these tokens. Defaults to simply returning `tokens.join('')`.
 
 ### Change Objects
 Many of the methods above return change objects. These objects consist of the following fields:
 
-* `value`: Text content
+* `value`: The concatenated content of all the tokens represented by this change object - i.e. generally the text that is either added, deleted, or common, as a single string. In cases where tokens are considered common but are non-identical (e.g. because an option like `ignoreCase` or a custom `comparator` was used), the value from the *new* string will be provided here.
 * `added`: true if the value was inserted into the new string, otherwise false
 * `removed`: true if the value was removed from the old string, otherwise false
+* `count`: How many tokens (e.g. chars for `diffChars`, lines for `diffLines`) the value in the change object consists of
+
+(Change objects where `added` and `removed` are both false represent content that is common to the old and new strings.)
 
 ## Examples
 
