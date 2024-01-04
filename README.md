@@ -13,7 +13,7 @@ Based on the algorithm proposed in
 npm install diff --save
 ```
 
-## API
+## Usage
 
 Broadly, jsdiff's diff functions all take an old text and a new text and perform three steps:
 
@@ -25,7 +25,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
 3. Return an array representing the transformation computed in the previous step as a series of [change objects](#change-objects). The array is ordered from the start of the input to the end, and each change object represents *inserting* one or more tokens, *deleting* one or more tokens, or *keeping* one or more tokens.
 
-### Functions
+### API
 
 * `Diff.diffChars(oldStr, newStr[, options])` - diffs two blocks of text, treating each character as a token.
 
