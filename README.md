@@ -25,7 +25,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
 3. Return an array representing the transformation computed in the previous step as a series of [change objects](#change-objects). The array is ordered from the start of the input to the end, and each change object represents *inserting* one or more tokens, *deleting* one or more tokens, or *keeping* one or more tokens.
 
-
+### Functions
 
 * `Diff.diffChars(oldStr, newStr[, options])` - diffs two blocks of text, treating each character as a token.
 
@@ -153,9 +153,9 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
     `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
 
-* `convertChangesToXML(changes)` - converts a list of change objects to a serialized XML format
+* `Diff.convertChangesToXML(changes)` - converts a list of change objects to a serialized XML format
 
-* `convertChangesToDMP(changes` - converts a list of change objects to the format returned by Google's [diff-match-patch](https://github.com/google/diff-match-patch) library
+* `Diff.convertChangesToDMP(changes` - converts a list of change objects to the format returned by Google's [diff-match-patch](https://github.com/google/diff-match-patch) library
 
 All methods above which accept the optional `callback` method will run in sync mode when that parameter is omitted and in async mode when supplied. This allows for larger diffs without blocking the event loop. This may be passed either directly as the final parameter or as the `callback` field in the `options` object.
 
