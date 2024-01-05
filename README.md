@@ -125,9 +125,11 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
     }
     ```
 
-* `Diff.applyPatch(source, patch[, options])` - applies a unified diff patch.
+* `Diff.applyPatch(source, patch[, options])` - attempts to apply a unified diff patch.
 
-    Return a string containing new version of provided data. `patch` may be a string diff or the output from the `parsePatch` or `structuredPatch` methods.
+    If the patch was applied successfully, returns a string containing the patched text. If the patch could not be applied (because some hunks in the patch couldn't be fitted to the text in `source`), returns false.
+
+    `patch` may be a string diff or the output from the `parsePatch` or `structuredPatch` methods.
 
     The optional `options` object may have the following keys:
 
