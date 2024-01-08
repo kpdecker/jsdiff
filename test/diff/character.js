@@ -6,8 +6,16 @@ import {expect} from 'chai';
 describe('diff/character', function() {
   describe('#diffChars', function() {
     it('Should diff chars', function() {
-      const diffResult = diffChars('New Value.', 'New ValueMoreData.');
-      expect(convertChangesToXML(diffResult)).to.equal('New Value<ins>MoreData</ins>.');
+      const diffResult = diffChars('Old Value.', 'New ValueMoreData.');
+      expect(convertChangesToXML(diffResult)).to.equal('<del>Old</del><ins>New</ins> Value<ins>MoreData</ins>.');
+    });
+
+    describe('oneChangePerToken option', function() {
+      it('emits one change per token', function() {
+        const diffResult = diffChars('Old Value.', 'New ValueMoreData.', {oneChangePerToken: true});
+        expect(diffResult.length).to.equal(21);
+        expect(convertChangesToXML(diffResult)).to.equal('<del>O</del><del>l</del><del>d</del><ins>N</ins><ins>e</ins><ins>w</ins> Value<ins>M</ins><ins>o</ins><ins>r</ins><ins>e</ins><ins>D</ins><ins>a</ins><ins>t</ins><ins>a</ins>.');
+      });
     });
 
     describe('case insensitivity', function() {
