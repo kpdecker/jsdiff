@@ -166,7 +166,7 @@ Diff.prototype = {
         newPos = oldPos - diagonalPath,
 
         commonCount = 0;
-    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldString[oldPos + 1], newString[newPos + 1])) {
       newPos++;
       oldPos++;
       commonCount++;
@@ -259,10 +259,15 @@ function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
   // For this case we merge the terminal into the prior string and drop the change.
   // This is only available for string mode.
   let finalComponent = components[componentLen - 1];
-  if (componentLen > 1
-      && typeof finalComponent.value === 'string'
-      && (finalComponent.added || finalComponent.removed)
-      && diff.equals('', finalComponent.value)) {
+  if (
+    componentLen > 1
+    && typeof finalComponent.value === 'string'
+    && (
+      (finalComponent.added && diff.equals('', finalComponent.value))
+      ||
+      (finalComponent.removed && diff.equals(finalComponent.value, ''))
+    )
+  ) {
     components[componentLen - 2].value += finalComponent.value;
     components.pop();
   }

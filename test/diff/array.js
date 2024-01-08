@@ -75,5 +75,18 @@ describe('diff/array', function() {
           {count: 1, value: [d], removed: false, added: true}
       ]);
     });
+    it('Should pass old/new tokens as the left/right comparator args respectively', function() {
+      diffArrays(
+        ['a', 'b', 'c'],
+        ['x', 'y', 'z'],
+        {
+          comparator: function(left, right) {
+            expect(left).to.be.oneOf(['a', 'b', 'c']);
+            expect(right).to.be.oneOf(['x', 'y', 'z']);
+            return left === right;
+          }
+        }
+      );
+    });
   });
 });
