@@ -189,13 +189,11 @@ For even more customisation of the diffing behavior, you can create a `new Diff.
 Many of the methods above return change objects. These objects consist of the following fields:
 
 * `value`: The concatenated content of all the tokens represented by this change object - i.e. generally the text that is either added, deleted, or common, as a single string. In cases where tokens are considered common but are non-identical (e.g. because an option like `ignoreCase` or a custom `comparator` was used), the value from the *new* string will be provided here.
-* `added`: True if the value was inserted into the new string
-* `removed`: True if the value was removed from the old string
+* `added`: true if the value was inserted into the new string, otherwise false
+* `removed`: true if the value was removed from the old string, otherwise false
 * `count`: How many tokens (e.g. chars for `diffChars`, lines for `diffLines`) the value in the change object consists of
 
-(Change objects where `added` and `removed` are both falsey represent content that is common to the old and new strings.)
-
-Note that some cases may omit a particular flag field. Comparison on the flag fields should always be done in a truthy or falsy manner.
+(Change objects where `added` and `removed` are both false represent content that is common to the old and new strings.)
 
 ## Examples
 

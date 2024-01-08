@@ -67,23 +67,23 @@ describe('WordDiff', function() {
     });
 
     it('should include count with identity cases', function() {
-      expect(diffWords('foo', 'foo')).to.eql([{value: 'foo', count: 1}]);
-      expect(diffWords('foo bar', 'foo bar')).to.eql([{value: 'foo bar', count: 3}]);
+      expect(diffWords('foo', 'foo')).to.eql([{value: 'foo', count: 1, removed: false, added: false}]);
+      expect(diffWords('foo bar', 'foo bar')).to.eql([{value: 'foo bar', count: 3, removed: false, added: false}]);
     });
     it('should include count with empty cases', function() {
-      expect(diffWords('foo', '')).to.eql([{value: 'foo', count: 1, added: undefined, removed: true}]);
-      expect(diffWords('foo bar', '')).to.eql([{value: 'foo bar', count: 3, added: undefined, removed: true}]);
+      expect(diffWords('foo', '')).to.eql([{value: 'foo', count: 1, added: false, removed: true}]);
+      expect(diffWords('foo bar', '')).to.eql([{value: 'foo bar', count: 3, added: false, removed: true}]);
 
-      expect(diffWords('', 'foo')).to.eql([{value: 'foo', count: 1, added: true, removed: undefined}]);
-      expect(diffWords('', 'foo bar')).to.eql([{value: 'foo bar', count: 3, added: true, removed: undefined}]);
+      expect(diffWords('', 'foo')).to.eql([{value: 'foo', count: 1, added: true, removed: false}]);
+      expect(diffWords('', 'foo bar')).to.eql([{value: 'foo bar', count: 3, added: true, removed: false}]);
     });
 
     it('should ignore whitespace', function() {
-      expect(diffWords('hase igel fuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs' }]);
-      expect(diffWords('hase igel fuchs', 'hase igel fuchs\n')).to.eql([{ count: 5, value: 'hase igel fuchs\n' }]);
-      expect(diffWords('hase igel fuchs\n', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs\n' }]);
-      expect(diffWords('hase igel fuchs', 'hase igel\nfuchs')).to.eql([{ count: 5, value: 'hase igel\nfuchs' }]);
-      expect(diffWords('hase igel\nfuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs' }]);
+      expect(diffWords('hase igel fuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs', removed: false, added: false }]);
+      expect(diffWords('hase igel fuchs', 'hase igel fuchs\n')).to.eql([{ count: 5, value: 'hase igel fuchs\n', removed: false, added: false }]);
+      expect(diffWords('hase igel fuchs\n', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs\n', removed: false, added: false }]);
+      expect(diffWords('hase igel fuchs', 'hase igel\nfuchs')).to.eql([{ count: 5, value: 'hase igel\nfuchs', removed: false, added: false }]);
+      expect(diffWords('hase igel\nfuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs', removed: false, added: false }]);
     });
 
     it('should diff whitespace with flag', function() {
@@ -181,7 +181,7 @@ describe('WordDiff', function() {
 
     it('should diff multiple whitespace values', function() {
       const diffResult = diffWordsWithSpace('New Value  ', 'New  ValueMoreData ');
-      expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
+      expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del>  <ins>ValueMoreData </ins>');
     });
 
     it('should inserts values in parenthesis', function() {
@@ -220,7 +220,7 @@ describe('WordDiff', function() {
 
     it('should perform async operations', function(done) {
       diffWordsWithSpace('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New<ins>  ValueMoreData</ins> <del>Value  </del>');
+        expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del>  <ins>ValueMoreData </ins>');
         done();
       });
     });
