@@ -40,7 +40,7 @@ Diff.prototype = {
     let newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
     if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
       // Identity per the equality and tokenizer
-      return done([{value: this.join(newString), count: newString.length, added: false, removed: false}]);
+      return done(buildValues(self, bestPath[0].lastComponent, newString, oldString, self.useLongestToken));
     }
 
     // Once we hit the right edge of the edit graph on some diagonal k, we can
@@ -147,7 +147,7 @@ Diff.prototype = {
 
   addToPath(path, added, removed, oldPosInc) {
     let last = path.lastComponent;
-    if (last && last.added === added && last.removed === removed) {
+    if (last && !this.options.oneChangePerToken && last.added === added && last.removed === removed) {
       return {
         oldPos: path.oldPos + oldPosInc,
         lastComponent: {count: last.count + 1, added: added, removed: removed, previousComponent: last.previousComponent }
@@ -170,9 +170,12 @@ Diff.prototype = {
       newPos++;
       oldPos++;
       commonCount++;
+      if (this.options.oneChangePerToken) {
+        basePath.lastComponent = {count: 1, previousComponent: basePath.lastComponent, added: false, removed: false};
+      }
     }
 
-    if (commonCount) {
+    if (commonCount && !this.options.oneChangePerToken) {
       basePath.lastComponent = {count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false};
     }
 

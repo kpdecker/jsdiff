@@ -101,6 +101,25 @@ describe('diff/line', function() {
     });
   });
 
+  describe('oneChangePerToken option', function() {
+    it('emits one change per line', function() {
+      const diffResult = diffLines(
+        'foo\nbar\nbaz\nqux\n',
+        'fox\nbar\nbaz\nqux\n',
+        { oneChangePerToken: true }
+      );
+      expect(diffResult).to.deep.equal(
+        [
+          {value: 'foo\n', count: 1, added: false, removed: true},
+          {value: 'fox\n', count: 1, added: true, removed: false},
+          {value: 'bar\n', count: 1, added: false, removed: false},
+          {value: 'baz\n', count: 1, added: false, removed: false},
+          {value: 'qux\n', count: 1, added: false, removed: false}
+        ]
+      );
+    });
+  });
+
   // Trimmed Line Diff
   describe('#TrimmedLineDiff', function() {
     it('should diff lines', function() {
