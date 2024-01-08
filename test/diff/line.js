@@ -64,6 +64,26 @@ describe('diff/line', function() {
           'line\nnew value\nline', { callback, maxEditLength: 1 });
       });
     });
+
+    describe('given options.maxEditLength === 0', function() {
+      it('returns normally if the strings are identical', function() {
+        const diffResult = diffLines(
+          'foo\nbar\nbaz\nqux\n',
+          'foo\nbar\nbaz\nqux\n',
+          { maxEditLength: 0 }
+        );
+        expect(convertChangesToXML(diffResult)).to.equal('foo\nbar\nbaz\nqux\n');
+      });
+
+      it('terminates early if there is even a single change', function() {
+        const diffResult = diffLines(
+          'foo\nbar\nbaz\nqux\n',
+          'fox\nbar\nbaz\nqux\n',
+          { maxEditLength: 0 }
+        );
+        expect(diffResult).to.be.undefined;
+      });
+    });
   });
 
   // Trimmed Line Diff
