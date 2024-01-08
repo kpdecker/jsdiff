@@ -8,6 +8,7 @@
 - [#439](https://github.com/kpdecker/jsdiff/pull/439) Prefer diffs that order deletions before insertions. When faced with a choice between two diffs with an equal total edit distance, the Myers diff algorithm generally prefers one that does deletions before insertions rather than insertions before deletions. For instance, when diffing `abcd` against `acbd`, it will prefer a diff that says to delete the `b` and then insert a new `b` after the `c`, over a diff that says to insert a `c` before the `b` and then delete the existing `c`. JsDiff deviated from the published Myers algorithm in a way that led to it having the opposite preference in many cases, including that example. This is now fixed, meaning diffs output by JsDiff will more accurately reflect what the published Myers diff algorithm would output.
 - [#455](https://github.com/kpdecker/jsdiff/pull/455) The `added` and `removed` properties of change objects are now guaranteed to be set to a boolean value. (Previously, they would be set to `undefined` or omitted entirely instead of setting them to false.)
 - [#464](https://github.com/kpdecker/jsdiff/pull/464) Specifying `{maxEditLength: 0}` now sets a max edit length of 0 instead of no maximum.
+- [#460][https://github.com/kpdecker/jsdiff/pull/460] Added `oneChangePerToken` option.
 
 ## Development
 
@@ -19,7 +20,6 @@
 - [#344](https://github.com/kpdecker/jsdiff/issues/344) `diffLines`, `createTwoFilesPatch`, and other patch-creation methods now take an optional `stripTrailingCr: true` option which causes Windows-style `\r\n` line endings to be replaced with Unix-style `\n` line endings before calculating the diff, just like GNU `diff`'s `--strip-trailing-cr` flag.
 - [#451](https://github.com/kpdecker/jsdiff/pull/451) Added `diff.formatPatch`.
 - [#450](https://github.com/kpdecker/jsdiff/pull/450) Added `diff.reversePatch`.
-- [#460][https://github.com/kpdecker/jsdiff/pull/460] Added `oneChangePerToken` option.
 
 ## v5.1.0
 
