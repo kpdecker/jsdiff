@@ -47,6 +47,21 @@ describe('diff/line', function() {
       expect(convertChangesToXML(diffResult)).to.equal('<del>line\n\nold value \n\nline</del>');
     });
 
+    it('Should prefer to do deletions before insertions, like Unix diff does', function() {
+      const diffResult = diffLines('a\nb\nc\nd\n', 'a\nc\nb\nd\n');
+
+      // There are two possible diffs with equal edit distance here; either we
+      // can delete the "b" and insert it again later, or we can insert a "c"
+      // before the "b" and then delete the original "c" later.
+      // For consistency with the convention of other diff tools, we want to
+      // prefer the diff where we delete and then later insert over the one
+      // where we insert and then later delete.
+      expect(convertChangesToXML(diffResult)).to.equal('a\n<del>b\n</del>c\n<ins>b\n</ins>d\n');
+
+      const diffResult2 = diffLines('a\nc\nb\nd\n', 'a\nb\nc\nd\n');
+      expect(convertChangesToXML(diffResult2)).to.equal('a\n<del>c\n</del>b\n<ins>c\n</ins>d\n');
+    });
+
     describe('given options.maxEditLength', function() {
       it('terminates early', function() {
         const diffResult = diffLines(
@@ -118,18 +133,18 @@ describe('diff/line', function() {
 
   describe('#diffLinesNL', function() {
     expect(diffLines('restaurant', 'restaurant\n', {newlineIsToken: true})).to.eql([
-      {value: 'restaurant', count: 1},
-      {value: '\n', count: 1, added: true, removed: undefined}
+      {value: 'restaurant', count: 1, added: false, removed: false},
+      {value: '\n', count: 1, added: true, removed: false}
     ]);
     expect(diffLines('restaurant', 'restaurant\nhello', {newlineIsToken: true})).to.eql([
-      {value: 'restaurant', count: 1},
-      {value: '\nhello', count: 2, added: true, removed: undefined}
+      {value: 'restaurant', count: 1, added: false, removed: false},
+      {value: '\nhello', count: 2, added: true, removed: false}
     ]);
   });
 
   describe('Strip trailing CR', function() {
     expect(diffLines('line\nline', 'line\r\nline', {stripTrailingCr: true})).to.eql([
-      {value: 'line\nline', count: 2}
+      {value: 'line\nline', count: 2, added: false, removed: false}
     ]);
   });
 });
