@@ -101,7 +101,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
       - `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
       - `newlineIsToken`: Same as in `diffLines`. Defaults to `false`.
 
-* `Diff.createPatch(fileName, oldStr, newStr[, oldHeader[, newHeader]])` - creates a unified diff patch.
+* `Diff.createPatch(fileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch.
 
     Just like Diff.createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
@@ -157,9 +157,16 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
 * `Diff.convertChangesToXML(changes)` - converts a list of change objects to a serialized XML format
 
-* `Diff.convertChangesToDMP(changes` - converts a list of change objects to the format returned by Google's [diff-match-patch](https://github.com/google/diff-match-patch) library
+* `Diff.convertChangesToDMP(changes)` - converts a list of change objects to the format returned by Google's [diff-match-patch](https://github.com/google/diff-match-patch) library
 
-All methods above which accept the optional `callback` method will run in sync mode when that parameter is omitted and in async mode when supplied. This allows for larger diffs without blocking the event loop. This may be passed either directly as the final parameter or as the `callback` field in the `options` object.
+#### Universal `options`
+
+Certain options can be provided in the `options` object of *any* method that calculates a diff:
+
+* `callback`: if provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated. The value of the `callback` option should be a function and will be passed the result of the diff as its second argument. The first argument will always be undefined. Only works with functions that return change objects, like `diffLines`, not those that return patches, like `structuredPatch` or `createPatch`.
+
+  (Note that if the ONLY option you want to provide is a callback, you can pass the callback function directly as the `options` parameter instead of passing an object with a `callback` property.)
+* `maxEditLength`: a number specifying the maximum edit distance to consider between the old and new texts. If the edit distance is higher than this, jsdiff will return `undefined` instead of a diff. You can use this to limit the computational cost of diffing large, very different texts by giving up earlier. Works for functions that return change objects and also for `structuredPatch`, but not other patch-generation functions.
 
 ### Defining custom diffing behaviors
 
