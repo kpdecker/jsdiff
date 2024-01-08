@@ -30,7 +30,7 @@ Diff.prototype = {
     let newLen = newString.length, oldLen = oldString.length;
     let editLength = 1;
     let maxEditLength = newLen + oldLen;
-    if(options.maxEditLength) {
+    if(options.maxEditLength != null) {
       maxEditLength = Math.min(maxEditLength, options.maxEditLength);
     }
 
