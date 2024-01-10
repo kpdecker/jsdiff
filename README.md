@@ -96,7 +96,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
     * `oldHeader` : Optional additional information to include in the old file header. Default: `undefined`.
     * `newHeader` : Optional additional information to include in the new file header. Default: `undefined`.
     * `options` : An object with options. 
-      - `context` describes how many lines of context should be included.
+      - `context` describes how many lines of context should be included. You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
       - `ignoreWhitespace`: Same as in `diffLines`. Defaults to `false`.
       - `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
       - `newlineIsToken`: Same as in `diffLines`. Defaults to `false`.
