@@ -75,5 +75,27 @@ describe('diff/array', function() {
           {count: 1, value: [d], removed: undefined, added: true}
       ]);
     });
+    it('Should terminate early if execution time exceeds `timeout` ms', function() {
+      // To test this, we also pass a comparator that hot sleeps as a way to
+      // artificially slow down execution so we reach the timeout.
+      function comparator(left, right) {
+        const start = Date.now();
+        // Hot-sleep for 10ms
+        while (Date.now() < start + 10) {
+          // Do nothing
+        }
+        return left === right;
+      }
+
+      // It will require 14 comparisons (140ms) to diff these arrays:
+      const arr1 = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      const arr2 = ['a', 'b', 'c', 'd', 'x', 'y', 'z'];
+
+      // So with a timeout of 50ms, we are guaranteed failure:
+      expect(diffArrays(arr1, arr2, {comparator, timeout: 50})).to.be.undefined;
+
+      // But with a longer timeout, we expect success:
+      expect(diffArrays(arr1, arr2, {comparator, timeout: 1000})).not.to.be.undefined;
+    });
   });
 });
