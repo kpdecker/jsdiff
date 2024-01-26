@@ -213,10 +213,10 @@ const diff = Diff.diffChars(one, other);
 
 diff.forEach((part) => {
   // green for additions, red for deletions
-  // grey for common parts
-  const color = part.added ? 'green' :
-    part.removed ? 'red' : 'grey';
-  process.stderr.write(part.value[color]);
+  let text = part.added ? part.value.bgGreen :
+             part.removed ? part.value.bgRed :
+                            part.value;
+  process.stderr.write(text);
 });
 
 console.log();
