@@ -168,6 +168,8 @@ Certain options can be provided in the `options` object of *any* method that cal
   (Note that if the ONLY option you want to provide is a callback, you can pass the callback function directly as the `options` parameter instead of passing an object with a `callback` property.)
 * `maxEditLength`: a number specifying the maximum edit distance to consider between the old and new texts. If the edit distance is higher than this, jsdiff will return `undefined` instead of a diff. You can use this to limit the computational cost of diffing large, very different texts by giving up early if the cost will be huge. Works for functions that return change objects and also for `structuredPatch`, but not other patch-generation functions.
 
+* `timeout`: a number of milliseconds after which the diffing algorithm will abort and return `undefined`. Supported by the same functions as `maxEditLength`.
+
 ### Defining custom diffing behaviors
 
 If you need behavior a little different to what any of the text diffing functions above offer, you can roll your own by customizing both the tokenization behavior used and the notion of equality used to determine if two tokens are equal.
