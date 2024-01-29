@@ -6,7 +6,7 @@
 A JavaScript text differencing implementation. Try it out in the **[online demo](https://kpdecker.github.io/jsdiff)**.
 
 Based on the algorithm proposed in
-["An O(ND) Difference Algorithm and its Variations" (Myers, 1986)](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927).
+["An O(ND) Difference Algorithm and its Variations" (Myers, 1986)](http://www.xmailserver.org/diff2.pdf).
 
 ## Installation
 ```bash
@@ -96,7 +96,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
     * `oldHeader` : Optional additional information to include in the old file header. Default: `undefined`.
     * `newHeader` : Optional additional information to include in the new file header. Default: `undefined`.
     * `options` : An object with options. 
-      - `context` describes how many lines of context should be included.
+      - `context` describes how many lines of context should be included. You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
       - `ignoreWhitespace`: Same as in `diffLines`. Defaults to `false`.
       - `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
       - `newlineIsToken`: Same as in `diffLines`. Defaults to `false`.
@@ -169,9 +169,11 @@ Certain options can be provided in the `options` object of *any* method that cal
 * `maxEditLength`: a number specifying the maximum edit distance to consider between the old and new texts. If the edit distance is higher than this, jsdiff will return `undefined` instead of a diff. You can use this to limit the computational cost of diffing large, very different texts by giving up early if the cost will be huge. Works for functions that return change objects and also for `structuredPatch`, but not other patch-generation functions.
 * `oneChangePerToken`: if `true`, the array of change objects returned will contain one change object per token (e.g. one per line if calling `diffLines`), instead of runs of consecutive tokens that are all added / all removed / all conserved being combined into a single change object.
 
+* `timeout`: a number of milliseconds after which the diffing algorithm will abort and return `undefined`. Supported by the same functions as `maxEditLength`.
+
 ### Defining custom diffing behaviors
 
-If you need behavior a little different to what any of the text diffing functions above offer, you can roll your own by customizing both the tokenization behavior used and the notion of equality used to determine if two characters are equal.
+If you need behavior a little different to what any of the text diffing functions above offer, you can roll your own by customizing both the tokenization behavior used and the notion of equality used to determine if two tokens are equal.
 
 The simplest way to customize tokenization behavior is to simply tokenize the texts you want to diff yourself, with your own code, then pass the arrays of tokens to `diffArrays`. For instance, if you wanted a semantically-aware diff of some code, you could try tokenizing it using a parser specific to the programming language the code is in, then passing the arrays of tokens to `diffArrays`.
 
@@ -210,10 +212,10 @@ const diff = Diff.diffChars(one, other);
 
 diff.forEach((part) => {
   // green for additions, red for deletions
-  // grey for common parts
-  const color = part.added ? 'green' :
-    part.removed ? 'red' : 'grey';
-  process.stderr.write(part.value[color]);
+  let text = part.added ? part.value.bgGreen :
+             part.removed ? part.value.bgRed :
+                            part.value;
+  process.stderr.write(text);
 });
 
 console.log();

@@ -33,6 +33,8 @@ Diff.prototype = {
     if(options.maxEditLength != null) {
       maxEditLength = Math.min(maxEditLength, options.maxEditLength);
     }
+    const maxExecutionTime = options.timeout ?? Infinity;
+    const abortAfterTimestamp = Date.now() + maxExecutionTime;
 
     let bestPath = [{ oldPos: -1, lastComponent: undefined }];
 
@@ -126,7 +128,7 @@ Diff.prototype = {
     if (callback) {
       (function exec() {
         setTimeout(function() {
-          if (editLength > maxEditLength) {
+          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
             return callback();
           }
 
@@ -136,7 +138,7 @@ Diff.prototype = {
         }, 0);
       }());
     } else {
-      while (editLength <= maxEditLength) {
+      while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
         let ret = execEditLength();
         if (ret) {
           return ret;

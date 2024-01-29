@@ -8,10 +8,10 @@ let diff = Diff.diffChars(one, other);
 
 diff.forEach(function(part) {
   // green for additions, red for deletions
-  // grey for common parts
-  let color = part.added ? 'green' :
-    part.removed ? 'red' : 'grey';
-  process.stderr.write(part.value[color]);
+  let text = part.added ? part.value.bgGreen :
+             part.removed ? part.value.bgRed :
+                            part.value;
+  process.stderr.write(text);
 });
 
 console.log();

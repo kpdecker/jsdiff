@@ -21,6 +21,7 @@
 - [#344](https://github.com/kpdecker/jsdiff/issues/344) `diffLines`, `createTwoFilesPatch`, and other patch-creation methods now take an optional `stripTrailingCr: true` option which causes Windows-style `\r\n` line endings to be replaced with Unix-style `\n` line endings before calculating the diff, just like GNU `diff`'s `--strip-trailing-cr` flag.
 - [#451](https://github.com/kpdecker/jsdiff/pull/451) Added `diff.formatPatch`.
 - [#450](https://github.com/kpdecker/jsdiff/pull/450) Added `diff.reversePatch`.
+- [#478](https://github.com/kpdecker/jsdiff/pull/478) Added `timeout` option.
 
 ## v5.1.0
 
