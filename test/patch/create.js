@@ -633,6 +633,10 @@ describe('patch/create', function() {
       expect(diffResult).to.equal(expectedResult);
     });
 
+    it('should respect maxEditLength', function() {
+      expect(createPatch('test', 'line1\nline2\nline3\n', 'lineX\nlineY\nlineZ\nline42\n', 'header1', 'header2', {maxEditLength: 1})).to.be.undefined;
+    });
+
     describe('ignoreWhitespace', function() {
       it('ignoreWhitespace: false', function() {
         const expectedResult =
