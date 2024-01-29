@@ -10,6 +10,7 @@
 - [#464](https://github.com/kpdecker/jsdiff/pull/464) Specifying `{maxEditLength: 0}` now sets a max edit length of 0 instead of no maximum.
 - [#460](https://github.com/kpdecker/jsdiff/pull/460) Added `oneChangePerToken` option.
 - [#467](https://github.com/kpdecker/jsdiff/pull/467) When passing a `comparator(left, right)` to `diffArrays`, values from the old array will now consistently be passed as the first argument (`left`) and values from the new array as the second argument (`right`). Previously this was almost (but not quite) always the other way round.
+- [#480](https://github.com/kpdecker/jsdiff/pull/480) Passing `maxEditLength` to `createPatch` & `createTwoFilesPatch` now works properly (i.e. returns undefined if the max edit distance is exceeded; previous behavior was to crash with a `TypeError` if the edit distance was exceeded).
 
 ## Development
 
