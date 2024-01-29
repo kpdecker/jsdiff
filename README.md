@@ -273,7 +273,9 @@ const patch = Diff.createTwoFilesPatch("file1.txt", "file2.txt", file1Contents, 
 fs.writeFileSync("mydiff.patch", patch);
 ```
 
-#### Example of parsing and applying a patch from Node
+#### Examples of parsing and applying a patch from Node
+
+##### Applying a patch to a specified file
 
 The code below is roughly equivalent to the Unix command `patch file1.txt mydiff.patch`:
 
@@ -283,6 +285,40 @@ const file1Contents = fs.readFileSync("file1.txt").toString();
 const patch = fs.readFileSync("mydiff.patch").toString();
 const patchedFile = Diff.applyPatch(file1Contents, patch);
 fs.writeFileSync("file1.txt", patchedFile);
+```
+
+##### Applying a multi-file patch to the files specified by the patch file itself
+
+The code below is roughly equivalent to the Unix command `patch < mydiff.patch`:
+
+```
+const Diff = require('diff');
+const patch = fs.readFileSync("mydiff.patch").toString();
+Diff.applyPatches(patch, {
+    loadFile: (patch, callback) => {
+        let fileContents;
+        try {
+            fileContents = fs.readFileSync(patch.oldFileName).toString();
+        } catch (e) {
+            callback(`No such file: ${patch.oldFileName}`);
+            return;
+        }
+        callback(undefined, fileContents);
+    },
+    patched: (patch, patchedContent, callback) => {
+        if (patchedContent === false) {
+            callback(`Failed to apply patch to ${patch.oldFileName}`)
+            return;
+        }
+        fs.writeFileSync(patch.oldFileName, patchedContent);
+        callback();
+    },
+    complete: (err) => {
+        if (err) {
+            console.log("Failed with error:", err);
+        }
+    }
+});
 ```
 
 ## Compatibility
