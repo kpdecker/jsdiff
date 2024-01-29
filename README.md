@@ -166,7 +166,8 @@ Certain options can be provided in the `options` object of *any* method that cal
 * `callback`: if provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated. The value of the `callback` option should be a function and will be passed the result of the diff as its second argument. The first argument will always be undefined. Only works with functions that return change objects, like `diffLines`, not those that return patches, like `structuredPatch` or `createPatch`.
 
   (Note that if the ONLY option you want to provide is a callback, you can pass the callback function directly as the `options` parameter instead of passing an object with a `callback` property.)
-* `maxEditLength`: a number specifying the maximum edit distance to consider between the old and new texts. If the edit distance is higher than this, jsdiff will return `undefined` instead of a diff. You can use this to limit the computational cost of diffing large, very different texts by giving up early if the cost will be huge. Works for functions that return change objects and also for `structuredPatch`, but not other patch-generation functions.
+
+* `maxEditLength`: a number specifying the maximum edit distance to consider between the old and new texts. You can use this to limit the computational cost of diffing large, very different texts by giving up early if the cost will be huge. This option can be passed either to diffing functions (`diffLines`, `diffChars`, etc) or to patch-creation function (`structuredPatch`, `createPatch`, etc), all of which will indicate that the max edit length was reached by returning `undefined` instead of whatever they'd normally return.
 
 * `timeout`: a number of milliseconds after which the diffing algorithm will abort and return `undefined`. Supported by the same functions as `maxEditLength`.
 
