@@ -1,5 +1,16 @@
 # Release Notes
 
+## Future breaking 6.0.0 release
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/master...v6.0.0-staging)
+
+- [#435](https://github.com/kpdecker/jsdiff/pull/435) Fix `parsePatch` handling of control characters. `parsePatch` used to interpret various unusual control characters - namely vertical tabs, form feeds, lone carriage returns without a line feed, and EBCDIC NELs - as line breaks when parsing a patch file. This was inconsistent with the behavior of both JsDiff's own `diffLines` method and also the Unix `diff` and `patch` utils, which all simply treat those control characters as ordinary characters. The result of this discrepancy was that some well-formed patches - produced either by `diff` or by JsDiff itself and handled properly by the `patch` util - would be wrongly parsed by `parsePatch`, with the effect that it would disregard the remainder of a hunk after encountering one of these control characters.
+- [#439](https://github.com/kpdecker/jsdiff/pull/439) Prefer diffs that order deletions before insertions. When faced with a choice between two diffs with an equal total edit distance, the Myers diff algorithm generally prefers one that does deletions before insertions rather than insertions before deletions. For instance, when diffing `abcd` against `acbd`, it will prefer a diff that says to delete the `b` and then insert a new `b` after the `c`, over a diff that says to insert a `c` before the `b` and then delete the existing `c`. JsDiff deviated from the published Myers algorithm in a way that led to it having the opposite preference in many cases, including that example. This is now fixed, meaning diffs output by JsDiff will more accurately reflect what the published Myers diff algorithm would output.
+- [#455](https://github.com/kpdecker/jsdiff/pull/455) The `added` and `removed` properties of change objects are now guaranteed to be set to a boolean value. (Previously, they would be set to `undefined` or omitted entirely instead of setting them to false.)
+- [#464](https://github.com/kpdecker/jsdiff/pull/464) Specifying `{maxEditLength: 0}` now sets a max edit length of 0 instead of no maximum.
+- [#460](https://github.com/kpdecker/jsdiff/pull/460) Added `oneChangePerToken` option.
+- [#467](https://github.com/kpdecker/jsdiff/pull/467) When passing a `comparator(left, right)` to `diffArrays`, values from the old array will now consistently be passed as the first argument (`left`) and values from the new array as the second argument (`right`). Previously this was almost (but not quite) always the other way round.
+
 ## Development
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/v5.1.0...master)

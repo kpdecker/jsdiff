@@ -30,7 +30,7 @@ Diff.prototype = {
     let newLen = newString.length, oldLen = oldString.length;
     let editLength = 1;
     let maxEditLength = newLen + oldLen;
-    if(options.maxEditLength) {
+    if(options.maxEditLength != null) {
       maxEditLength = Math.min(maxEditLength, options.maxEditLength);
     }
     const maxExecutionTime = options.timeout ?? Infinity;
@@ -42,7 +42,7 @@ Diff.prototype = {
     let newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
     if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
       // Identity per the equality and tokenizer
-      return done([{value: this.join(newString), count: newString.length}]);
+      return done(buildValues(self, bestPath[0].lastComponent, newString, oldString, self.useLongestToken));
     }
 
     // Once we hit the right edge of the edit graph on some diagonal k, we can
@@ -96,12 +96,10 @@ Diff.prototype = {
         // Select the diagonal that we want to branch from. We select the prior
         // path whose position in the old string is the farthest from the origin
         // and does not pass the bounds of the diff graph
-        // TODO: Remove the `+ 1` here to make behavior match Myers algorithm
-        //       and prefer to order removals before insertions.
-        if (!canRemove || (canAdd && removePath.oldPos + 1 < addPath.oldPos)) {
-          basePath = self.addToPath(addPath, true, undefined, 0);
+        if (!canRemove || (canAdd && removePath.oldPos < addPath.oldPos)) {
+          basePath = self.addToPath(addPath, true, false, 0);
         } else {
-          basePath = self.addToPath(removePath, undefined, true, 1);
+          basePath = self.addToPath(removePath, false, true, 1);
         }
 
         newPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
@@ -151,7 +149,7 @@ Diff.prototype = {
 
   addToPath(path, added, removed, oldPosInc) {
     let last = path.lastComponent;
-    if (last && last.added === added && last.removed === removed) {
+    if (last && !this.options.oneChangePerToken && last.added === added && last.removed === removed) {
       return {
         oldPos: path.oldPos + oldPosInc,
         lastComponent: {count: last.count + 1, added: added, removed: removed, previousComponent: last.previousComponent }
@@ -170,14 +168,17 @@ Diff.prototype = {
         newPos = oldPos - diagonalPath,
 
         commonCount = 0;
-    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldString[oldPos + 1], newString[newPos + 1])) {
       newPos++;
       oldPos++;
       commonCount++;
+      if (this.options.oneChangePerToken) {
+        basePath.lastComponent = {count: 1, previousComponent: basePath.lastComponent, added: false, removed: false};
+      }
     }
 
-    if (commonCount) {
-      basePath.lastComponent = {count: commonCount, previousComponent: basePath.lastComponent};
+    if (commonCount && !this.options.oneChangePerToken) {
+      basePath.lastComponent = {count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false};
     }
 
     basePath.oldPos = oldPos;
@@ -253,15 +254,6 @@ function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
     } else {
       component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
       oldPos += component.count;
-
-      // Reverse add and remove so removes are output first to match common convention
-      // The diffing algorithm is tied to add then remove output and this is the simplest
-      // route to get the desired output with minimal overhead.
-      if (componentPos && components[componentPos - 1].added) {
-        let tmp = components[componentPos - 1];
-        components[componentPos - 1] = components[componentPos];
-        components[componentPos] = tmp;
-      }
     }
   }
 
@@ -269,10 +261,15 @@ function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
   // For this case we merge the terminal into the prior string and drop the change.
   // This is only available for string mode.
   let finalComponent = components[componentLen - 1];
-  if (componentLen > 1
-      && typeof finalComponent.value === 'string'
-      && (finalComponent.added || finalComponent.removed)
-      && diff.equals('', finalComponent.value)) {
+  if (
+    componentLen > 1
+    && typeof finalComponent.value === 'string'
+    && (
+      (finalComponent.added && diff.equals('', finalComponent.value))
+      ||
+      (finalComponent.removed && diff.equals(finalComponent.value, ''))
+    )
+  ) {
     components[componentLen - 2].value += finalComponent.value;
     components.pop();
   }
