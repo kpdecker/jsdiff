@@ -26,14 +26,11 @@ If you notice any problems, please report them to the GitHub issue tracker at
 
 ## Releasing
 
-jsdiff utilizes the [release yeoman generator][generator-release] to perform most release tasks.
-
 A full release may be completed with the following:
 
 ```
-yo release
+yarn clean
+yarn grunt
+yarn grunt uglify
 yarn publish
 ```
-
-[generator-release]: https://github.com/walmartlabs/generator-release
-[pull-request]: https://github.com/kpdecker/jsdiff/pull/new/master
