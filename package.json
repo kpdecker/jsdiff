@@ -13,7 +13,8 @@
     "javascript"
   ],
   "maintainers": [
-    "Kevin Decker <kpdecker@gmail.com> (http://incaseofstairs.com)"
+    "Kevin Decker <kpdecker@gmail.com> (http://incaseofstairs.com)",
+    "Mark Amery <markrobertamery+jsdiff@gmail.com>"
   ],
   "bugs": {
     "email": "kpdecker@gmail.com",
