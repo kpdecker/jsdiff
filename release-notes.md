@@ -1,6 +1,6 @@
 # Release Notes
 
-## Development
+## v5.2.0
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/v5.1.0...master)
 
