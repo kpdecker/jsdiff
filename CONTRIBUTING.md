@@ -34,3 +34,5 @@ yarn grunt
 yarn grunt uglify
 yarn publish
 ```
+
+After releasing, `diff.js` on the `gh-pages` branch should be updated to the latest built version from the `dist/` folder.
