@@ -166,9 +166,12 @@ Certain options can be provided in the `options` object of *any* method that cal
 * `callback`: if provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated. The value of the `callback` option should be a function and will be passed the result of the diff as its second argument. The first argument will always be undefined. Only works with functions that return change objects, like `diffLines`, not those that return patches, like `structuredPatch` or `createPatch`.
 
   (Note that if the ONLY option you want to provide is a callback, you can pass the callback function directly as the `options` parameter instead of passing an object with a `callback` property.)
-* `maxEditLength`: a number specifying the maximum edit distance to consider between the old and new texts. If the edit distance is higher than this, jsdiff will return `undefined` instead of a diff. You can use this to limit the computational cost of diffing large, very different texts by giving up early if the cost will be huge. Works for functions that return change objects and also for `structuredPatch`, but not other patch-generation functions.
+
+* `maxEditLength`: a number specifying the maximum edit distance to consider between the old and new texts. You can use this to limit the computational cost of diffing large, very different texts by giving up early if the cost will be huge. This option can be passed either to diffing functions (`diffLines`, `diffChars`, etc) or to patch-creation function (`structuredPatch`, `createPatch`, etc), all of which will indicate that the max edit length was reached by returning `undefined` instead of whatever they'd normally return.
 
 * `timeout`: a number of milliseconds after which the diffing algorithm will abort and return `undefined`. Supported by the same functions as `maxEditLength`.
+
+* `oneChangePerToken`: if `true`, the array of change objects returned will contain one change object per token (e.g. one per line if calling `diffLines`), instead of runs of consecutive tokens that are all added / all removed / all conserved being combined into a single change object.
 
 ### Defining custom diffing behaviors
 
@@ -190,13 +193,11 @@ For even more customisation of the diffing behavior, you can create a `new Diff.
 Many of the methods above return change objects. These objects consist of the following fields:
 
 * `value`: The concatenated content of all the tokens represented by this change object - i.e. generally the text that is either added, deleted, or common, as a single string. In cases where tokens are considered common but are non-identical (e.g. because an option like `ignoreCase` or a custom `comparator` was used), the value from the *new* string will be provided here.
-* `added`: True if the value was inserted into the new string
-* `removed`: True if the value was removed from the old string
+* `added`: true if the value was inserted into the new string, otherwise false
+* `removed`: true if the value was removed from the old string, otherwise false
 * `count`: How many tokens (e.g. chars for `diffChars`, lines for `diffLines`) the value in the change object consists of
 
-(Change objects where `added` and `removed` are both falsey represent content that is common to the old and new strings.)
-
-Note that some cases may omit a particular flag field. Comparison on the flag fields should always be done in a truthy or falsy manner.
+(Change objects where `added` and `removed` are both false represent content that is common to the old and new strings.)
 
 ## Examples
 
