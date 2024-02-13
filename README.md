@@ -201,7 +201,7 @@ Many of the methods above return change objects. These objects consist of the fo
 
 ## Examples
 
-Basic example in Node
+#### Basic example in Node
 
 ```js
 require('colors');
@@ -226,7 +226,7 @@ Running the above program should yield
 
 <img src="images/node_example.png" alt="Node Example">
 
-Basic example in a web page
+#### Basic example in a web page
 
 ```html
 <pre id="display"></pre>
@@ -261,6 +261,66 @@ display.appendChild(fragment);
 Open the above .html file in a browser and you should see
 
 <img src="images/web_example.png" alt="Node Example">
+
+#### Example of generating a patch from Node
+
+The code below is roughly equivalent to the Unix command `diff -u file1.txt file2.txt > mydiff.patch`:
+
+```
+const Diff = require('diff');
+const file1Contents = fs.readFileSync("file1.txt").toString();
+const file2Contents = fs.readFileSync("file2.txt").toString();
+const patch = Diff.createTwoFilesPatch("file1.txt", "file2.txt", file1Contents, file2Contents);
+fs.writeFileSync("mydiff.patch", patch);
+```
+
+#### Examples of parsing and applying a patch from Node
+
+##### Applying a patch to a specified file
+
+The code below is roughly equivalent to the Unix command `patch file1.txt mydiff.patch`:
+
+```
+const Diff = require('diff');
+const file1Contents = fs.readFileSync("file1.txt").toString();
+const patch = fs.readFileSync("mydiff.patch").toString();
+const patchedFile = Diff.applyPatch(file1Contents, patch);
+fs.writeFileSync("file1.txt", patchedFile);
+```
+
+##### Applying a multi-file patch to the files specified by the patch file itself
+
+The code below is roughly equivalent to the Unix command `patch < mydiff.patch`:
+
+```
+const Diff = require('diff');
+const patch = fs.readFileSync("mydiff.patch").toString();
+Diff.applyPatches(patch, {
+    loadFile: (patch, callback) => {
+        let fileContents;
+        try {
+            fileContents = fs.readFileSync(patch.oldFileName).toString();
+        } catch (e) {
+            callback(`No such file: ${patch.oldFileName}`);
+            return;
+        }
+        callback(undefined, fileContents);
+    },
+    patched: (patch, patchedContent, callback) => {
+        if (patchedContent === false) {
+            callback(`Failed to apply patch to ${patch.oldFileName}`)
+            return;
+        }
+        fs.writeFileSync(patch.oldFileName, patchedContent);
+        callback();
+    },
+    complete: (err) => {
+        if (err) {
+            console.log("Failed with error:", err);
+        }
+    }
+});
+```
 
 ## Compatibility
 
