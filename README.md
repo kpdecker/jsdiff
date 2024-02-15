@@ -48,18 +48,12 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 * `Diff.diffLines(oldStr, newStr[, options])` - diffs two blocks of text, treating each line as a token.
 
     Options
-    * `ignoreWhitespace`: `true` to strip all leading and trailing whitespace characters from each line before performing the diff. Defaults to `false`.
+    * `ignoreWhitespace`: `true` to ignore leading and trailing whitespace characters when checking if two lines are equal. Defaults to `false`.
     * `stripTrailingCr`: `true` to remove all trailing CR (`\r`) characters before performing the diff. Defaults to `false`.
       This helps to get a useful diff when diffing UNIX text files against Windows text files.
     * `newlineIsToken`: `true` to treat the newline character at the end of each line as its own token. This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines`; the default behavior with this option turned off is better suited for patches and other computer friendly output. Defaults to `false`.
 
-    Returns a list of [change objects](#change-objects).
-
-* `Diff.diffTrimmedLines(oldStr, newStr[, options])` - diffs two blocks of text, comparing line by line, after stripping leading and trailing whitespace. Equivalent to calling `diffLines` with `ignoreWhitespace: true`.
-
-    Options
-    * `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
-    * `newlineIsToken`: Same as in `diffLines`. Defaults to `false`.
+    Note that while using `ignoreWhitespace` in combination with `newlineIsToken` is not an error, results may not be as expected. With `ignoreWhitespace: true` and `newlineIsToken: false`, changing a completely empty line to contain some spaces is treated as a non-change, but with `ignoreWhitespace: true` and `newlineIsToken: true`, it is treated as an insertion. This is because the content of a completely blank line is not a token at all in `newlineIsToken` mode.
 
     Returns a list of [change objects](#change-objects).
 

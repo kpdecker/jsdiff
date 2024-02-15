@@ -12,7 +12,7 @@ describe('diff/line', function() {
         'line\nnew value\nline');
       expect(convertChangesToXML(diffResult)).to.equal('line\n<del>old value\n</del><ins>new value\n</ins>line');
     });
-    it('should the same lines in diff', function() {
+    it('should treat identical lines as equal', function() {
       const diffResult = diffLines(
         'line\nvalue\nline',
         'line\nvalue\nline');
@@ -128,7 +128,7 @@ describe('diff/line', function() {
         'line\nnew value\nline');
       expect(convertChangesToXML(diffResult)).to.equal('line\n<del>old value\n</del><ins>new value\n</ins>line');
     });
-    it('should the same lines in diff', function() {
+    it('should treat identical lines as equal', function() {
       const diffResult = diffTrimmedLines(
         'line\nvalue\nline',
         'line\nvalue\nline');
@@ -138,16 +138,39 @@ describe('diff/line', function() {
     it('should ignore leading and trailing whitespace', function() {
       const diffResult = diffTrimmedLines(
         'line\nvalue \nline',
-        'line\nvalue\nline');
-      expect(convertChangesToXML(diffResult)).to.equal('line\nvalue\nline');
+        'line \nvalue\nline');
+      expect(convertChangesToXML(diffResult)).to.equal('line \nvalue\nline');
+    });
+
+    it('should not consider adding whitespace to an empty line an insertion', function() {
+      const diffResult = diffTrimmedLines('foo\n\nbar', 'foo\n \nbar');
+      expect(convertChangesToXML(diffResult)).to.equal('foo\n \nbar');
     });
 
     it('should handle windows line endings', function() {
       const diffResult = diffTrimmedLines(
         'line\r\nold value \r\nline',
         'line\r\nnew value\r\nline');
-      expect(convertChangesToXML(diffResult)).to.equal('line\r\n<del>old value\r\n</del><ins>new value\r\n</ins>line');
+      expect(convertChangesToXML(diffResult)).to.equal('line\r\n<del>old value \r\n</del><ins>new value\r\n</ins>line');
     });
+
+    it('should be compatible with newlineIsToken', function() {
+      const diffResult = diffTrimmedLines(
+        'line1\nline2\n   \nline4\n \n',
+        'line1\nline2\n\n\nline4\n   \n',
+        {newlineIsToken: true}
+      );
+      expect(convertChangesToXML(diffResult)).to.equal('line1\nline2\n<del>   </del>\n<ins>\n</ins>line4\n   \n');
+    });
+
+    it(
+      'should not consider adding whitespace to an empty line an insertion ' +
+      'even in newlineIsToken mode where a token may be an empty string',
+      function() {
+        const diffResult = diffTrimmedLines('foo\n\nbar', 'foo\n \nbar', {newlineIsToken: true});
+        expect(convertChangesToXML(diffResult)).to.equal('foo\n \nbar');
+      }
+    );
   });
 
   describe('#diffLinesNL', function() {
