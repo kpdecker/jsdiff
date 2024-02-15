@@ -34,7 +34,7 @@ lineDiff.equals = function(left, right) {
   // If we're ignoring whitespace, we need to normalise lines by stripping
   // whitespace before checking equality. (This has an annoying interaction
   // with newlineIsToken that requires special handling: if newlines get their
-  // own token, then we DON'T want to trim the *newlines* tokens down to empty
+  // own token, then we DON'T want to trim the *newline* tokens down to empty
   // strings, since this would cause us to treat whitespace-only line content
   // as equal to a separator between lines, which would be weird and
   // inconsistent with the documented behavior of the options.)
