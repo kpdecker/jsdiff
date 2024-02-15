@@ -39,15 +39,15 @@ lineDiff.equals = function(left, right) {
   // as equal to a separator between lines, which would be weird and
   // inconsistent with the documented behavior of the options.)
   if (this.options.ignoreWhitespace) {
-    if (!this.options.newlineIsToken || !left.includes("\n")) {
+    if (!this.options.newlineIsToken || !left.includes('\n')) {
       left = left.trim();
     }
-    if (!this.options.newlineIsToken || !right.includes("\n")) {
+    if (!this.options.newlineIsToken || !right.includes('\n')) {
       right = right.trim();
     }
   }
   return Diff.equals(left, right);
-}
+};
 
 export function diffLines(oldStr, newStr, callback) { return lineDiff.diff(oldStr, newStr, callback); }
 
