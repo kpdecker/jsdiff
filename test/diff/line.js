@@ -146,7 +146,7 @@ describe('diff/line', function() {
       const diffResult = diffTrimmedLines(
         'line\r\nold value \r\nline',
         'line\r\nnew value\r\nline');
-      expect(convertChangesToXML(diffResult)).to.equal('line\r\n<del>old value\r\n</del><ins>new value\r\n</ins>line');
+      expect(convertChangesToXML(diffResult)).to.equal('line\r\n<del>old value \r\n</del><ins>new value\r\n</ins>line');
     });
   });
 
