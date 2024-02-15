@@ -177,10 +177,10 @@ To customize the notion of token equality used, use the `comparator` option to `
 
 For even more customisation of the diffing behavior, you can create a `new Diff.Diff()` object, overwrite its `castInput`, `tokenize`, `removeEmpty`, `equals`, and `join` properties with your own functions, then call its `diff(oldString, newString[, options])` method. The methods you can overwrite are used as follows:
 
-* `castInput(value)`: used to transform the `oldString` and `newString` before any other steps in the diffing algorithm happen. For instance, `diffJson` uses `castInput` to serialize the objects being diffed to JSON. Defaults to a no-op.
-* `tokenize(value)`: used to convert each of `oldString` and `newString` (after they've gone through `castInput`) to an array of tokens. Defaults to returning `value.split('')` (returning an array of individual characters).
+* `castInput(value, options)`: used to transform the `oldString` and `newString` before any other steps in the diffing algorithm happen. For instance, `diffJson` uses `castInput` to serialize the objects being diffed to JSON. Defaults to a no-op.
+* `tokenize(value, options)`: used to convert each of `oldString` and `newString` (after they've gone through `castInput`) to an array of tokens. Defaults to returning `value.split('')` (returning an array of individual characters).
 * `removeEmpty(array)`: called on the arrays of tokens returned by `tokenize` and can be used to modify them. Defaults to stripping out falsey tokens, such as empty strings. `diffArrays` overrides this to simply return the `array`, which means that falsey values like empty strings can be handled like any other token by `diffArrays`.
-* `equals(left, right)`: called to determine if two tokens (one from the old string, one from the new string) should be considered equal. Defaults to comparing them with `===`.
+* `equals(left, right, options)`: called to determine if two tokens (one from the old string, one from the new string) should be considered equal. Defaults to comparing them with `===`.
 * `join(tokens)`: gets called with an array of consecutive tokens that have either all been added, all been removed, or are all common. Needs to join them into a single value that can be used as the `value` property of the [change object](#change-objects) for these tokens. Defaults to simply returning `tokens.join('')`.
 
 ### Change Objects
