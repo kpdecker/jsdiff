@@ -7,7 +7,6 @@ Diff.prototype = {
       callback = options;
       options = {};
     }
-    this.options = options;
 
     let self = this;
 
@@ -21,11 +20,11 @@ Diff.prototype = {
     }
 
     // Allow subclasses to massage the input prior to running
-    oldString = this.castInput(oldString);
-    newString = this.castInput(newString);
+    oldString = this.castInput(oldString, options);
+    newString = this.castInput(newString, options);
 
-    oldString = this.removeEmpty(this.tokenize(oldString));
-    newString = this.removeEmpty(this.tokenize(newString));
+    oldString = this.removeEmpty(this.tokenize(oldString, options));
+    newString = this.removeEmpty(this.tokenize(newString, options));
 
     let newLen = newString.length, oldLen = oldString.length;
     let editLength = 1;
@@ -39,10 +38,10 @@ Diff.prototype = {
     let bestPath = [{ oldPos: -1, lastComponent: undefined }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
-    let newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+    let newPos = this.extractCommon(bestPath[0], newString, oldString, 0, options);
     if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
       // Identity per the equality and tokenizer
-      return done(buildValues(self, bestPath[0].lastComponent, newString, oldString, self.useLongestToken));
+      return done(buildValues(self, bestPath[0].lastComponent, newString, oldString, self.useLongestToken, options));
     }
 
     // Once we hit the right edge of the edit graph on some diagonal k, we can
@@ -97,16 +96,16 @@ Diff.prototype = {
         // path whose position in the old string is the farthest from the origin
         // and does not pass the bounds of the diff graph
         if (!canRemove || (canAdd && removePath.oldPos < addPath.oldPos)) {
-          basePath = self.addToPath(addPath, true, false, 0);
+          basePath = self.addToPath(addPath, true, false, 0, options);
         } else {
-          basePath = self.addToPath(removePath, false, true, 1);
+          basePath = self.addToPath(removePath, false, true, 1, options);
         }
 
-        newPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
+        newPos = self.extractCommon(basePath, newString, oldString, diagonalPath, options);
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
-          return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken));
+          return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken, options));
         } else {
           bestPath[diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {
@@ -147,9 +146,9 @@ Diff.prototype = {
     }
   },
 
-  addToPath(path, added, removed, oldPosInc) {
+  addToPath(path, added, removed, oldPosInc, options) {
     let last = path.lastComponent;
-    if (last && !this.options.oneChangePerToken && last.added === added && last.removed === removed) {
+    if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
       return {
         oldPos: path.oldPos + oldPosInc,
         lastComponent: {count: last.count + 1, added: added, removed: removed, previousComponent: last.previousComponent }
@@ -161,23 +160,23 @@ Diff.prototype = {
       };
     }
   },
-  extractCommon(basePath, newString, oldString, diagonalPath) {
+  extractCommon(basePath, newString, oldString, diagonalPath, options) {
     let newLen = newString.length,
         oldLen = oldString.length,
         oldPos = basePath.oldPos,
         newPos = oldPos - diagonalPath,
 
         commonCount = 0;
-    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldString[oldPos + 1], newString[newPos + 1])) {
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldString[oldPos + 1], newString[newPos + 1], options)) {
       newPos++;
       oldPos++;
       commonCount++;
-      if (this.options.oneChangePerToken) {
+      if (options.oneChangePerToken) {
         basePath.lastComponent = {count: 1, previousComponent: basePath.lastComponent, added: false, removed: false};
       }
     }
 
-    if (commonCount && !this.options.oneChangePerToken) {
+    if (commonCount && !options.oneChangePerToken) {
       basePath.lastComponent = {count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false};
     }
 
@@ -185,12 +184,12 @@ Diff.prototype = {
     return newPos;
   },
 
-  equals(left, right) {
-    if (this.options.comparator) {
-      return this.options.comparator(left, right);
+  equals(left, right, options) {
+    if (options.comparator) {
+      return options.comparator(left, right);
     } else {
       return left === right
-        || (this.options.ignoreCase && left.toLowerCase() === right.toLowerCase());
+        || (options.ignoreCase && left.toLowerCase() === right.toLowerCase());
     }
   },
   removeEmpty(array) {
@@ -213,7 +212,7 @@ Diff.prototype = {
   }
 };
 
-function buildValues(diff, lastComponent, newString, oldString, useLongestToken) {
+function buildValues(diff, lastComponent, newString, oldString, useLongestToken, options) {
   // First we convert our linked list of components in reverse order to an
   // array in the right order:
   const components = [];
@@ -265,9 +264,9 @@ function buildValues(diff, lastComponent, newString, oldString, useLongestToken)
     componentLen > 1
     && typeof finalComponent.value === 'string'
     && (
-      (finalComponent.added && diff.equals('', finalComponent.value))
+      (finalComponent.added && diff.equals('', finalComponent.value, options))
       ||
-      (finalComponent.removed && diff.equals(finalComponent.value, ''))
+      (finalComponent.removed && diff.equals(finalComponent.value, '', options))
     )
   ) {
     components[componentLen - 2].value += finalComponent.value;

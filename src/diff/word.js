@@ -24,12 +24,12 @@ const extendedWordChars = /^[a-zA-Z\u{C0}-\u{FF}\u{D8}-\u{F6}\u{F8}-\u{2C6}\u{2C
 const reWhitespace = /\S/;
 
 export const wordDiff = new Diff();
-wordDiff.equals = function(left, right) {
-  if (this.options.ignoreCase) {
+wordDiff.equals = function(left, right, options) {
+  if (options.ignoreCase) {
     left = left.toLowerCase();
     right = right.toLowerCase();
   }
-  return left === right || (this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
+  return left === right || (options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
 };
 wordDiff.tokenize = function(value) {
   // All whitespace symbols except newline group into one token, each newline - in separate token
