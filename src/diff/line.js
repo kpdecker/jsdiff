@@ -2,8 +2,8 @@ import Diff from './base';
 import {generateOptions} from '../util/params';
 
 export const lineDiff = new Diff();
-lineDiff.tokenize = function(value) {
-  if(this.options.stripTrailingCr) {
+lineDiff.tokenize = function(value, options) {
+  if(options.stripTrailingCr) {
     // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
     value = value.replace(/\r\n/g, '\n');
   }
@@ -20,7 +20,7 @@ lineDiff.tokenize = function(value) {
   for (let i = 0; i < linesAndNewlines.length; i++) {
     let line = linesAndNewlines[i];
 
-    if (i % 2 && !this.options.newlineIsToken) {
+    if (i % 2 && !options.newlineIsToken) {
       retLines[retLines.length - 1] += line;
     } else {
       retLines.push(line);
@@ -30,7 +30,7 @@ lineDiff.tokenize = function(value) {
   return retLines;
 };
 
-lineDiff.equals = function(left, right) {
+lineDiff.equals = function(left, right, options) {
   // If we're ignoring whitespace, we need to normalise lines by stripping
   // whitespace before checking equality. (This has an annoying interaction
   // with newlineIsToken that requires special handling: if newlines get their
@@ -38,15 +38,15 @@ lineDiff.equals = function(left, right) {
   // strings, since this would cause us to treat whitespace-only line content
   // as equal to a separator between lines, which would be weird and
   // inconsistent with the documented behavior of the options.)
-  if (this.options.ignoreWhitespace) {
-    if (!this.options.newlineIsToken || !left.includes('\n')) {
+  if (options.ignoreWhitespace) {
+    if (!options.newlineIsToken || !left.includes('\n')) {
       left = left.trim();
     }
-    if (!this.options.newlineIsToken || !right.includes('\n')) {
+    if (!options.newlineIsToken || !right.includes('\n')) {
       right = right.trim();
     }
   }
-  return Diff.prototype.equals.call(this, left, right);
+  return Diff.prototype.equals.call(this, left, right, options);
 };
 
 export function diffLines(oldStr, newStr, callback) { return lineDiff.diff(oldStr, newStr, callback); }
