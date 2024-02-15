@@ -12,7 +12,7 @@ describe('diff/line', function() {
         'line\nnew value\nline');
       expect(convertChangesToXML(diffResult)).to.equal('line\n<del>old value\n</del><ins>new value\n</ins>line');
     });
-    it('should the same lines in diff', function() {
+    it('should treat identical lines as equal', function() {
       const diffResult = diffLines(
         'line\nvalue\nline',
         'line\nvalue\nline');
@@ -128,7 +128,7 @@ describe('diff/line', function() {
         'line\nnew value\nline');
       expect(convertChangesToXML(diffResult)).to.equal('line\n<del>old value\n</del><ins>new value\n</ins>line');
     });
-    it('should the same lines in diff', function() {
+    it('should treat identical lines as equal', function() {
       const diffResult = diffTrimmedLines(
         'line\nvalue\nline',
         'line\nvalue\nline');
