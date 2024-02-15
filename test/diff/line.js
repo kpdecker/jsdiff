@@ -142,6 +142,11 @@ describe('diff/line', function() {
       expect(convertChangesToXML(diffResult)).to.equal('line \nvalue\nline');
     });
 
+    it('should not consider adding whitespace to an empty line an insertion', function() {
+      const diffResult = diffTrimmedLines('foo\n\nbar', 'foo\n \nbar');
+      expect(convertChangesToXML(diffResult)).to.equal('foo\n \nbar');
+    });
+
     it('should handle windows line endings', function() {
       const diffResult = diffTrimmedLines(
         'line\r\nold value \r\nline',
@@ -157,6 +162,15 @@ describe('diff/line', function() {
       );
       expect(convertChangesToXML(diffResult)).to.equal('line1\nline2\n<del>   </del>\n<ins>\n</ins>line4\n   \n');
     });
+
+    it(
+      'should not consider adding whitespace to an empty line an insertion ' +
+      'even in newlineIsToken mode where a token may be an empty string',
+      function() {
+        const diffResult = diffTrimmedLines('foo\n\nbar', 'foo\n \nbar', {newlineIsToken: true});
+        expect(convertChangesToXML(diffResult)).to.equal('foo\n \nbar');
+      }
+    );
   });
 
   describe('#diffLinesNL', function() {
