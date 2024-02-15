@@ -38,5 +38,19 @@ describe('diff/character', function() {
         expect(convertChangesToXML(diffResult)).to.equal('New value<del>s</del>.');
       });
     });
+
+    it('should not be susceptible to race conditions in async mode when called with different options', function(done) {
+      // (regression test for https://github.com/kpdecker/jsdiff/issues/477)
+      diffChars('wibblywobbly', 'WIBBLYWOBBLY', {ignoreCase: false, callback: (_, diffResult) => {
+        expect(convertChangesToXML(diffResult)).to.equal('<del>wibblywobbly</del><ins>WIBBLYWOBBLY</ins>');
+        done();
+      }});
+
+      // Historically, doing this while async execution of the previous
+      // diffChars call was ongoing would overwrite this.options and make the
+      // ongoing diff become case-insensitive partway through execution.
+      diffChars('whatever', 'whatever', {ignoreCase: true});
+      diffChars('whatever', 'whatever', {ignoreCase: true, callback: () => {}});
+    });
   });
 });
