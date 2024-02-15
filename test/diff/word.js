@@ -102,16 +102,14 @@ describe('WordDiff', function() {
 
   describe('#diffWords - async', function() {
     it('should diff whitespace', function(done) {
-      diffWords('New Value', 'New  ValueMoreData', function(err, diffResult) {
-        expect(err).to.be.undefined;
+      diffWords('New Value', 'New  ValueMoreData', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins>');
         done();
       });
     });
 
     it('should diff multiple whitespace values', function(done) {
-      diffWords('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
-        expect(err).to.be.undefined;
+      diffWords('New Value  ', 'New  ValueMoreData ', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins> ');
         done();
       });
@@ -119,8 +117,7 @@ describe('WordDiff', function() {
 
     // Diff on word boundary
     it('should diff on word boundaries', function(done) {
-      diffWords('New :Value:Test', 'New  ValueMoreData ', function(err, diffResult) {
-        expect(err).to.be.undefined;
+      diffWords('New :Value:Test', 'New  ValueMoreData ', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New  <del>:Value:Test</del><ins>ValueMoreData </ins>');
         done();
       });
@@ -128,22 +125,19 @@ describe('WordDiff', function() {
 
     // Diff without changes
     it('should handle identity', function(done) {
-      diffWords('New Value', 'New Value', function(err, diffResult) {
-        expect(err).to.be.undefined;
+      diffWords('New Value', 'New Value', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New Value');
         done();
       });
     });
     it('should handle empty', function(done) {
-      diffWords('', '', function(err, diffResult) {
-        expect(err).to.be.undefined;
+      diffWords('', '', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('');
         done();
       });
     });
     it('should diff has identical content', function(done) {
-      diffWords('New Value', 'New  Value', function(err, diffResult) {
-        expect(err).to.be.undefined;
+      diffWords('New Value', 'New  Value', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New  Value');
         done();
       });
@@ -151,14 +145,14 @@ describe('WordDiff', function() {
 
     // Empty diffs
     it('should diff empty new content', function(done) {
-      diffWords('New Value', '', function(err, diffResult) {
+      diffWords('New Value', '', function(diffResult) {
         expect(diffResult.length).to.equal(1);
         expect(convertChangesToXML(diffResult)).to.equal('<del>New Value</del>');
         done();
       });
     });
     it('should diff empty old content', function(done) {
-      diffWords('', 'New Value', function(err, diffResult) {
+      diffWords('', 'New Value', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('<ins>New Value</ins>');
         done();
       });
@@ -166,7 +160,7 @@ describe('WordDiff', function() {
 
     // With without anchor (the Heckel algorithm error case)
     it('should diff when there is no anchor value', function(done) {
-      diffWords('New Value New Value', 'Value Value New New', function(err, diffResult) {
+      diffWords('New Value New Value', 'Value Value New New', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
         done();
       });
@@ -219,7 +213,7 @@ describe('WordDiff', function() {
     });
 
     it('should perform async operations', function(done) {
-      diffWordsWithSpace('New Value  ', 'New  ValueMoreData ', function(err, diffResult) {
+      diffWordsWithSpace('New Value  ', 'New  ValueMoreData ', function(diffResult) {
         expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del>  <ins>ValueMoreData </ins>');
         done();
       });

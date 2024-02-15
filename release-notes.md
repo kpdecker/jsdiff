@@ -12,6 +12,7 @@
 - [#467](https://github.com/kpdecker/jsdiff/pull/467) When passing a `comparator(left, right)` to `diffArrays`, values from the old array will now consistently be passed as the first argument (`left`) and values from the new array as the second argument (`right`). Previously this was almost (but not quite) always the other way round.
 - [#480](https://github.com/kpdecker/jsdiff/pull/480) Passing `maxEditLength` to `createPatch` & `createTwoFilesPatch` now works properly (i.e. returns undefined if the max edit distance is exceeded; previous behavior was to crash with a `TypeError` if the edit distance was exceeded).
 - [#486](https://github.com/kpdecker/jsdiff/pull/486) The `ignoreWhitespace` option of `diffLines` behaves more sensibly now. `value`s in returned change objects now include leading/trailing whitespace even when `ignoreWhitespace` is used, just like how with `ignoreCase` the `value`s still reflect the case of one of the original texts instead of being all-lowercase. `ignoreWhitespace` is also now compatible with `newlineIsToken`. Finally, `diffTrimmedLines` is deprecated (and removed from the docs) in favour of using `diffLines` with `ignoreWhitespace: true`; the two are, and always have been, equivalent.
+- [#490](https://github.com/kpdecker/jsdiff/pull/490) When calling diffing functions in async mode by passing a `callback` option, the diff result will now be passed as the *first* argument to the callback instead of the second. (Previously, the first argument was never used at all and would always have value `undefined`.)
 
 ## v5.2.0
 
