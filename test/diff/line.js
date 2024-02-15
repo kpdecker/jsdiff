@@ -138,8 +138,8 @@ describe('diff/line', function() {
     it('should ignore leading and trailing whitespace', function() {
       const diffResult = diffTrimmedLines(
         'line\nvalue \nline',
-        'line\nvalue\nline');
-      expect(convertChangesToXML(diffResult)).to.equal('line\nvalue\nline');
+        'line \nvalue\nline');
+      expect(convertChangesToXML(diffResult)).to.equal('line \nvalue\nline');
     });
 
     it('should handle windows line endings', function() {
