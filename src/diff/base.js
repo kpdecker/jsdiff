@@ -13,7 +13,7 @@ Diff.prototype = {
 
     function done(value) {
       if (callback) {
-        setTimeout(function() { callback(undefined, value); }, 0);
+        setTimeout(function() { callback(value); }, 0);
         return true;
       } else {
         return value;

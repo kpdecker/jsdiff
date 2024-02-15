@@ -157,7 +157,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
 Certain options can be provided in the `options` object of *any* method that calculates a diff:
 
-* `callback`: if provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated. The value of the `callback` option should be a function and will be passed the result of the diff as its second argument. The first argument will always be undefined. Only works with functions that return change objects, like `diffLines`, not those that return patches, like `structuredPatch` or `createPatch`.
+* `callback`: if provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated. The value of the `callback` option should be a function and will be passed the result of the diff as its first argument. Only works with functions that return change objects, like `diffLines`, not those that return patches, like `structuredPatch` or `createPatch`.
 
   (Note that if the ONLY option you want to provide is a callback, you can pass the callback function directly as the `options` parameter instead of passing an object with a `callback` property.)
 
