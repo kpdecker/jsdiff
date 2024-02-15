@@ -136,10 +136,41 @@ describe('diff/line', function() {
     });
 
     it('should ignore leading and trailing whitespace', function() {
-      const diffResult = diffTrimmedLines(
+      const diffResult1 = diffTrimmedLines(
         'line\nvalue \nline',
-        'line \nvalue\nline');
-      expect(convertChangesToXML(diffResult)).to.equal('line \nvalue\nline');
+        'line\nvalue\nline');
+      expect(convertChangesToXML(diffResult1)).to.equal('line\nvalue\nline');
+
+      const diffResult2 = diffTrimmedLines(
+        'line\nvalue\nline',
+        'line\nvalue \nline');
+      expect(convertChangesToXML(diffResult2)).to.equal('line\nvalue \nline');
+
+      const diffResult3 = diffTrimmedLines(
+        'line\n value\nline',
+        'line\nvalue\nline');
+      expect(convertChangesToXML(diffResult3)).to.equal('line\nvalue\nline');
+
+      const diffResult4 = diffTrimmedLines(
+        'line\nvalue\nline',
+        'line\n value\nline');
+      expect(convertChangesToXML(diffResult4)).to.equal('line\n value\nline');
+    });
+
+    it('should keep leading and trailing whitespace in the output', function() {
+      function stringify(value) {
+        return JSON.stringify(value, null, 2);
+      }
+      const diffResult = diffTrimmedLines(
+      stringify([10, 20, 30]),
+      stringify({ data: [10, 42, 30] }));
+      expect(diffResult.filter(change => !change.removed).map(change => change.value).join('')).to.equal(`{
+  "data": [
+    10,
+    42,
+    30
+  ]
+}`);
     });
 
     it('should not consider adding whitespace to an empty line an insertion', function() {
