@@ -41,7 +41,7 @@ describe('diff/character', function() {
 
     it('should not be susceptible to race conditions in async mode when called with different options', function(done) {
       // (regression test for https://github.com/kpdecker/jsdiff/issues/477)
-      diffChars('wibblywobbly', 'WIBBLYWOBBLY', {ignoreCase: false, callback: (_, diffResult) => {
+      diffChars('wibblywobbly', 'WIBBLYWOBBLY', {ignoreCase: false, callback: (diffResult) => {
         expect(convertChangesToXML(diffResult)).to.equal('<del>wibblywobbly</del><ins>WIBBLYWOBBLY</ins>');
         done();
       }});
