@@ -148,6 +148,15 @@ describe('diff/line', function() {
         'line\r\nnew value\r\nline');
       expect(convertChangesToXML(diffResult)).to.equal('line\r\n<del>old value \r\n</del><ins>new value\r\n</ins>line');
     });
+
+    it('should be compatible with newlineIsToken', function() {
+      const diffResult = diffTrimmedLines(
+        'line1\nline2\n   \nline4\n \n',
+        'line1\nline2\n\n\nline4\n   \n',
+        {newlineIsToken: true}
+      );
+      expect(convertChangesToXML(diffResult)).to.equal('line1\nline2\n<del>   </del>\n<ins>\n</ins>line4\n   \n');
+    });
   });
 
   describe('#diffLinesNL', function() {
