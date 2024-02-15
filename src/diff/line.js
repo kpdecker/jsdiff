@@ -46,7 +46,7 @@ lineDiff.equals = function(left, right) {
       right = right.trim();
     }
   }
-  return Diff.equals(left, right);
+  return Diff.prototype.equals.call(this, left, right);
 };
 
 export function diffLines(oldStr, newStr, callback) { return lineDiff.diff(oldStr, newStr, callback); }
