@@ -181,8 +181,8 @@ describe('diff/line', function() {
           '    30\n',
           '  ]\n',
           '<ins>}</ins>'
-        ].join('').replace(/"/g, '&quot;'));
-      });
+      ].join('').replace(/"/g, '&quot;'));
+    });
 
     it('should not consider adding whitespace to an empty line an insertion', function() {
       const diffResult = diffTrimmedLines('foo\n\nbar', 'foo\n \nbar');
