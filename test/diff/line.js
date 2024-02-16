@@ -171,7 +171,18 @@ describe('diff/line', function() {
     30
   ]
 }`);
-    });
+      expect(convertChangesToXML(diffResult)).to.equal([
+          '<del>[\n</del>',
+          '<ins>{\n',
+          '  "data": [\n</ins>',
+          '    10,\n',
+          '<del>  20,\n</del>',
+          '<ins>    42,\n</ins>',
+          '    30\n',
+          '  ]\n',
+          '<ins>}</ins>'
+        ].join('').replace(/"/g, '&quot;'));
+      });
 
     it('should not consider adding whitespace to an empty line an insertion', function() {
       const diffResult = diffTrimmedLines('foo\n\nbar', 'foo\n \nbar');
