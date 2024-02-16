@@ -1,8 +1,9 @@
 import Diff from './base';
 import {lineDiff} from './line';
 
-const objectPrototypeToString = Object.prototype.toString;
-
+const objectPrototype = Object.prototype;
+const objectPrototypeToString = objectPrototype.toString;
+const objectPrototypeHasOwnProperty = objectPrototype.hasOwnProperty;
 
 export const jsonDiff = new Diff();
 // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
@@ -65,7 +66,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
         key;
     for (key in obj) {
       /* istanbul ignore else */
-      if (obj.hasOwnProperty(key)) {
+      if (objectPrototypeHasOwnProperty.call(obj, key)) {
         sortedKeys.push(key);
       }
     }
