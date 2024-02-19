@@ -4,6 +4,50 @@ import {convertChangesToXML} from '../../lib/convert/xml';
 import {expect} from 'chai';
 
 describe('WordDiff', function() {
+  describe('#tokenize', function() {
+    it('should give words, punctuation marks, newlines, and runs of whitespace their own token', function() {
+      expect(
+        wordDiff.tokenize(
+          'foo bar baz jurídica wir üben    bla\t\t \txyzáxyz  \n\n\n  animá-los\r\n\r\n(wibbly wobbly)().'
+        )
+      ).to.deep.equal([
+        'foo',
+        ' ',
+        'bar',
+        ' ',
+        'baz',
+        ' ',
+        'jurídica',
+        ' ',
+        'wir',
+        ' ',
+        'üben',
+        '    ',
+        'bla',
+        '\t\t \t',
+        'xyzáxyz',
+        '  ',
+        '\n',
+        '\n',
+        '\n',
+        '  ',
+        'animá',
+        '-',
+        'los',
+        '\r\n',
+        '\r\n',
+        '(',
+        'wibbly',
+        ' ',
+        'wobbly',
+        ')',
+        '(',
+        ')',
+        '.'
+      ]);
+    });
+  });
+
   describe('#diffWords', function() {
     it('should diff whitespace', function() {
       const diffResult = diffWords('New Value', 'New  ValueMoreData');
@@ -59,11 +103,6 @@ describe('WordDiff', function() {
     it('should diff when there is no anchor value', function() {
       const diffResult = diffWords('New Value New Value', 'Value Value New New');
       expect(convertChangesToXML(diffResult)).to.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
-    });
-
-    it('should token unicode characters safely', function() {
-      expect(wordDiff.removeEmpty(wordDiff.tokenize('jurídica'))).to.eql(['jurídica']);
-      expect(wordDiff.removeEmpty(wordDiff.tokenize('wir üben'))).to.eql(['wir', ' ', 'üben']);
     });
 
     it('should include count with identity cases', function() {
