@@ -32,7 +32,28 @@ wordDiff.equals = function(left, right, options) {
   return left === right || (options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
 };
 wordDiff.tokenize = function(value) {
-  // All whitespace symbols except newline group into one token, each newline - in separate token
+  // Each token is one of the following:
+  // - A newline (either Unix-style or Windows-style)
+  // - A punctuation mark plus the surrounding non-newline whitespace
+  // - A word plus the surrounding non-newline whitespace
+  //
+  // We have to include surrounding whitespace in the tokens because the two
+  // alternative approaches produce horribly broken results:
+  // * If we just discard the whitespace, we can't fully reproduce the original
+  //   text from the sequence of tokens and any attempt to render the diff will
+  //   get the whitespace wrong.
+  // * If we have separate tokens for whitespace, then in a typical text every
+  //   second token will be a single space character. But this often results in
+  //   the optimal diff between two texts being a perverse one that preserves
+  //   the spaces between words but deletes and reinserts actual common words.
+  //   See https://github.com/kpdecker/jsdiff/issues/160#issuecomment-1866099640
+  //   for an example.
+  //
+  // Keeping the surrounding whitespace of course has implications for .equals
+  // and .join, below.
+
+  // TODO: actually implement above
+
   let tokens = value.split(/([^\S\r\n]+|[()[\]{}'"\r\n]|\b)/);
 
   // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
