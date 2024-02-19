@@ -19,9 +19,14 @@ import {generateOptions} from '../util/params';
 //  - U+02DC  ˜ &#732;  Small Tilde
 //  - U+02DD  ˝ &#733;  Double Acute Accent
 // Latin Extended Additional, 1E00–1EFF
-const extendedWordChars = /^[a-zA-Z\u{C0}-\u{FF}\u{D8}-\u{F6}\u{F8}-\u{2C6}\u{2C8}-\u{2D7}\u{2DE}-\u{2FF}\u{1E00}-\u{1EFF}]+$/u;
+const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}';
 
-const reWhitespace = /\S/;
+// A token is any of the following:
+// * A newline (with or without a carriage return)
+// * A run of word characters
+// * A run of whitespace
+// * A single character that doesn't belong to any of the above categories (and is therefore considered punctuation)
+const tokenizeRegex = new RegExp(`\\r?\\n|[${extendedWordChars}]+|[^\\S\\r\\n]+|[^${extendedWordChars}]`, 'ug');
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right, options) {
@@ -29,25 +34,17 @@ wordDiff.equals = function(left, right, options) {
     left = left.toLowerCase();
     right = right.toLowerCase();
   }
-  return left === right || (options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
+  // The comparisons to the empty string are needed PURELY to signal to
+  // buildValues that the whitespace token should be ignored. The empty string
+  // will never be a token (removeEmpty removes it) but buildValues uses empty
+  // string comparisons to test for ignored tokens and we need to handle that
+  // query here.
+  const leftIsWhitespace = (left === '' || (/^\s+$/).test(left));
+  const rightIsWhitespace = (right === '' || (/^\s+$/).test(right));
+  return left === right || (options.ignoreWhitespace && leftIsWhitespace && rightIsWhitespace);
 };
 wordDiff.tokenize = function(value) {
-  // All whitespace symbols except newline group into one token, each newline - in separate token
-  let tokens = value.split(/([^\S\r\n]+|[()[\]{}'"\r\n]|\b)/);
-
-  // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
-  for (let i = 0; i < tokens.length - 1; i++) {
-    // If we have an empty string in the next field and we have only word chars before and after, merge
-    if (!tokens[i + 1] && tokens[i + 2]
-          && extendedWordChars.test(tokens[i])
-          && extendedWordChars.test(tokens[i + 2])) {
-      tokens[i] += tokens[i + 2];
-      tokens.splice(i + 1, 2);
-      i--;
-    }
-  }
-
-  return tokens;
+  return value.match(tokenizeRegex) || [];
 };
 
 export function diffWords(oldStr, newStr, options) {
