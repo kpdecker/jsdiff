@@ -1,10 +1,6 @@
 import Diff from './base';
 import {lineDiff} from './line';
 
-const objectPrototype = Object.prototype;
-const objectPrototypeToString = objectPrototype.toString;
-const objectPrototypeHasOwnProperty = objectPrototype.hasOwnProperty;
-
 export const jsonDiff = new Diff();
 // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
 // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
@@ -42,7 +38,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
 
   let canonicalizedObj;
 
-  if ('[object Array]' === objectPrototypeToString.call(obj)) {
+  if ('[object Array]' === Object.prototype.toString.call(obj)) {
     stack.push(obj);
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
@@ -66,7 +62,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
         key;
     for (key in obj) {
       /* istanbul ignore else */
-      if (objectPrototypeHasOwnProperty.call(obj, key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         sortedKeys.push(key);
       }
     }
