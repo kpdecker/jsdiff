@@ -64,6 +64,7 @@ describe('WordDiff', function() {
     it('should token unicode characters safely', function() {
       expect(wordDiff.removeEmpty(wordDiff.tokenize('jurídica'))).to.eql(['jurídica']);
       expect(wordDiff.removeEmpty(wordDiff.tokenize('wir üben'))).to.eql(['wir', ' ', 'üben']);
+      expect(wordDiff.removeEmpty(wordDiff.tokenize('안녕.'))).to.eql(['안녕', '.']);
     });
 
     it('should include count with identity cases', function() {
