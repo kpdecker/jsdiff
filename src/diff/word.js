@@ -1,5 +1,4 @@
 import Diff from './base';
-import {generateOptions} from '../util/params';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -22,10 +21,10 @@ import {generateOptions} from '../util/params';
 const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}';
 
 // Each token is one of the following:
-// - A newline (either Unix-style or Windows-style)
-// - A punctuation mark plus the surrounding non-newline whitespace
-// - A word plus the surrounding non-newline whitespace
-// - A run of pure whitespace (but only when this is the only content on a line)
+// - A punctuation mark plus the surrounding whitespace
+// - A word plus the surrounding whitespace
+// - Pure whitespace (but only in the special case where this the entire text
+//   is just whitespace)
 //
 // We have to include surrounding whitespace in the tokens because the two
 // alternative approaches produce horribly broken results:
@@ -46,7 +45,7 @@ const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\
 // Instead, it gives runs of whitespace their own "token". The tokenize method
 // then handles stitching whitespace tokens onto adjacent word or punctuation
 // tokens.
-const tokenizeIncludingWhitespace = new RegExp(`\\r?\\n|[${extendedWordChars}]+|[^\\S\\r\\n]+|[^${extendedWordChars}]`, 'ug');
+const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\s+|[^${extendedWordChars}]`, 'ug');
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right, options) {
@@ -63,15 +62,13 @@ wordDiff.tokenize = function(value) {
   const tokens = [];
   let prevPart = null;
   for (const part of parts) {
-    if (part.includes('\n')) {
-      tokens.push(part);
-    } else if ((/\s/).test(part)) {
-      if (prevPart == null || prevPart.includes('\n')) {
+    if ((/\s/).test(part)) {
+      if (prevPart == null) {
         tokens.push(part);
       } else {
         tokens.push(tokens.pop() + part);
       }
-    } else if ((/\s/).test(prevPart) && !prevPart.includes('\n')) {
+    } else if ((/\s/).test(prevPart)) {
       if (tokens[tokens.length - 1] == prevPart) {
         tokens.push(tokens.pop() + part);
       } else {
@@ -104,9 +101,19 @@ wordDiff.join = function(tokens) {
 };
 
 export function diffWords(oldStr, newStr, options) {
-  options = generateOptions(options);
-  return wordDiff.diff(oldStr, newStr, options);
+  const result = wordDiff.diff(oldStr, newStr, options);
+  // Before returning, we tidy up the leading and trailing whitespace of the
+  // change objects to eliminate cases where trailing whitespace in one object
+  // is repeated as leading whitespace in the next.
+
+  // TODO: the above!
+  return result;
 }
 
-// TODO: Restore diffWordsWithSpace. It should basically just use
-//       tokenizeIncludingWhitespace without the extra logic.
+export const wordWithSpaceDiff = new Diff();
+wordWithSpaceDiff.tokenize = function(value) {
+  return value.match(tokenizeIncludingWhitespace) || [];
+};
+export function diffWordsWithSpace(oldStr, newStr, options) {
+  return wordWithSpaceDiff.diff(oldStr, newStr, options);
+}
