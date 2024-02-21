@@ -182,6 +182,22 @@ describe('diff/json', function() {
         { count: 1, value: '}', removed: false, added: false }
       ]);
     });
+
+    it("doesn't throw on Object.create(null)", function() {
+      let diff;
+      expect(function() {
+        diff = diffJson(
+          Object.assign(Object.create(null), {a: 123}),
+          {b: 456}
+        );
+      }).not.to['throw']();
+      expect(diff).to.eql([
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  \"a\": 123\n', removed: true, added: false },
+        { count: 1, value: '  \"b\": 456\n', removed: false, added: true },
+        { count: 1, value: '}', removed: false, added: false }
+      ]);
+    });
   });
 });
 

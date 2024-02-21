@@ -19,9 +19,29 @@ import {generateOptions} from '../util/params';
 //  - U+02DC  ˜ &#732;  Small Tilde
 //  - U+02DD  ˝ &#733;  Double Acute Accent
 // Latin Extended Additional, 1E00–1EFF
-const extendedWordChars = /^[a-zA-Z\u{C0}-\u{FF}\u{D8}-\u{F6}\u{F8}-\u{2C6}\u{2C8}-\u{2D7}\u{2DE}-\u{2FF}\u{1E00}-\u{1EFF}]+$/u;
+const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}';
 
-const reWhitespace = /\S/;
+// Each token is one of the following:
+// - A newline (either Unix-style or Windows-style)
+// - A punctuation mark plus the surrounding non-newline whitespace
+// - A word plus the surrounding non-newline whitespace
+//
+// We have to include surrounding whitespace in the tokens because the two
+// alternative approaches produce horribly broken results:
+// * If we just discard the whitespace, we can't fully reproduce the original
+//   text from the sequence of tokens and any attempt to render the diff will
+//   get the whitespace wrong.
+// * If we have separate tokens for whitespace, then in a typical text every
+//   second token will be a single space character. But this often results in
+//   the optimal diff between two texts being a perverse one that preserves
+//   the spaces between words but deletes and reinserts actual common words.
+//   See https://github.com/kpdecker/jsdiff/issues/160#issuecomment-1866099640
+//   for an example.
+//
+// Keeping the surrounding whitespace of course has implications for .equals
+// and .join, below.
+// TODO: actually implement above
+const tokenizeRegex = new RegExp(`\\r?\\n|[${extendedWordChars}]+|[^\\S\\r\\n]+|[^${extendedWordChars}]`, 'ug');
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right, options) {
@@ -29,46 +49,17 @@ wordDiff.equals = function(left, right, options) {
     left = left.toLowerCase();
     right = right.toLowerCase();
   }
-  return left === right || (options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right));
+  // The comparisons to the empty string are needed PURELY to signal to
+  // buildValues that the whitespace token should be ignored. The empty string
+  // will never be a token (removeEmpty removes it) but buildValues uses empty
+  // string comparisons to test for ignored tokens and we need to handle that
+  // query here.
+  const leftIsWhitespace = (left === '' || (/^\s+$/).test(left));
+  const rightIsWhitespace = (right === '' || (/^\s+$/).test(right));
+  return left === right || (options.ignoreWhitespace && leftIsWhitespace && rightIsWhitespace);
 };
 wordDiff.tokenize = function(value) {
-  // Each token is one of the following:
-  // - A newline (either Unix-style or Windows-style)
-  // - A punctuation mark plus the surrounding non-newline whitespace
-  // - A word plus the surrounding non-newline whitespace
-  //
-  // We have to include surrounding whitespace in the tokens because the two
-  // alternative approaches produce horribly broken results:
-  // * If we just discard the whitespace, we can't fully reproduce the original
-  //   text from the sequence of tokens and any attempt to render the diff will
-  //   get the whitespace wrong.
-  // * If we have separate tokens for whitespace, then in a typical text every
-  //   second token will be a single space character. But this often results in
-  //   the optimal diff between two texts being a perverse one that preserves
-  //   the spaces between words but deletes and reinserts actual common words.
-  //   See https://github.com/kpdecker/jsdiff/issues/160#issuecomment-1866099640
-  //   for an example.
-  //
-  // Keeping the surrounding whitespace of course has implications for .equals
-  // and .join, below.
-
-  // TODO: actually implement above
-
-  let tokens = value.split(/([^\S\r\n]+|[()[\]{}'"\r\n]|\b)/);
-
-  // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
-  for (let i = 0; i < tokens.length - 1; i++) {
-    // If we have an empty string in the next field and we have only word chars before and after, merge
-    if (!tokens[i + 1] && tokens[i + 2]
-          && extendedWordChars.test(tokens[i])
-          && extendedWordChars.test(tokens[i + 2])) {
-      tokens[i] += tokens[i + 2];
-      tokens.splice(i + 1, 2);
-      i--;
-    }
-  }
-
-  return tokens;
+  return value.match(tokenizeRegex) || [];
 };
 
 export function diffWords(oldStr, newStr, options) {
