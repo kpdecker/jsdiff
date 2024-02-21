@@ -25,6 +25,7 @@ const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\
 // - A newline (either Unix-style or Windows-style)
 // - A punctuation mark plus the surrounding non-newline whitespace
 // - A word plus the surrounding non-newline whitespace
+// - A run of pure whitespace (but only when this is the only content on a line)
 //
 // We have to include surrounding whitespace in the tokens because the two
 // alternative approaches produce horribly broken results:
@@ -39,9 +40,13 @@ const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\
 //   for an example.
 //
 // Keeping the surrounding whitespace of course has implications for .equals
-// and .join, below.
-// TODO: actually implement above
-const tokenizeRegex = new RegExp(`\\r?\\n|[${extendedWordChars}]+|[^\\S\\r\\n]+|[^${extendedWordChars}]`, 'ug');
+// and .join, not just .tokenize.
+
+// This regex does NOT fully implement the tokenization rules described above.
+// Instead, it gives runs of whitespace their own "token". The tokenize method
+// then handles stitching whitespace tokens onto adjacent word or punctuation
+// tokens.
+const tokenizeIncludingWhitespace = new RegExp(`\\r?\\n|[${extendedWordChars}]+|[^\\S\\r\\n]+|[^${extendedWordChars}]`, 'ug');
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right, options) {
@@ -49,24 +54,59 @@ wordDiff.equals = function(left, right, options) {
     left = left.toLowerCase();
     right = right.toLowerCase();
   }
-  // The comparisons to the empty string are needed PURELY to signal to
-  // buildValues that the whitespace token should be ignored. The empty string
-  // will never be a token (removeEmpty removes it) but buildValues uses empty
-  // string comparisons to test for ignored tokens and we need to handle that
-  // query here.
-  const leftIsWhitespace = (left === '' || (/^\s+$/).test(left));
-  const rightIsWhitespace = (right === '' || (/^\s+$/).test(right));
-  return left === right || (options.ignoreWhitespace && leftIsWhitespace && rightIsWhitespace);
+
+  return left.trim() === right.trim();
 };
+
 wordDiff.tokenize = function(value) {
-  return value.match(tokenizeRegex) || [];
+  let parts = value.match(tokenizeIncludingWhitespace) || [];
+  const tokens = [];
+  let prevPart = null;
+  for (const part of parts) {
+    if (part.includes('\n')) {
+      tokens.push(part);
+    } else if ((/\s/).test(part)) {
+      if (prevPart == null || prevPart.includes('\n')) {
+        tokens.push(part);
+      } else {
+        tokens.push(tokens.pop() + part);
+      }
+    } else if ((/\s/).test(prevPart) && !prevPart.includes('\n')) {
+      if (tokens[tokens.length - 1] == prevPart) {
+        tokens.push(tokens.pop() + part);
+      } else {
+        tokens.push(prevPart + part);
+      }
+    } else {
+      tokens.push(part);
+    }
+
+    prevPart = part;
+  }
+  return tokens;
+};
+
+wordDiff.join = function(tokens) {
+  // Tokens being joined here will always have appeared consecutively in the
+  // same text, so we can simply strip off the leading whitespace from all the
+  // tokens except the first (and expect any whitespace-only tokens) and then
+  // join them and the whitespace around words and punctuation will end up
+  // correct.
+  return tokens.map((token, i) => {
+    if (i == 0) {
+      return token;
+    } else if ((/^\s+$/).test(token)) {
+      return token;
+    } else {
+      return token.replace((/^\s+/), '');
+    }
+  }).join('');
 };
 
 export function diffWords(oldStr, newStr, options) {
-  options = generateOptions(options, {ignoreWhitespace: true});
+  options = generateOptions(options);
   return wordDiff.diff(oldStr, newStr, options);
 }
 
-export function diffWordsWithSpace(oldStr, newStr, options) {
-  return wordDiff.diff(oldStr, newStr, options);
-}
+// TODO: Restore diffWordsWithSpace. It should basically just use
+//       tokenizeIncludingWhitespace without the extra logic.
