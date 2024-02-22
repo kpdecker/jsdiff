@@ -34,10 +34,67 @@ describe('WordDiff', function() {
   });
 
   describe('#diffWords', function() {
-    it('should diff whitespace', function() {
-      const diffResult = diffWords('New Value', 'New  ValueMoreData');
-      expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins>');
+    it("should ignore whitespace changes between tokens that aren't added or deleted", function() {
+      const diffResult = diffWords('New    Value', 'New \n \t Value');
+      expect(convertChangesToXML(diffResult)).to.equal('New \n \t Value');
     });
+
+    describe('whitespace changes that border inserted/deleted tokens should be included in the diff as far as is possible...', function() {
+      it('(add+del at end of text)', function() {
+        const diffResult = diffWords('New Value', 'New  ValueMoreData');
+        expect(convertChangesToXML(diffResult)).to.equal('New <del>Value</del><ins> ValueMoreData</ins>');
+      });
+
+      it('(add+del in middle of text)', function() {
+        const diffResult = diffWords('New Value End', 'New  ValueMoreData End');
+        expect(convertChangesToXML(diffResult)).to.equal('New <del>Value</del><ins> ValueMoreData</ins> End');
+      });
+
+      it('(add+del at start of text)', function() {
+        const diffResult = diffWords('\tValue End', ' ValueMoreData   End');
+        expect(convertChangesToXML(diffResult)).to.equal('<del>\tValue</del><ins> ValueMoreData  </ins> End');
+      });
+
+      it('(add at start of text)', function() {
+        const diffResult = diffWords('\t Value', 'More  Value');
+        expect(convertChangesToXML(diffResult)).to.equal('<ins>More </del> Value');
+      });
+
+      it('(del at start of text)', function() {
+        const diffResult = diffWords('More  Value', '\t Value');
+        expect(convertChangesToXML(diffResult)).to.equal('<del>More  </del>\t Value');
+      });
+
+      it('(add in middle of text)', function() {
+        const diffResult = diffWords('Even Value', 'Even    More    Value');
+        expect(convertChangesToXML(diffResult)).to.equal('Even    <ins>More    </ins>Value');
+        // Preferable would be:
+        // 'Even <ins>   More    </ins>Value'
+        // But this is hard to achieve without adding something like the
+        // .oldValue property I contemplate in
+        // https://github.com/kpdecker/jsdiff/pull/219#issuecomment-1858246490
+        // to change objects returned by the base diffing algorithm. The CO
+        // cleanup done by diffWords simply doesn't have enough information to
+        // return the ideal result otherwise.
+      });
+
+      it('(del in middle of text)', function() {
+        const diffResult = diffWords('Even    More    Value', 'Even Value');
+        expect(convertChangesToXML(diffResult)).to.equal('Even <del>   More    </del>Value');
+      });
+
+      it('(add at end of text)', function() {
+        const diffResult = diffWords('Foo\n', 'Foo Bar\n');
+        expect(convertChangesToXML(diffResult)).to.equal('Foo<ins>Bar\n</ins>');
+      });
+
+      it('(del at end of text)', function() {
+        const diffResult = diffWords('Foo   Bar', 'Foo ');
+        expect(convertChangesToXML(diffResult)).to.equal('Foo <del>  Bar</del>');
+      });
+    });
+
+    // TODO: Review all tests below here
 
     it('should diff multiple whitespace values', function() {
       const diffResult = diffWords('New Value  ', 'New  ValueMoreData ');
