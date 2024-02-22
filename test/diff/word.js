@@ -5,41 +5,26 @@ import {expect} from 'chai';
 
 describe('WordDiff', function() {
   describe('#tokenize', function() {
-    it('should give words, punctuation marks, newlines, and runs of whitespace their own token', function() {
+    it('should give each word & punctuation mark its own token, including leading and trailing whitespace', function() {
       expect(
         wordDiff.tokenize(
           'foo bar baz jurídica wir üben    bla\t\t \txyzáxyz  \n\n\n  animá-los\r\n\r\n(wibbly wobbly)().'
         )
       ).to.deep.equal([
-        'foo',
-        ' ',
-        'bar',
-        ' ',
-        'baz',
-        ' ',
-        'jurídica',
-        ' ',
-        'wir',
-        ' ',
-        'üben',
-        '    ',
-        'bla',
-        '\t\t \t',
-        'xyzáxyz',
-        '  ',
-        '\n',
-        '\n',
-        '\n',
-        '  ',
-        'animá',
+        'foo ',
+        ' bar ',
+        ' baz ',
+        ' jurídica ',
+        ' wir ',
+        ' üben    ',
+        '    bla\t\t \t',
+        '\t\t \txyzáxyz  \n\n\n  ',
+        '  \n\n\n  animá',
         '-',
-        'los',
-        '\r\n',
-        '\r\n',
-        '(',
-        'wibbly',
-        ' ',
-        'wobbly',
+        'los\r\n\r\n',
+        '\r\n\r\n(',
+        'wibbly ',
+        ' wobbly',
         ')',
         '(',
         ')',

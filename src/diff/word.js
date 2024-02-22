@@ -46,7 +46,7 @@ const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\
 // Instead, it gives runs of whitespace their own "token". The tokenize method
 // then handles stitching whitespace tokens onto adjacent word or punctuation
 // tokens.
-const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\s+|[^${extendedWordChars}]`, 'ug');
+const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, 'ug');
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right, options) {
