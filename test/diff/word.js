@@ -242,7 +242,7 @@ describe('WordDiff', function() {
       expect(convertChangesToXML(diffResult)).to.equal('&quot;<ins>word</ins>&quot;');
     });
 
-    it('should threat newline as separate token (issues #180, #211)', function() {
+    it('should treat newline as separate token (issues #180, #211)', function() {
       // #180
       const diffResult1 = diffWordsWithSpace('foo\nbar', 'foo\n\n\nbar');
       expect(convertChangesToXML(diffResult1)).to.equal('foo\n<ins>\n\n</ins>bar');
