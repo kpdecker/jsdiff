@@ -1,5 +1,6 @@
 import Diff from './base';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap } from '../util/string';
+import {generateOptions} from '../util/params';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -102,6 +103,9 @@ wordDiff.join = function(tokens) {
 };
 
 export function diffWords(oldStr, newStr, options) {
+  // TODO: Support async properly. Currently conflicts with the
+  //       extra logic below.
+  options = generateOptions(options, {});
   const changes = wordDiff.diff(oldStr, newStr, options);
   // TODO: skip all the stuff below in 1 token per co mode
 
@@ -242,5 +246,6 @@ wordWithSpaceDiff.tokenize = function(value) {
   return value.match(tokenizeIncludingWhitespace) || [];
 };
 export function diffWordsWithSpace(oldStr, newStr, options) {
+  options = generateOptions(options, {});
   return wordWithSpaceDiff.diff(oldStr, newStr, options);
 }
