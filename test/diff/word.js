@@ -143,12 +143,6 @@ describe('WordDiff', function() {
       expect(convertChangesToXML(diffResult)).to.equal('<ins>New Value</ins>');
     });
 
-    // With without anchor (the Heckel algorithm error case)
-    it('should diff when there is no anchor value', function() {
-      const diffResult = diffWords('New Value New Value', 'Value Value New New');
-      expect(convertChangesToXML(diffResult)).to.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
-    });
-
     it('should include count with identity cases', function() {
       expect(diffWords('foo', 'foo')).to.eql([{value: 'foo', count: 1, removed: false, added: false}]);
       expect(diffWords('foo bar', 'foo bar')).to.eql([{value: 'foo bar', count: 3, removed: false, added: false}]);
@@ -240,6 +234,12 @@ describe('WordDiff', function() {
         expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del>  <ins>ValueMoreData </ins>');
         done();
       });
+    });
+
+    // With without anchor (the Heckel algorithm error case)
+    it('should diff when there is no anchor value', function() {
+      const diffResult = diffWordsWithSpace('New Value New Value', 'Value Value New New');
+      expect(convertChangesToXML(diffResult)).to.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
     });
 
     describe('case insensitivity', function() {
