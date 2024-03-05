@@ -145,14 +145,14 @@ describe('WordDiff', function() {
 
     it('should include count with identity cases', function() {
       expect(diffWords('foo', 'foo')).to.eql([{value: 'foo', count: 1, removed: false, added: false}]);
-      expect(diffWords('foo bar', 'foo bar')).to.eql([{value: 'foo bar', count: 3, removed: false, added: false}]);
+      expect(diffWords('foo bar', 'foo bar')).to.eql([{value: 'foo bar', count: 2, removed: false, added: false}]);
     });
     it('should include count with empty cases', function() {
       expect(diffWords('foo', '')).to.eql([{value: 'foo', count: 1, added: false, removed: true}]);
-      expect(diffWords('foo bar', '')).to.eql([{value: 'foo bar', count: 3, added: false, removed: true}]);
+      expect(diffWords('foo bar', '')).to.eql([{value: 'foo bar', count: 2, added: false, removed: true}]);
 
       expect(diffWords('', 'foo')).to.eql([{value: 'foo', count: 1, added: true, removed: false}]);
-      expect(diffWords('', 'foo bar')).to.eql([{value: 'foo bar', count: 3, added: true, removed: false}]);
+      expect(diffWords('', 'foo bar')).to.eql([{value: 'foo bar', count: 2, added: true, removed: false}]);
     });
 
     it('should ignore whitespace', function() {
