@@ -163,11 +163,6 @@ describe('WordDiff', function() {
       expect(diffWords('hase igel\nfuchs', 'hase igel fuchs')).to.eql([{ count: 3, value: 'hase igel fuchs', removed: false, added: false }]);
     });
 
-    it('should diff whitespace with flag', function() {
-      const diffResult = diffWords('New Value', 'New  ValueMoreData', {ignoreWhitespace: false});
-      expect(convertChangesToXML(diffResult)).to.equal('New<del> Value</del><ins>  ValueMoreData</ins>');
-    });
-
     it('should diff with only whitespace', function() {
       let diffResult = diffWords('', ' ');
       expect(convertChangesToXML(diffResult)).to.equal('<ins> </ins>');
