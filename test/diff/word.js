@@ -41,8 +41,8 @@ describe('WordDiff', function() {
 
     describe('whitespace changes that border inserted/deleted tokens should be included in the diff as far as is possible...', function() {
       it('(add+del at end of text)', function() {
-        const diffResult = diffWords('New Value', 'New  ValueMoreData');
-        expect(convertChangesToXML(diffResult)).to.equal('New <del>Value</del><ins> ValueMoreData</ins>');
+        const diffResult = diffWords('New Value  ', 'New  ValueMoreData ');
+        expect(convertChangesToXML(diffResult)).to.equal('New <del>Value  </del><ins> ValueMoreData </ins>');
       });
 
       it('(add+del in middle of text)', function() {
@@ -111,12 +111,6 @@ describe('WordDiff', function() {
     });
 
     // TODO: Review all tests below here
-
-    it('should diff multiple whitespace values', function() {
-      const diffResult = diffWords('New Value  ', 'New  ValueMoreData ');
-      expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins> ');
-    });
-
     // Diff on word boundary
     it('should diff on word boundaries', function() {
       let diffResult = diffWords('New :Value:Test', 'New  ValueMoreData ');

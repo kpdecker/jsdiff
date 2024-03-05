@@ -207,8 +207,6 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
       endKeep.value = endKeep.value.replace(/^\s*/, '');
     }
   } else {
-    console.log("Handling deletion. startKeep:", startKeep, 'deletion:', deletion, 'endKeep:', endKeep)
-
     // As long as we're NOT at the start of the text, the leading whitespace of
     // the second "keep" change object can always be nuked, and the trailing
     // whitespace of the deletion can always be kept, whether or not they
