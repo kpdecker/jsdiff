@@ -105,6 +105,31 @@ export function diffWords(oldStr, newStr, options) {
   const changes = wordDiff.diff(oldStr, newStr, options);
   // TODO: skip all the stuff below in 1 token per co mode
 
+  let lastKeep = null;
+  // Change objects representing any insertion or deletion since the last
+  // "keep" change object. There can be at most one of each.
+  let insertion = null;
+  let deletion = null;
+  for (const change of changes) {
+    if (change.added) {
+      insertion = change;
+    } else if (change.removed) {
+      deletion = change;
+    } else {
+      if (insertion || deletion) { // May be false at start of text
+        dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change);
+      }
+      lastKeep = change;
+      insertion = null;
+      deletion = null;
+    }
+  }
+  if (insertion || deletion) {
+    dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
+  }
+  return changes;
+}
+function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep) {
   // Before returning, we tidy up the leading and trailing whitespace of the
   // change objects to eliminate cases where trailing whitespace in one object
   // is repeated as leading whitespace in the next.
@@ -124,7 +149,7 @@ export function diffWords(oldStr, newStr, options) {
   //
   // 4. Diffing 'foo baz' vs 'foo\nbar baz'
   //    Prior to cleanup, we have K:'foo\n' I:'\nbar ' K:' baz'
-  //    After cleanup, we want K'foo' D:'\nbar' K:' baz'
+  //    After cleanup, we want K'foo' I:'\nbar' K:' baz'
   //
   // 5. Diffing 'foo   bar baz' vs 'foo  baz'
   //    Prior to cleanup, we have K:'foo  ' D:'   bar ' K:'  baz'
@@ -139,77 +164,79 @@ export function diffWords(oldStr, newStr, options) {
   // output something that will look sensible if we e.g. print it with
   // insertions in green and deletions in red.
 
-  let lastKeep = null;
-  // Change objects representing insertions or deletions since the last "keep"
-  // change object.
-  let indels = [];
-  for (const change of changes) {
-    if (change.added || change.removed) {
-      indels.push(change);
-    } else if (lastKeep != null) {
-      // Between two "keep" change objects, we can have either:
-      // * A "delete" followed by an "insert"
-      // * Just an "insert"
-      // * Just a "delete"
-      // We handle the three cases separately.
-      if (indels.length == 2) {
-        const [deletion, insertion] = indels;
-        const oldWsPrefix = deletion.value.match(/^\s*/)[0];
-        const oldWsSuffix = deletion.value.match(/\s*$/)[0];
-        const newWsPrefix = insertion.value.match(/^\s*/)[0];
-        const newWsSuffix = insertion.value.match(/\s*$/)[0];
+  // Between two "keep" change objects (or before the first or after the last
+  // change object), we can have either:
+  // * A "delete" followed by an "insert"
+  // * Just an "insert"
+  // * Just a "delete"
+  // We handle the three cases separately.
 
-        const commonWsPrefix = longestCommonPrefix(oldWsPrefix, newWsPrefix);
-        lastKeep.value = replaceSuffix(lastKeep.value, newWsPrefix, commonWsPrefix);
-        deletion.value = removePrefix(deletion.value, commonWsPrefix);
-        insertion.value = removePrefix(insertion.value, commonWsPrefix);
+  if (!deletion && !insertion) {
+    throw Error("deletion & insertion are both null; this shouldn't happen");
+  }
 
-        const commonWsSuffix = longestCommonSuffix(oldWsSuffix, newWsSuffix);
-        change.value = replacePrefix(change.value, newWsSuffix, commonWsSuffix);
-        deletion.value = removeSuffix(deletion.value, commonWsSuffix);
-        insertion.value = removeSuffix(insertion.value, commonWsSuffix);
-      } else {
-        const [indel] = indels;
+  if (deletion && insertion) {
+    const oldWsPrefix = deletion.value.match(/^\s*/)[0];
+    const oldWsSuffix = deletion.value.match(/\s*$/)[0];
+    const newWsPrefix = insertion.value.match(/^\s*/)[0];
+    const newWsSuffix = insertion.value.match(/\s*$/)[0];
 
-        if (indel.added) {
-          // The whitespaces all reflect what was in the new text rather than
-          // the old, so we essentially have no information about whitespace
-          // insertion or deletion. We just want to dedupe the whitespace.
-          // We do that by having each change object keep its trailing
-          // whitespace and deleting duplicate leading whitespace where
-          // present.
-          indel.value = indel.value.replace(/^\s*/, '');
-          change.value = change.value.replace(/^\s*/, '');
-        } else {
-          const keep1WsSuffix = lastKeep.value.match(/\s*$/)[0];
-          const deletionWsPrefix = indel.value.match(/^\s*/)[0];
+    if (startKeep) {
+      const commonWsPrefix = longestCommonPrefix(oldWsPrefix, newWsPrefix);
+      startKeep.value = replaceSuffix(startKeep.value, newWsPrefix, commonWsPrefix);
+      deletion.value = removePrefix(deletion.value, commonWsPrefix);
+      insertion.value = removePrefix(insertion.value, commonWsPrefix);
+    }
+    if (endKeep) {
+      const commonWsSuffix = longestCommonSuffix(oldWsSuffix, newWsSuffix);
+      endKeep.value = replacePrefix(endKeep.value, newWsSuffix, commonWsSuffix);
+      deletion.value = removeSuffix(deletion.value, commonWsSuffix);
+      insertion.value = removeSuffix(insertion.value, commonWsSuffix);
+    }
+  } else if (insertion) {
+    // The whitespaces all reflect what was in the new text rather than
+    // the old, so we essentially have no information about whitespace
+    // insertion or deletion. We just want to dedupe the whitespace.
+    // We do that by having each change object keep its trailing
+    // whitespace and deleting duplicate leading whitespace where
+    // present.
+    if (startKeep) {
+      insertion.value = insertion.value.replace(/^\s*/, '');
+    }
+    if (endKeep) {
+      endKeep.value = endKeep.value.replace(/^\s*/, '');
+    }
+  } else {
+    console.log("Handling deletion. startKeep:", startKeep, 'deletion:', deletion, 'endKeep:', endKeep)
 
-          // The leading whitespace of the second "keep" change object can
-          // always be nuked, and the trailing whitespace of the deletion
-          // can always be kept, whether or not they match.
-          change.value = change.value.replace(/^\s*/, '');
+    // As long as we're NOT at the start of the text, the leading whitespace of
+    // the second "keep" change object can always be nuked, and the trailing
+    // whitespace of the deletion can always be kept, whether or not they
+    // match. (The whitespace separating the two keeps will be including at
+    // the end of startKeep so we don't need to duplicate it on endKeep.)
+    if (startKeep && endKeep) {
+      endKeep.value = endKeep.value.replace(/^\s*/, '');
+    } else if (endKeep) {
+      // If we ARE at the start of the text, though, we need to preserve all
+      // the whitespace on endKeep. In that case, we just want to remove
+      // whitespace from the end of deletion to the extent that it overlaps
+      // with the start of endKeep.
+      const endKeepWsPrefix = endKeep.value.match(/^\s*/)[0];
+      const deletionWsSuffix = deletion.value.match(/\s*$/)[0];
+      const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
+      deletion.value = removeSuffix(deletion.value, overlap);
+    }
 
-          // The only awkward bit is the leading whitespace on the deleted
-          // token. To the extent that this overlaps with the trailing
-          // whitespace on the preceding kept token, it can be deleted, but
-          // we need to compute the overlap.
-          const overlap = maximumOverlap(keep1WsSuffix, deletionWsPrefix);
-          indel.value = removePrefix(indel.value, overlap);
-        }
-      }
-      lastKeep = change;
-      indels = [];
-    } else {
-      // The indels we've got here come before the first "keep" change object
-      // TODO: Handle this case
-
-      lastKeep = change;
-      indels = [];
+    // Leading whitespace on the deleted token can only be deleted to the
+    // extent that this overlaps with the trailing whitespace on the preceding
+    // kept token.
+    if (startKeep) {
+      const startKeepWsSuffix = startKeep.value.match(/\s*$/)[0];
+      const deletionWsPrefix = deletion.value.match(/^\s*/)[0];
+      const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
+      deletion.value = removePrefix(deletion.value, overlap);
     }
   }
-  // TODO: Handle indels that come after the last "keep" change object
-
-  return changes;
 }
 
 export const wordWithSpaceDiff = new Diff();

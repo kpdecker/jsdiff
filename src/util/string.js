@@ -28,6 +28,10 @@ export function replacePrefix(string, oldPrefix, newPrefix) {
 }
 
 export function replaceSuffix(string, oldSuffix, newSuffix) {
+  if (!oldSuffix) {
+    return string + newSuffix;
+  }
+
   if (string.slice(-oldSuffix.length) != oldSuffix) {
     throw Error(`string ${JSON.stringify(string)} doesn't end with suffix ${JSON.stringify(oldSuffix)}; this is a bug`);
   }

@@ -57,7 +57,15 @@ describe('WordDiff', function() {
 
       it('(add at start of text)', function() {
         const diffResult = diffWords('\t Value', 'More  Value');
-        expect(convertChangesToXML(diffResult)).to.equal('<ins>More </del> Value');
+        // Preferable would be:
+        // '<ins>More </ins> Value'
+        // But this is hard to achieve without adding something like the
+        // .oldValue property I contemplate in
+        // https://github.com/kpdecker/jsdiff/pull/219#issuecomment-1858246490
+        // to change objects returned by the base diffing algorithm. The CO
+        // cleanup done by diffWords simply doesn't have enough information to
+        // return the ideal result otherwise.
+        expect(convertChangesToXML(diffResult)).to.equal('<ins>More  </ins>Value');
       });
 
       it('(del at start of text)', function() {
@@ -67,7 +75,6 @@ describe('WordDiff', function() {
 
       it('(add in middle of text)', function() {
         const diffResult = diffWords('Even Value', 'Even    More    Value');
-        expect(convertChangesToXML(diffResult)).to.equal('Even    <ins>More    </ins>Value');
         // Preferable would be:
         // 'Even <ins>   More    </ins>Value'
         // But this is hard to achieve without adding something like the
@@ -76,6 +83,7 @@ describe('WordDiff', function() {
         // to change objects returned by the base diffing algorithm. The CO
         // cleanup done by diffWords simply doesn't have enough information to
         // return the ideal result otherwise.
+        expect(convertChangesToXML(diffResult)).to.equal('Even    <ins>More    </ins>Value');
       });
 
       it('(del in middle of text)', function() {
@@ -85,7 +93,15 @@ describe('WordDiff', function() {
 
       it('(add at end of text)', function() {
         const diffResult = diffWords('Foo\n', 'Foo Bar\n');
-        expect(convertChangesToXML(diffResult)).to.equal('Foo<ins>Bar\n</ins>');
+        // Preferable would be:
+        // 'Foo<ins> Bar\n</ins>'
+        // But this is hard to achieve without adding something like the
+        // .oldValue property I contemplate in
+        // https://github.com/kpdecker/jsdiff/pull/219#issuecomment-1858246490
+        // to change objects returned by the base diffing algorithm. The CO
+        // cleanup done by diffWords simply doesn't have enough information to
+        // return the ideal result otherwise.
+        expect(convertChangesToXML(diffResult)).to.equal('Foo <ins>Bar\n</ins>');
       });
 
       it('(del at end of text)', function() {
