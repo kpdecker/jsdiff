@@ -156,11 +156,11 @@ describe('WordDiff', function() {
     });
 
     it('should ignore whitespace', function() {
-      expect(diffWords('hase igel fuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs', removed: false, added: false }]);
-      expect(diffWords('hase igel fuchs', 'hase igel fuchs\n')).to.eql([{ count: 5, value: 'hase igel fuchs\n', removed: false, added: false }]);
-      expect(diffWords('hase igel fuchs\n', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs\n', removed: false, added: false }]);
-      expect(diffWords('hase igel fuchs', 'hase igel\nfuchs')).to.eql([{ count: 5, value: 'hase igel\nfuchs', removed: false, added: false }]);
-      expect(diffWords('hase igel\nfuchs', 'hase igel fuchs')).to.eql([{ count: 5, value: 'hase igel fuchs', removed: false, added: false }]);
+      expect(diffWords('hase igel fuchs', 'hase igel fuchs')).to.eql([{ count: 3, value: 'hase igel fuchs', removed: false, added: false }]);
+      expect(diffWords('hase igel fuchs', 'hase igel fuchs\n')).to.eql([{ count: 3, value: 'hase igel fuchs\n', removed: false, added: false }]);
+      expect(diffWords('hase igel fuchs\n', 'hase igel fuchs')).to.eql([{ count: 3, value: 'hase igel fuchs', removed: false, added: false }]);
+      expect(diffWords('hase igel fuchs', 'hase igel\nfuchs')).to.eql([{ count: 3, value: 'hase igel\nfuchs', removed: false, added: false }]);
+      expect(diffWords('hase igel\nfuchs', 'hase igel fuchs')).to.eql([{ count: 3, value: 'hase igel fuchs', removed: false, added: false }]);
     });
 
     it('should diff whitespace with flag', function() {
