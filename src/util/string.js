@@ -21,25 +21,25 @@ export function longestCommonSuffix(str1, str2) {
 }
 
 export function replacePrefix(string, oldPrefix, newPrefix) {
-  if (string.slice(oldPrefix.length) != oldPrefix) {
-    throw Error(`string ${string} doesn't start with prefix ${oldPrefix}; this is a bug`);
+  if (string.slice(0, oldPrefix.length) != oldPrefix) {
+    throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
   }
   return newPrefix + string.slice(oldPrefix.length);
 }
 
 export function replaceSuffix(string, oldSuffix, newSuffix) {
   if (string.slice(-oldSuffix.length) != oldSuffix) {
-    throw Error(`string ${string} doesn't end with suffix ${oldSuffix}; this is a bug`);
+    throw Error(`string ${JSON.stringify(string)} doesn't end with suffix ${JSON.stringify(oldSuffix)}; this is a bug`);
   }
   return string.slice(0, -oldSuffix.length) + newSuffix;
 }
 
 export function removePrefix(string, oldPrefix) {
-  return string.replacePrefix(oldPrefix, '');
+  return replacePrefix(string, oldPrefix, '');
 }
 
 export function removeSuffix(string, oldSuffix) {
-  return string.replaceSuffix(oldSuffix, '');
+  return replaceSuffix(string, oldSuffix, '');
 }
 
 export function maximumOverlap(string1, string2) {

@@ -167,7 +167,7 @@ export function diffWords(oldStr, newStr, options) {
         const commonWsSuffix = longestCommonSuffix(oldWsSuffix, newWsSuffix);
         change.value = replacePrefix(change.value, newWsSuffix, commonWsSuffix);
         deletion.value = removeSuffix(deletion.value, commonWsSuffix);
-        insertion.value = removeSuffix(deletion.value, commonWsSuffix);
+        insertion.value = removeSuffix(insertion.value, commonWsSuffix);
       } else {
         const [indel] = indels;
 
@@ -181,8 +181,8 @@ export function diffWords(oldStr, newStr, options) {
           indel.value = indel.value.replace(/^\s*/, '');
           change.value = change.value.replace(/^\s*/, '');
         } else {
-          const keep1WsSuffix = lastKeep.value.match(/\s*$/);
-          const deletionWsPrefix = indel.value.match(/^\s*/);
+          const keep1WsSuffix = lastKeep.value.match(/\s*$/)[0];
+          const deletionWsPrefix = indel.value.match(/^\s*/)[0];
 
           // The leading whitespace of the second "keep" change object can
           // always be nuked, and the trailing whitespace of the deletion
@@ -197,9 +197,14 @@ export function diffWords(oldStr, newStr, options) {
           indel.value = removePrefix(indel.value, overlap);
         }
       }
+      lastKeep = change;
+      indels = [];
     } else {
       // The indels we've got here come before the first "keep" change object
       // TODO: Handle this case
+
+      lastKeep = change;
+      indels = [];
     }
   }
   // TODO: Handle indels that come after the last "keep" change object
