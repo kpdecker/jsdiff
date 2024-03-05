@@ -181,70 +181,10 @@ describe('WordDiff', function() {
       diffResult = diffWords(' ', '');
       expect(convertChangesToXML(diffResult)).to.equal('<del> </del>');
     });
-  });
 
-  describe('#diffWords - async', function() {
-    it('should diff whitespace', function(done) {
-      diffWords('New Value', 'New  ValueMoreData', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins>');
-        done();
-      });
-    });
-
-    it('should diff multiple whitespace values', function(done) {
-      diffWords('New Value  ', 'New  ValueMoreData ', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New  <del>Value</del><ins>ValueMoreData</ins> ');
-        done();
-      });
-    });
-
-    // Diff on word boundary
-    it('should treat punctuation characters as tokens', function(done) {
-      diffWords('New:Value:Test', 'New,Value,More,Data ', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New<del>:</del><ins>,</ins>Value<del>:Test</del><ins>,More,Data </ins>');
-        done();
-      });
-    });
-
-    // Diff without changes
-    it('should handle identity', function(done) {
-      diffWords('New Value', 'New Value', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New Value');
-        done();
-      });
-    });
-    it('should handle empty', function(done) {
-      diffWords('', '', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('');
-        done();
-      });
-    });
-    it('should diff has identical content', function(done) {
-      diffWords('New Value', 'New  Value', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New  Value');
-        done();
-      });
-    });
-
-    // Empty diffs
-    it('should diff empty new content', function(done) {
-      diffWords('New Value', '', function(diffResult) {
-        expect(diffResult.length).to.equal(1);
-        expect(convertChangesToXML(diffResult)).to.equal('<del>New Value</del>');
-        done();
-      });
-    });
-    it('should diff empty old content', function(done) {
-      diffWords('', 'New Value', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('<ins>New Value</ins>');
-        done();
-      });
-    });
-
-    // With without anchor (the Heckel algorithm error case)
-    it('should diff when there is no anchor value', function(done) {
-      diffWords('New Value New Value', 'Value Value New New', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
+    it('should support async mode', function(done) {
+      diffWords('New    Value', 'New \n \t Value', function(diffResult) {
+        expect(convertChangesToXML(diffResult)).to.equal('New \n \t Value');
         done();
       });
     });
