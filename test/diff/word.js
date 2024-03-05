@@ -110,21 +110,13 @@ describe('WordDiff', function() {
       });
     });
 
+    it('should treat punctuation characters as tokens', function() {
+      let diffResult = diffWords('New:Value:Test', 'New,Value,More,Data ');
+      expect(convertChangesToXML(diffResult)).to.equal('New<del>:</del><ins>,</ins>Value<del>:Test</del><ins>,More,Data </ins>');
+    });
+
     // TODO: Review all tests below here
     // Diff on word boundary
-    it('should diff on word boundaries', function() {
-      let diffResult = diffWords('New :Value:Test', 'New  ValueMoreData ');
-      expect(convertChangesToXML(diffResult)).to.equal('New  <del>:Value:Test</del><ins>ValueMoreData </ins>');
-
-      diffResult = diffWords('New Value:Test', 'New  Value:MoreData ');
-      expect(convertChangesToXML(diffResult)).to.equal('New  Value:<del>Test</del><ins>MoreData </ins>');
-
-      diffResult = diffWords('New Value-Test', 'New  Value:MoreData ');
-      expect(convertChangesToXML(diffResult)).to.equal('New  Value<del>-Test</del><ins>:MoreData </ins>');
-
-      diffResult = diffWords('New Value', 'New  Value:MoreData ');
-      expect(convertChangesToXML(diffResult)).to.equal('New  Value<ins>:MoreData </ins>');
-    });
 
     // Diff without changes
     it('should handle identity', function() {
@@ -207,9 +199,9 @@ describe('WordDiff', function() {
     });
 
     // Diff on word boundary
-    it('should diff on word boundaries', function(done) {
-      diffWords('New :Value:Test', 'New  ValueMoreData ', function(diffResult) {
-        expect(convertChangesToXML(diffResult)).to.equal('New  <del>:Value:Test</del><ins>ValueMoreData </ins>');
+    it('should treat punctuation characters as tokens', function(done) {
+      diffWords('New:Value:Test', 'New,Value,More,Data ', function(diffResult) {
+        expect(convertChangesToXML(diffResult)).to.equal('New<del>:</del><ins>,</ins>Value<del>:Test</del><ins>,More,Data </ins>');
         done();
       });
     });
