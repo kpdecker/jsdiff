@@ -88,13 +88,11 @@ wordDiff.tokenize = function(value) {
 wordDiff.join = function(tokens) {
   // Tokens being joined here will always have appeared consecutively in the
   // same text, so we can simply strip off the leading whitespace from all the
-  // tokens except the first (and except any whitespace-only tokens) and then
-  // join them and the whitespace around words and punctuation will end up
-  // correct.
+  // tokens except the first (and except any whitespace-only tokens - but such
+  // a token will always be the first and only token anyway) and then join them
+  // and the whitespace around words and punctuation will end up correct.
   return tokens.map((token, i) => {
     if (i == 0) {
-      return token;
-    } else if ((/^\s+$/).test(token)) {
       return token;
     } else {
       return token.replace((/^\s+/), '');
