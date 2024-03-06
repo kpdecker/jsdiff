@@ -102,12 +102,12 @@ wordDiff.join = function(tokens) {
   }).join('');
 };
 
-export function diffWords(oldStr, newStr, options) {
-  // TODO: Support async properly. Currently conflicts with the
-  //       extra logic below.
-  options = generateOptions(options, {});
-  const changes = wordDiff.diff(oldStr, newStr, options);
+wordDiff.postProcess = function(changes) {
   // TODO: skip all the stuff below in 1 token per co mode
+
+  if (!changes) {
+    return changes;
+  }
 
   let lastKeep = null;
   // Change objects representing any insertion or deletion since the last
@@ -132,7 +132,13 @@ export function diffWords(oldStr, newStr, options) {
     dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
   }
   return changes;
+};
+
+export function diffWords(oldStr, newStr, options) {
+  options = generateOptions(options, {});
+  return wordDiff.diff(oldStr, newStr, options);
 }
+
 function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep) {
   // Before returning, we tidy up the leading and trailing whitespace of the
   // change objects to eliminate cases where trailing whitespace in one object
