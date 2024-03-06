@@ -117,6 +117,13 @@ describe('WordDiff', function() {
       );
     });
 
+    it('should respect options.ignoreCase', function() {
+      const diffResult = diffWords('foo bar baz', 'FOO BAR QUX', {ignoreCase: true});
+      expect(convertChangesToXML(diffResult)).to.equal(
+        'FOO BAR <del>baz</del><ins>QUX</ins>'
+      );
+    });
+
     it('should treat punctuation characters as tokens', function() {
       let diffResult = diffWords('New:Value:Test', 'New,Value,More,Data ');
       expect(convertChangesToXML(diffResult)).to.equal('New<del>:</del><ins>,</ins>Value<del>:Test</del><ins>,More,Data </ins>');
