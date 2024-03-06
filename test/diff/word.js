@@ -222,6 +222,11 @@ describe('WordDiff', function() {
       // #211
       const diffResult2 = diffWordsWithSpace('A\n\nB\n', 'A\nB\n');
       expect(convertChangesToXML(diffResult2)).to.equal('A\n<del>\n</del>B\n');
+      // Windows-style newlines should also get a single token
+      const diffResult3 = diffWordsWithSpace('foo\r\nbar', 'foo  \r\n\r\n\r\nbar');
+      expect(convertChangesToXML(diffResult3)).to.equal('foo<ins>  </ins>\r\n<ins>\r\n\r\n</ins>bar');
+      const diffResult4 = diffWordsWithSpace('A\r\n\r\nB\r\n', 'A\r\nB\r\n');
+      expect(convertChangesToXML(diffResult4)).to.equal('A\r\n<del>\r\n</del>B\r\n');
     });
 
     it('should perform async operations', function(done) {
