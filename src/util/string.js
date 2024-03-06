@@ -12,12 +12,20 @@ export function longestCommonPrefix(str1, str2) {
 
 export function longestCommonSuffix(str1, str2) {
   let i;
+
+  // Unlike longestCommonPrefix, we need a special case to handle all scenarios
+  // where we return the empty string since str1.slice(-0) will return the
+  // entire string.
+  if (!str1 || !str2 || str1[str1.length - 1] != str2[str2.length - 1]) {
+    return '';
+  }
+
   for (i = 0; i < str1.length && i < str2.length; i++) {
-    if (str1[str1.length - (i + 1)] != str2[i - (i + 1)]) {
+    if (str1[str1.length - (i + 1)] != str2[str2.length - (i + 1)]) {
       return str1.slice(-i);
     }
   }
-  return str1.slice(0, i);
+  return str1.slice(-i);
 }
 
 export function replacePrefix(string, oldPrefix, newPrefix) {

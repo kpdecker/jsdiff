@@ -1,4 +1,4 @@
-import {longestCommonPrefix} from '../../lib/util/string';
+import {longestCommonPrefix, longestCommonSuffix} from '../../lib/util/string';
 import {expect} from 'chai';
 
 describe('#longestCommonPrefix', function() {
@@ -13,3 +13,17 @@ describe('#longestCommonPrefix', function() {
     expect(longestCommonPrefix('foo', 'bar')).to.equal('');
   });
 });
+
+describe('#longestCommonSuffix', function() {
+  it('finds the longest common suffix', function() {
+    expect(longestCommonSuffix('bumpy', 'grumpy')).to.equal('umpy');
+    expect(longestCommonSuffix('grumpy', 'bumpy')).to.equal('umpy');
+    expect(longestCommonSuffix('grumpy', 'umpy')).to.equal('umpy');
+    expect(longestCommonSuffix('umpy', 'grumpy')).to.equal('umpy');
+    expect(longestCommonSuffix('foo', '')).to.equal('');
+    expect(longestCommonSuffix('', 'foo')).to.equal('');
+    expect(longestCommonSuffix('', '')).to.equal('');
+    expect(longestCommonSuffix('foo', 'bar')).to.equal('');
+  });
+});
+
