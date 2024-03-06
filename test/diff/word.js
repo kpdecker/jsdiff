@@ -115,9 +115,6 @@ describe('WordDiff', function() {
       expect(convertChangesToXML(diffResult)).to.equal('New<del>:</del><ins>,</ins>Value<del>:Test</del><ins>,More,Data </ins>');
     });
 
-    // TODO: Review all tests below here
-    // Diff on word boundary
-
     // Diff without changes
     it('should handle identity', function() {
       const diffResult = diffWords('New Value', 'New Value');
