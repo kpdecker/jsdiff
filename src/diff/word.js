@@ -176,11 +176,6 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
   // * Just an "insert"
   // * Just a "delete"
   // We handle the three cases separately.
-
-  if (!deletion && !insertion) {
-    throw Error("deletion & insertion are both null; this shouldn't happen");
-  }
-
   if (deletion && insertion) {
     const oldWsPrefix = deletion.value.match(/^\s*/)[0];
     const oldWsSuffix = deletion.value.match(/\s*$/)[0];
