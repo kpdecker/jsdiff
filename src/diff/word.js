@@ -249,7 +249,13 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
 
 export const wordWithSpaceDiff = new Diff();
 wordWithSpaceDiff.tokenize = function(value) {
-  return value.match(tokenizeIncludingWhitespace) || [];
+  // Slightly different to the tokenizeIncludingWhitespace regex used above in
+  // that this one treats each individual newline as a distinct tokens, rather
+  // than merging them into other surrounding whitespace. This was requested
+  // in https://github.com/kpdecker/jsdiff/issues/180 &
+  //    https://github.com/kpdecker/jsdiff/issues/211
+  const regex = new RegExp(`\r?\n|[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, 'ug');
+  return value.match(regex) || [];
 };
 export function diffWordsWithSpace(oldStr, newStr, options) {
   options = generateOptions(options, {});
