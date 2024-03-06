@@ -211,6 +211,7 @@ Diff.prototype = {
   join(chars) {
     return chars.join('');
   },
+  // TODO: Document me
   postProcess(changeObjects) {
     return changeObjects;
   }
