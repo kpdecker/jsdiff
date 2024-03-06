@@ -110,6 +110,13 @@ describe('WordDiff', function() {
       });
     });
 
+    it('should skip postprocessing of change objects in one-change-object-per-token mode', function() {
+      const diffResult = diffWords('Foo Bar', 'Foo Baz', {oneChangePerToken: true});
+      expect(convertChangesToXML(diffResult)).to.equal(
+        'Foo <del> Bar</del><ins> Baz</ins>'
+      );
+    });
+
     it('should treat punctuation characters as tokens', function() {
       let diffResult = diffWords('New:Value:Test', 'New,Value,More,Data ');
       expect(convertChangesToXML(diffResult)).to.equal('New<del>:</del><ins>,</ins>Value<del>:Test</del><ins>,More,Data </ins>');
