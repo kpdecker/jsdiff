@@ -102,10 +102,8 @@ wordDiff.join = function(tokens) {
   }).join('');
 };
 
-wordDiff.postProcess = function(changes) {
-  // TODO: skip all the stuff below in 1 token per co mode
-
-  if (!changes) {
+wordDiff.postProcess = function(changes, options) {
+  if (!changes || options.oneChangePerToken) {
     return changes;
   }
 

@@ -11,7 +11,7 @@ Diff.prototype = {
     let self = this;
 
     function done(value) {
-      value = self.postProcess(value);
+      value = self.postProcess(value, options);
       if (callback) {
         setTimeout(function() { callback(value); }, 0);
         return true;
