@@ -1,4 +1,4 @@
-import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix} from '../../lib/util/string';
+import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix} from '../../lib/util/string';
 import {expect} from 'chai';
 
 describe('#longestCommonPrefix', function() {
@@ -39,7 +39,7 @@ describe('#replacePrefix', function() {
   });
 });
 
-describe('#replaceSuffx', function() {
+describe('#replaceSuffix', function() {
   it('replaces a suffix on a string with a different suffix', function() {
     expect((replaceSuffix('bangle', 'gle', 'jo'))).to.equal('banjo');
     expect((replaceSuffix('bun', '', 'gle'))).to.equal('bungle');
@@ -48,5 +48,31 @@ describe('#replaceSuffx', function() {
   it("throws if the suffix to remove isn't present", function() {
     // eslint-disable-next-line dot-notation
     expect(() => replaceSuffix('food', 'ool', 'ondle')).to.throw();
+  });
+});
+
+describe('#removePrefix', function() {
+  it('removes a prefix', function() {
+    expect(removePrefix('inconceivable', 'in')).to.equal('conceivable');
+    expect(removePrefix('inconceivable', '')).to.equal('inconceivable');
+    expect(removePrefix('inconceivable', 'inconceivable')).to.equal('');
+  });
+
+  it("throws if the prefix to remove isn't present", function() {
+    // eslint-disable-next-line dot-notation
+    expect(() => removePrefix('food', 'dr')).to.throw();
+  });
+});
+
+describe('#removeSuffix', function() {
+  it('removes a suffix', function() {
+    expect(removeSuffix('counterfactual', 'factual')).to.equal('counter');
+    expect(removeSuffix('counterfactual', '')).to.equal('counterfactual');
+    expect(removeSuffix('counterfactual', 'counterfactual')).to.equal('');
+  });
+
+  it("throws if tyhe suffix to remove isn't present", function() {
+    // eslint-disable-next-line dot-notation
+    expect(() => removeSuffix('food', 'dr')).to.throw();
   });
 });
