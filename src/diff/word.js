@@ -63,7 +63,7 @@ wordDiff.tokenize = function(value) {
   let parts = value.match(tokenizeIncludingWhitespace) || [];
   const tokens = [];
   let prevPart = null;
-  for (const part of parts) {
+  parts.forEach(part => {
     if ((/\s/).test(part)) {
       if (prevPart == null) {
         tokens.push(part);
@@ -81,7 +81,7 @@ wordDiff.tokenize = function(value) {
     }
 
     prevPart = part;
-  }
+  });
   return tokens;
 };
 
@@ -110,7 +110,7 @@ wordDiff.postProcess = function(changes, options) {
   // "keep" change object. There can be at most one of each.
   let insertion = null;
   let deletion = null;
-  for (const change of changes) {
+  changes.forEach(change => {
     if (change.added) {
       insertion = change;
     } else if (change.removed) {
@@ -123,7 +123,7 @@ wordDiff.postProcess = function(changes, options) {
       insertion = null;
       deletion = null;
     }
-  }
+  });
   if (insertion || deletion) {
     dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
   }
