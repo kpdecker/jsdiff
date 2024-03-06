@@ -254,7 +254,7 @@ wordWithSpaceDiff.tokenize = function(value) {
   // than merging them into other surrounding whitespace. This was requested
   // in https://github.com/kpdecker/jsdiff/issues/180 &
   //    https://github.com/kpdecker/jsdiff/issues/211
-  const regex = new RegExp(`\\r?\\n|[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, 'ug');
+  const regex = new RegExp(`(\\r?\\n)|[${extendedWordChars}]+|[^\\S\\n\\r]+|[^${extendedWordChars}]`, 'ug');
   return value.match(regex) || [];
 };
 export function diffWordsWithSpace(oldStr, newStr, options) {
