@@ -1,4 +1,4 @@
-import {longestCommonPrefix, longestCommonSuffix} from '../../lib/util/string';
+import {longestCommonPrefix, longestCommonSuffix, replacePrefix} from '../../lib/util/string';
 import {expect} from 'chai';
 
 describe('#longestCommonPrefix', function() {
@@ -27,3 +27,14 @@ describe('#longestCommonSuffix', function() {
   });
 });
 
+describe('#replacePrefix', function() {
+  it('replaces a prefix on a string with a different prefix', function() {
+    expect((replacePrefix('food', 'foo', 'gla'))).to.equal('glad');
+    expect((replacePrefix('food', '', 'good '))).to.equal('good food');
+  });
+
+  it("throws if the prefix to remove isn't present", function() {
+    // eslint-disable-next-line dot-notation
+    expect(() => replacePrefix('food', 'drin', 'goo')).to.throw();
+  });
+});
