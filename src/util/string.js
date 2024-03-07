@@ -1,5 +1,3 @@
-// TODO: unit test these utils
-
 export function longestCommonPrefix(str1, str2) {
   let i;
   for (i = 0; i < str1.length && i < str2.length; i++) {
@@ -59,7 +57,6 @@ export function maximumOverlap(string1, string2) {
 }
 
 // Nicked from https://stackoverflow.com/a/60422853/1709587
-// TODO: Check this works before committing
 function overlapCount(a, b) {
   // Deal with cases where the strings differ in length
   let startA = 0;
