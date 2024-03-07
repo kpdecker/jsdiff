@@ -253,6 +253,11 @@ describe('WordDiff', function() {
       expect(convertChangesToXML(diffResult)).to.equal('<del>New</del><ins>Value</ins> Value New <del>Value</del><ins>New</ins>');
     });
 
+    it('should handle empty', function() {
+      const diffResult = diffWordsWithSpace('', '');
+      expect(convertChangesToXML(diffResult)).to.equal('');
+    });
+
     describe('case insensitivity', function() {
       it("is considered when there's a difference", function() {
         const diffResult = diffWordsWithSpace('new value', 'New  ValueMoreData', {ignoreCase: true});
