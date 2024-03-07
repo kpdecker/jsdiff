@@ -204,6 +204,19 @@ describe('diff/line', function() {
       );
       expect(convertChangesToXML(diffResult)).to.equal('line1\nline2\n<del>   </del>\n<ins>\n</ins>line4\n   \n');
     });
+
+    it('supports async mode by passing a function as the options argument', function(done) {
+      diffTrimmedLines(
+        'line\r\nold value \r\nline',
+        'line \r\nnew value\r\nline',
+        function(diffResult) {
+          expect(convertChangesToXML(diffResult)).to.equal(
+            'line \r\n<del>old value \r\n</del><ins>new value\r\n</ins>line'
+          );
+          done();
+        }
+      );
+    });
   });
 
   describe('#diffLinesNL', function() {
