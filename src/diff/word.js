@@ -1,6 +1,5 @@
 import Diff from './base';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap } from '../util/string';
-import {generateOptions} from '../util/params';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -131,7 +130,6 @@ wordDiff.postProcess = function(changes, options) {
 };
 
 export function diffWords(oldStr, newStr, options) {
-  options = generateOptions(options, {});
   return wordDiff.diff(oldStr, newStr, options);
 }
 
@@ -249,6 +247,5 @@ wordWithSpaceDiff.tokenize = function(value) {
   return value.match(regex) || [];
 };
 export function diffWordsWithSpace(oldStr, newStr, options) {
-  options = generateOptions(options, {});
   return wordWithSpaceDiff.diff(oldStr, newStr, options);
 }
