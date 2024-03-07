@@ -34,16 +34,14 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
     Options
     * `ignoreCase`: If `true`, the uppercase and lowercase forms of a character are considered equal. Defaults to `false`.
 
-* `Diff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, treating each word and each word separator (punctuation, newline, or run of whitespace) as a token.
-
-  (Whitespace-only tokens are automatically treated as equal to each other, so changes like changing a space to a newline or a run of multiple spaces will be ignored.)
+* `Diff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, treating each word and each punctuation mark as a token. Whitespace is ignored when computing the diff (but preserved as far as possible in the final change objects).
 
     Returns a list of [change objects](#change-objects).
 
     Options
     * `ignoreCase`: Same as in `diffChars`. Defaults to false.
 
-* `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - same as `diffWords`, except whitespace-only tokens are not automatically considered equal, so e.g. changing a space to a tab is considered a change.
+* `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - diffs two blocks of text, treating each word, punctuation mark, newline, or run of (non-newline) whitespace as a token.
 
 * `Diff.diffLines(oldStr, newStr[, options])` - diffs two blocks of text, treating each line as a token.
 
