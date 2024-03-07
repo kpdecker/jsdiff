@@ -42,7 +42,7 @@ Diff.prototype = {
     let newPos = this.extractCommon(bestPath[0], newString, oldString, 0, options);
     if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
       // Identity per the equality and tokenizer
-      return done(buildValues(self, bestPath[0].lastComponent, newString, oldString, self.useLongestToken, options));
+      return done(buildValues(self, bestPath[0].lastComponent, newString, oldString, self.useLongestToken));
     }
 
     // Once we hit the right edge of the edit graph on some diagonal k, we can
@@ -106,7 +106,7 @@ Diff.prototype = {
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
-          return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken, options));
+          return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken));
         } else {
           bestPath[diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {
@@ -216,7 +216,7 @@ Diff.prototype = {
   }
 };
 
-function buildValues(diff, lastComponent, newString, oldString, useLongestToken, options) {
+function buildValues(diff, lastComponent, newString, oldString, useLongestToken) {
   // First we convert our linked list of components in reverse order to an
   // array in the right order:
   const components = [];
@@ -258,23 +258,6 @@ function buildValues(diff, lastComponent, newString, oldString, useLongestToken,
       component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
       oldPos += component.count;
     }
-  }
-
-  // Special case handle for when one terminal is ignored (i.e. whitespace).
-  // For this case we merge the terminal into the prior string and drop the change.
-  // This is only available for string mode.
-  let finalComponent = components[componentLen - 1];
-  if (
-    componentLen > 1
-    && typeof finalComponent.value === 'string'
-    && (
-      (finalComponent.added && diff.equals('', finalComponent.value, options))
-      ||
-      (finalComponent.removed && diff.equals(finalComponent.value, '', options))
-    )
-  ) {
-    components[componentLen - 2].value += finalComponent.value;
-    components.pop();
   }
 
   return components;
