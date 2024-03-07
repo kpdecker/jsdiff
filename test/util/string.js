@@ -1,4 +1,4 @@
-import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix} from '../../lib/util/string';
+import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap} from '../../lib/util/string';
 import {expect} from 'chai';
 
 describe('#longestCommonPrefix', function() {
@@ -71,8 +71,20 @@ describe('#removeSuffix', function() {
     expect(removeSuffix('counterfactual', 'counterfactual')).to.equal('');
   });
 
-  it("throws if tyhe suffix to remove isn't present", function() {
+  it("throws if the suffix to remove isn't present", function() {
     // eslint-disable-next-line dot-notation
     expect(() => removeSuffix('food', 'dr')).to.throw();
+  });
+});
+
+describe('#maximumOverlap', function() {
+  it('finds the maximum overlap between the end of one string and the start of the other', function() {
+    expect(maximumOverlap('qwertyuiop', 'uiopasdfgh')).to.equal('uiop');
+    expect(maximumOverlap('qwertyuiop', 'qwertyuiop')).to.equal('qwertyuiop');
+    expect(maximumOverlap('qwertyuiop', 'asdfghjkl')).to.equal('');
+    expect(maximumOverlap('qwertyuiop', '')).to.equal('');
+    expect(maximumOverlap('uiopasdfgh', 'qwertyuiop')).to.equal('');
+    expect(maximumOverlap('x   ', '  x')).to.equal('  ');
+    expect(maximumOverlap('', '')).to.equal('');
   });
 });
