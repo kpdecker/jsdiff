@@ -29,6 +29,8 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
 * `Diff.diffChars(oldStr, newStr[, options])` - diffs two blocks of text, treating each character as a token.
 
+    ("Characters" here means Unicode code points - the elements you get when you loop over a string with a `for ... of ...` loop.)
+
     Returns a list of [change objects](#change-objects).
 
     Options
