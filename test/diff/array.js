@@ -9,10 +9,10 @@ describe('diff/array', function() {
       const diffResult = diffArrays([a, b, c], [a, c, b]);
       console.log(diffResult);
       expect(diffResult).to.deep.equals([
-          {count: 1, value: [a]},
-          {count: 1, value: [c], removed: undefined, added: true},
-          {count: 1, value: [b]},
-          {count: 1, value: [c], removed: true, added: undefined}
+          {count: 1, value: [a], removed: false, added: false},
+          {count: 1, value: [b], removed: true, added: false},
+          {count: 1, value: [c], removed: false, added: false},
+          {count: 1, value: [b], removed: false, added: true}
       ]);
     });
     it('should diff falsey values', function() {
@@ -20,24 +20,24 @@ describe('diff/array', function() {
       const b = 0;
       const c = '';
       // Example sequences from Myers 1986
-      const arrayA = [c, b, a, b, a, c];
-      const arrayB = [a, b, c, a, b, b, a];
+      const arrayA = [a, b, c, a, b, b, a];
+      const arrayB = [c, b, a, b, a, c];
       const diffResult = diffArrays(arrayA, arrayB);
       expect(diffResult).to.deep.equals([
-        {count: 2, value: [a, b], removed: undefined, added: true},
-        {count: 1, value: [c]},
-        {count: 1, value: [b], removed: true, added: undefined},
-        {count: 2, value: [a, b]},
-        {count: 1, value: [b], removed: undefined, added: true},
-        {count: 1, value: [a]},
-        {count: 1, value: [c], removed: true, added: undefined}
+        {count: 2, value: [a, b], removed: true, added: false},
+        {count: 1, value: [c], removed: false, added: false},
+        {count: 1, value: [b], removed: false, added: true},
+        {count: 2, value: [a, b], removed: false, added: false},
+        {count: 1, value: [b], removed: true, added: false},
+        {count: 1, value: [a], removed: false, added: false},
+        {count: 1, value: [c], removed: false, added: true}
       ]);
     });
     describe('anti-aliasing', function() {
       // Test apparent contract that no chunk value is ever an input argument.
       const value = [0, 1, 2];
       const expected = [
-        {count: value.length, value: value}
+        {count: value.length, value: value, removed: false, added: false}
       ];
 
       const input = value.slice();
@@ -70,10 +70,45 @@ describe('diff/array', function() {
       const diffResult = diffArrays([a, b, c], [a, b, d], { comparator: comparator });
       console.log(diffResult);
       expect(diffResult).to.deep.equals([
-          {count: 2, value: [a, b]},
-          {count: 1, value: [c], removed: true, added: undefined},
-          {count: 1, value: [d], removed: undefined, added: true}
+          {count: 2, value: [a, b], removed: false, added: false},
+          {count: 1, value: [c], removed: true, added: false},
+          {count: 1, value: [d], removed: false, added: true}
       ]);
+    });
+    it('Should pass old/new tokens as the left/right comparator args respectively', function() {
+      diffArrays(
+        ['a', 'b', 'c'],
+        ['x', 'y', 'z'],
+        {
+          comparator: function(left, right) {
+            expect(left).to.be.oneOf(['a', 'b', 'c']);
+            expect(right).to.be.oneOf(['x', 'y', 'z']);
+            return left === right;
+          }
+        }
+      );
+    });
+    it('Should terminate early if execution time exceeds `timeout` ms', function() {
+      // To test this, we also pass a comparator that hot sleeps as a way to
+      // artificially slow down execution so we reach the timeout.
+      function comparator(left, right) {
+        const start = Date.now();
+        // Hot-sleep for 10ms
+        while (Date.now() < start + 10) {
+          // Do nothing
+        }
+        return left === right;
+      }
+
+      // It will require 14 comparisons (140ms) to diff these arrays:
+      const arr1 = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+      const arr2 = ['a', 'b', 'c', 'd', 'x', 'y', 'z'];
+
+      // So with a timeout of 50ms, we are guaranteed failure:
+      expect(diffArrays(arr1, arr2, {comparator, timeout: 50})).to.be.undefined;
+
+      // But with a longer timeout, we expect success:
+      expect(diffArrays(arr1, arr2, {comparator, timeout: 1000})).not.to.be.undefined;
     });
   });
 });

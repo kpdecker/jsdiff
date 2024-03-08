@@ -3,12 +3,12 @@
 /*
  * Text diff implementation.
  *
- * This library supports the following APIS:
- * JsDiff.diffChars: Character by character diff
- * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
- * JsDiff.diffLines: Line based diff
+ * This library supports the following APIs:
+ * Diff.diffChars: Character by character diff
+ * Diff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
+ * Diff.diffLines: Line based diff
  *
- * JsDiff.diffCss: Diff targeted at CSS content
+ * Diff.diffCss: Diff targeted at CSS content
  *
  * These methods are based on the implementation proposed in
  * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
@@ -28,7 +28,8 @@ import {diffArrays} from './diff/array';
 import {applyPatch, applyPatches} from './patch/apply';
 import {parsePatch} from './patch/parse';
 import {merge} from './patch/merge';
-import {structuredPatch, createTwoFilesPatch, createPatch} from './patch/create';
+import {reversePatch} from './patch/reverse';
+import {structuredPatch, createTwoFilesPatch, createPatch, formatPatch} from './patch/create';
 
 import {convertChangesToDMP} from './convert/dmp';
 import {convertChangesToXML} from './convert/xml';
@@ -51,10 +52,12 @@ export {
   structuredPatch,
   createTwoFilesPatch,
   createPatch,
+  formatPatch,
   applyPatch,
   applyPatches,
   parsePatch,
   merge,
+  reversePatch,
   convertChangesToDMP,
   convertChangesToXML,
   canonicalize

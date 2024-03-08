@@ -15,8 +15,8 @@ export function applyPatch(source, uniDiff, options = {}) {
   }
 
   // Apply the diff to the input
-  let lines = source.split(/\r\n|[\n\v\f\r\x85]/),
-      delimiters = source.match(/\r\n|[\n\v\f\r\x85]/g) || [],
+  let lines = source.split(/\r?\n/),
+      delimiters = source.match(/\r?\n/g) || [],
       hunks = uniDiff.hunks,
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
@@ -89,7 +89,7 @@ export function applyPatch(source, uniDiff, options = {}) {
       let line = hunk.lines[j],
           operation = (line.length > 0 ? line[0] : ' '),
           content = (line.length > 0 ? line.substr(1) : line),
-          delimiter = hunk.linedelimiters[j];
+          delimiter = hunk.linedelimiters && hunk.linedelimiters[j] || '\n';
 
       if (operation === ' ') {
         toPos++;

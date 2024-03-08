@@ -105,6 +105,10 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
 }
 
 export function formatPatch(diff) {
+  if (Array.isArray(diff)) {
+    return diff.map(formatPatch).join('\n');
+  }
+
   const ret = [];
   if (diff.oldFileName == diff.newFileName) {
     ret.push('Index: ' + diff.oldFileName);
@@ -136,7 +140,11 @@ export function formatPatch(diff) {
 }
 
 export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-  return formatPatch(structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options));
+  const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
+  if (!patchObj) {
+    return;
+  }
+  return formatPatch(patchObj);
 }
 
 export function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {

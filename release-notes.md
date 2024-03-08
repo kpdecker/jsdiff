@@ -1,8 +1,37 @@
 # Release Notes
 
-## Development
+## Future breaking 6.0.0 release
 
-[Commits](https://github.com/kpdecker/jsdiff/compare/v5.0.0...master)
+[Commits](https://github.com/kpdecker/jsdiff/compare/master...v6.0.0-staging)
+
+- [#435](https://github.com/kpdecker/jsdiff/pull/435) Fix `parsePatch` handling of control characters. `parsePatch` used to interpret various unusual control characters - namely vertical tabs, form feeds, lone carriage returns without a line feed, and EBCDIC NELs - as line breaks when parsing a patch file. This was inconsistent with the behavior of both JsDiff's own `diffLines` method and also the Unix `diff` and `patch` utils, which all simply treat those control characters as ordinary characters. The result of this discrepancy was that some well-formed patches - produced either by `diff` or by JsDiff itself and handled properly by the `patch` util - would be wrongly parsed by `parsePatch`, with the effect that it would disregard the remainder of a hunk after encountering one of these control characters.
+- [#439](https://github.com/kpdecker/jsdiff/pull/439) Prefer diffs that order deletions before insertions. When faced with a choice between two diffs with an equal total edit distance, the Myers diff algorithm generally prefers one that does deletions before insertions rather than insertions before deletions. For instance, when diffing `abcd` against `acbd`, it will prefer a diff that says to delete the `b` and then insert a new `b` after the `c`, over a diff that says to insert a `c` before the `b` and then delete the existing `c`. JsDiff deviated from the published Myers algorithm in a way that led to it having the opposite preference in many cases, including that example. This is now fixed, meaning diffs output by JsDiff will more accurately reflect what the published Myers diff algorithm would output.
+- [#455](https://github.com/kpdecker/jsdiff/pull/455) The `added` and `removed` properties of change objects are now guaranteed to be set to a boolean value. (Previously, they would be set to `undefined` or omitted entirely instead of setting them to false.)
+- [#464](https://github.com/kpdecker/jsdiff/pull/464) Specifying `{maxEditLength: 0}` now sets a max edit length of 0 instead of no maximum.
+- [#460](https://github.com/kpdecker/jsdiff/pull/460) Added `oneChangePerToken` option.
+- [#467](https://github.com/kpdecker/jsdiff/pull/467) When passing a `comparator(left, right)` to `diffArrays`, values from the old array will now consistently be passed as the first argument (`left`) and values from the new array as the second argument (`right`). Previously this was almost (but not quite) always the other way round.
+- [#480](https://github.com/kpdecker/jsdiff/pull/480) Passing `maxEditLength` to `createPatch` & `createTwoFilesPatch` now works properly (i.e. returns undefined if the max edit distance is exceeded; previous behavior was to crash with a `TypeError` if the edit distance was exceeded).
+- [#486](https://github.com/kpdecker/jsdiff/pull/486) The `ignoreWhitespace` option of `diffLines` behaves more sensibly now. `value`s in returned change objects now include leading/trailing whitespace even when `ignoreWhitespace` is used, just like how with `ignoreCase` the `value`s still reflect the case of one of the original texts instead of being all-lowercase. `ignoreWhitespace` is also now compatible with `newlineIsToken`. Finally, `diffTrimmedLines` is deprecated (and removed from the docs) in favour of using `diffLines` with `ignoreWhitespace: true`; the two are, and always have been, equivalent.
+- [#490](https://github.com/kpdecker/jsdiff/pull/490) When calling diffing functions in async mode by passing a `callback` option, the diff result will now be passed as the *first* argument to the callback instead of the second. (Previously, the first argument was never used at all and would always have value `undefined`.)
+- [#489](github.com/kpdecker/jsdiff/pull/489) `this.options` no longer exists on `Diff` objects. Instead, `options` is now passed as an argument to methods that rely on options, like `equals(left, right, options)`. This fixes a race condition in async mode, where diffing behaviour could be changed mid-execution if a concurrent usage of the same `Diff` instances overwrote its `options`.
+
+## v5.2.0
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v5.1.0...master)
+
+- [#411](https://github.com/kpdecker/jsdiff/pull/411) Big performance improvement. Previously an O(n) array-copying operation inside the innermost loop of jsdiff's base diffing code increased the overall worst-case time complexity of computing a diff from O(n²) to O(n³). This is now fixed, bringing the worst-case time complexity down to what it theoretically should be for a Myers diff implementation.
+- [#448](https://github.com/kpdecker/jsdiff/pull/411) Performance improvement. Diagonals whose furthest-reaching D-path would go off the edge of the edit graph are now skipped, rather than being pointlessly considered as called for by the original Myers diff algorithm. This dramatically speeds up computing diffs where the new text just appends or truncates content at the end of the old text.
+- [#351](https://github.com/kpdecker/jsdiff/issues/351) Importing from the lib folder - e.g. `require("diff/lib/diff/word.js")` - will work again now. This had been broken for users on the latest version of Node since Node 17.5.0, which changed how Node interprets the `exports` property in jsdiff's `package.json` file.
+- [#344](https://github.com/kpdecker/jsdiff/issues/344) `diffLines`, `createTwoFilesPatch`, and other patch-creation methods now take an optional `stripTrailingCr: true` option which causes Windows-style `\r\n` line endings to be replaced with Unix-style `\n` line endings before calculating the diff, just like GNU `diff`'s `--strip-trailing-cr` flag.
+- [#451](https://github.com/kpdecker/jsdiff/pull/451) Added `diff.formatPatch`.
+- [#450](https://github.com/kpdecker/jsdiff/pull/450) Added `diff.reversePatch`.
+- [#478](https://github.com/kpdecker/jsdiff/pull/478) Added `timeout` option.
+
+## v5.1.0
+
+- [#365](https://github.com/kpdecker/jsdiff/issues/365) Allow early termination to limit execution time with degenerate cases
+
+[Commits](https://github.com/kpdecker/jsdiff/compare/v5.0.0...v5.1.0)
 
 ## v5.0.0
 

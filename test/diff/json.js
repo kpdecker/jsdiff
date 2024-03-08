@@ -10,9 +10,9 @@ describe('diff/json', function() {
         {a: 123, b: 456, c: 789},
         {a: 123, b: 456}
       )).to.eql([
-        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
-        { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
-        { count: 1, value: '}' }
+        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n', removed: false, added: false },
+        { count: 1, value: '  "c": 789\n', added: false, removed: true },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
     });
 
@@ -21,9 +21,9 @@ describe('diff/json', function() {
         {a: 123, b: 456, c: 789},
         {b: 456, a: 123}
       )).to.eql([
-        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
-        { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
-        { count: 1, value: '}' }
+        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n', removed: false, added: false },
+        { count: 1, value: '  "c": 789\n', added: false, removed: true },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
     });
 
@@ -32,9 +32,9 @@ describe('diff/json', function() {
         {a: 123, b: 456, c: [1, 2, {foo: 'bar'}, 4]},
         {a: 123, b: 456, c: [1, {foo: 'bar'}, 4]}
       )).to.eql([
-        { count: 5, value: '{\n  "a": 123,\n  "b": 456,\n  "c": [\n    1,\n' },
-        { count: 1, value: '    2,\n', added: undefined, removed: true },
-        { count: 6, value: '    {\n      "foo": "bar"\n    },\n    4\n  ]\n}' }
+        { count: 5, value: '{\n  "a": 123,\n  "b": 456,\n  "c": [\n    1,\n', removed: false, added: false },
+        { count: 1, value: '    2,\n', added: false, removed: true },
+        { count: 6, value: '    {\n      "foo": "bar"\n    },\n    4\n  ]\n}', removed: false, added: false }
       ]);
     });
 
@@ -43,12 +43,12 @@ describe('diff/json', function() {
         {a: new Date(123), b: new Date(456), c: new Date(789)},
         {a: new Date(124), b: new Date(456)}
       )).to.eql([
-        { count: 1, value: '{\n' },
-        { count: 1, value: '  "a": "1970-01-01T00:00:00.123Z",\n', added: undefined, removed: true },
-        { count: 1, value: '  "a": "1970-01-01T00:00:00.124Z",\n', added: true, removed: undefined },
-        { count: 1, value: '  "b": "1970-01-01T00:00:00.456Z",\n' },
-        { count: 1, value: '  "c": "1970-01-01T00:00:00.789Z"\n', added: undefined, removed: true },
-        { count: 1, value: '}' }
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  "a": "1970-01-01T00:00:00.123Z",\n', added: false, removed: true },
+        { count: 1, value: '  "a": "1970-01-01T00:00:00.124Z",\n', added: true, removed: false },
+        { count: 1, value: '  "b": "1970-01-01T00:00:00.456Z",\n', removed: false, added: false },
+        { count: 1, value: '  "c": "1970-01-01T00:00:00.789Z"\n', added: false, removed: true },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
     });
 
@@ -57,24 +57,24 @@ describe('diff/json', function() {
         {a: 123, b: 456, c: null},
         {a: 123, b: 456}
       )).to.eql([
-        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
-        { count: 1, value: '  "c": null\n', added: undefined, removed: true },
-        { count: 1, value: '}' }
+        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n', removed: false, added: false },
+        { count: 1, value: '  "c": null\n', added: false, removed: true },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
       expect(diffJson(
         {a: 123, b: 456, c: undefined},
         {a: 123, b: 456}
       )).to.eql([
-        { count: 4, value: '{\n  "a": 123,\n  "b": 456\n}' }
+        { count: 4, value: '{\n  "a": 123,\n  "b": 456\n}', removed: false, added: false }
       ]);
       expect(diffJson(
         {a: 123, b: 456, c: undefined},
         {a: 123, b: 456},
         {undefinedReplacement: null}
       )).to.eql([
-        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
-        { count: 1, value: '  "c": null\n', added: undefined, removed: true },
-        { count: 1, value: '}' }
+        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n', removed: false, added: false },
+        { count: 1, value: '  "c": null\n', added: false, removed: true },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
     });
 
@@ -83,9 +83,9 @@ describe('diff/json', function() {
         JSON.stringify({a: 123, b: 456, c: 789}, undefined, '  '),
         JSON.stringify({a: 123, b: 456}, undefined, '  ')
       )).to.eql([
-        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n' },
-        { count: 1, value: '  "c": 789\n', added: undefined, removed: true },
-        { count: 1, value: '}' }
+        { count: 3, value: '{\n  "a": 123,\n  "b": 456,\n', removed: false, added: false },
+        { count: 1, value: '  "c": 789\n', added: false, removed: true },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
     });
 
@@ -143,10 +143,10 @@ describe('diff/json', function() {
         {a: 123},
         {a: /foo/}
       )).to.eql([
-        { count: 1, value: '{\n' },
-        { count: 1, value: '  \"a\": 123\n', added: undefined, removed: true },
-        { count: 1, value: '  \"a\": {}\n', added: true, removed: undefined },
-        { count: 1, value: '}' }
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
+        { count: 1, value: '  \"a\": {}\n', added: true, removed: false },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
 
       expect(diffJson(
@@ -154,10 +154,10 @@ describe('diff/json', function() {
         {a: /foo/gi},
         {stringifyReplacer: (k, v) => v instanceof RegExp ? v.toString() : v}
       )).to.eql([
-        { count: 1, value: '{\n' },
-        { count: 1, value: '  \"a\": 123\n', added: undefined, removed: true },
-        { count: 1, value: '  \"a\": "/foo/gi"\n', added: true, removed: undefined },
-        { count: 1, value: '}' }
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
+        { count: 1, value: '  \"a\": "/foo/gi"\n', added: true, removed: false },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
 
       expect(diffJson(
@@ -165,10 +165,10 @@ describe('diff/json', function() {
         {a: new Error('ohaider')},
         {stringifyReplacer: (k, v) => v instanceof Error ? `${v.name}: ${v.message}` : v}
       )).to.eql([
-        { count: 1, value: '{\n' },
-        { count: 1, value: '  \"a\": 123\n', added: undefined, removed: true },
-        { count: 1, value: '  \"a\": "Error: ohaider"\n', added: true, removed: undefined },
-        { count: 1, value: '}' }
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
+        { count: 1, value: '  \"a\": "Error: ohaider"\n', added: true, removed: false },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
 
       expect(diffJson(
@@ -176,10 +176,26 @@ describe('diff/json', function() {
         {a: [new Error('ohaider')]},
         {stringifyReplacer: (k, v) => v instanceof Error ? `${v.name}: ${v.message}` : v}
       )).to.eql([
-        { count: 1, value: '{\n' },
-        { count: 1, value: '  \"a\": 123\n', added: undefined, removed: true },
-        { count: 3, value: '  \"a\": [\n    "Error: ohaider"\n  ]\n', added: true, removed: undefined },
-        { count: 1, value: '}' }
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
+        { count: 3, value: '  \"a\": [\n    "Error: ohaider"\n  ]\n', added: true, removed: false },
+        { count: 1, value: '}', removed: false, added: false }
+      ]);
+    });
+
+    it("doesn't throw on Object.create(null)", function() {
+      let diff;
+      expect(function() {
+        diff = diffJson(
+          Object.assign(Object.create(null), {a: 123}),
+          {b: 456}
+        );
+      }).not.to['throw']();
+      expect(diff).to.eql([
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  \"a\": 123\n', removed: true, added: false },
+        { count: 1, value: '  \"b\": 456\n', removed: false, added: true },
+        { count: 1, value: '}', removed: false, added: false }
       ]);
     });
   });

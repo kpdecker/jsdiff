@@ -1,22 +1,19 @@
 import Diff from './base';
 import {lineDiff} from './line';
 
-const objectPrototypeToString = Object.prototype.toString;
-
-
 export const jsonDiff = new Diff();
 // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
 // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
 jsonDiff.useLongestToken = true;
 
 jsonDiff.tokenize = lineDiff.tokenize;
-jsonDiff.castInput = function(value) {
-  const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = this.options;
+jsonDiff.castInput = function(value, options) {
+  const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
   return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
 };
-jsonDiff.equals = function(left, right) {
-  return Diff.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
+jsonDiff.equals = function(left, right, options) {
+  return Diff.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
 };
 
 export function diffJson(oldObj, newObj, options) { return jsonDiff.diff(oldObj, newObj, options); }
@@ -41,7 +38,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
 
   let canonicalizedObj;
 
-  if ('[object Array]' === objectPrototypeToString.call(obj)) {
+  if ('[object Array]' === Object.prototype.toString.call(obj)) {
     stack.push(obj);
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
@@ -65,7 +62,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
         key;
     for (key in obj) {
       /* istanbul ignore else */
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         sortedKeys.push(key);
       }
     }
