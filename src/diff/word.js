@@ -130,10 +130,10 @@ wordDiff.postProcess = function(changes, options) {
 };
 
 export function diffWords(oldStr, newStr, options) {
-  // This option has never documented and never will be (it's clearer to just
-  // call `diffWordsWithSpace` directly if you need that behavior), but has
-  // existed in jsdiff for a long time, so we retain support for it here for
-  // the sake of backwards compatibility.
+  // This option has never been documented and never will be (it's clearer to
+  // just call `diffWordsWithSpace` directly if you need that behavior), but
+  // has existed in jsdiff for a long time, so we retain support for it here
+  // for the sake of backwards compatibility.
   if (options?.ignoreWhitespace != null && !options.ignoreWhitespace) {
     return diffWordsWithSpace(oldStr, newStr, options);
   }
