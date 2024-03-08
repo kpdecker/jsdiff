@@ -157,6 +157,15 @@ describe('diff/line', function() {
       expect(convertChangesToXML(diffResult4)).to.equal('line\n value\nline');
     });
 
+    it('should not ignore the insertion or deletion of lines of whitespace at the end', function() {
+      const finalChange = diffLines('foo\nbar\n', 'foo\nbar\n  \n  \n  \n', {ignoreWhitespace: true}).pop();
+      expect(finalChange.count).to.equal(3);
+      expect(finalChange.added).to.equal(true);
+
+      const finalChange2 = diffLines('foo\nbar\n\n', 'foo\nbar\n', {ignoreWhitespace: true}).pop();
+      expect(finalChange2.removed).to.equal(true);
+    });
+
     it('should keep leading and trailing whitespace in the output', function() {
       function stringify(value) {
         return JSON.stringify(value, null, 2);
