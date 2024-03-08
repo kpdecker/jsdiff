@@ -188,6 +188,15 @@ describe('WordDiff', function() {
         done();
       });
     });
+
+    it('calls #diffWordsWithSpace if you pass ignoreWhitespace: false', function() {
+      const diffResult = diffWords(
+        'foo bar',
+        'foo\tbar',
+        {ignoreWhitespace: false}
+      );
+      expect(convertChangesToXML(diffResult)).to.equal('foo<del> </del><ins>\t</ins>bar');
+    });
   });
 
   describe('#diffWordsWithSpace', function() {
