@@ -89,6 +89,18 @@ describe('WordDiff', function() {
       it('(del in middle of text)', function() {
         const diffResult = diffWords('Even    More    Value', 'Even Value');
         expect(convertChangesToXML(diffResult)).to.equal('Even <del>   More    </del>Value');
+
+        // Rules around how to split up the whitespace between the start and
+        // end "keep" change objects are subtle, as shown by the three examples
+        // below:
+        const diffResult2 = diffWords('foo\nbar baz', 'foo baz');
+        expect(convertChangesToXML(diffResult2)).to.equal('foo<del>\nbar</del> baz');
+
+        const diffResult3 = diffWords('foo bar baz', 'foo baz');
+        expect(convertChangesToXML(diffResult3)).to.equal('foo <del>bar </del>baz');
+
+        const diffResult4 = diffWords('foo\nbar baz', 'foo\n baz');
+        expect(convertChangesToXML(diffResult4)).to.equal('foo\n<del>bar</del> baz');
       });
 
       it('(add at end of text)', function() {

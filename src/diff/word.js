@@ -213,36 +213,53 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
     if (endKeep) {
       endKeep.value = endKeep.value.replace(/^\s*/, '');
     }
-  } else {
-    // As long as we're NOT at the start of the text, the leading whitespace of
-    // the second "keep" change object can always be nuked, and the trailing
-    // whitespace of the deletion can always be kept, whether or not they
-    // match. (The whitespace separating the two keeps will be including at
-    // the end of startKeep so we don't need to duplicate it on endKeep.)
-    if (startKeep && endKeep) {
-      endKeep.value = endKeep.value.replace(/^\s*/, '');
-    } else if (endKeep) {
-      // If we ARE at the start of the text, though, we need to preserve all
-      // the whitespace on endKeep. In that case, we just want to remove
-      // whitespace from the end of deletion to the extent that it overlaps
-      // with the start of endKeep.
-      const endKeepWsPrefix = endKeep.value.match(/^\s*/)[0];
-      const deletionWsSuffix = deletion.value.match(/\s*$/)[0];
-      const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
-      deletion.value = removeSuffix(deletion.value, overlap);
-    }
+  // otherwise we've got a deletion and no insertion
+  } else if (startKeep && endKeep) {
+    const newWsFull = endKeep.value.match(/^\s*/)[0],
+        delWsStart = deletion.value.match(/^\s*/)[0],
+        delWsEnd = deletion.value.match(/\s*$/)[0];
 
-    // Leading whitespace on the deleted token can only be deleted to the
-    // extent that this overlaps with the trailing whitespace on the preceding
-    // kept token.
-    if (startKeep) {
-      const startKeepWsSuffix = startKeep.value.match(/\s*$/)[0];
-      const deletionWsPrefix = deletion.value.match(/^\s*/)[0];
-      const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
-      deletion.value = removePrefix(deletion.value, overlap);
-    }
+    // Any whitespace that comes straight after startKeep in both the old and
+    // new texts, assign to startKeep and remove from the deletion.
+    const newWsStart = longestCommonPrefix(newWsFull, delWsStart);
+    deletion.value = removePrefix(deletion.value, newWsStart);
+
+    // Any whitespace that comes straight before endKeep in both the old and
+    // new texts, and hasn't already been assigned to startKeep, assign to
+    // endKeep and remove from the deletion.
+    const newWsEnd = longestCommonSuffix(
+      removePrefix(newWsFull, newWsStart),
+      delWsEnd
+    );
+    deletion.value = removeSuffix(deletion.value, newWsEnd);
+    endKeep.value = replacePrefix(endKeep.value, newWsFull, newWsEnd);
+
+    // If there's any whitespace from the new text that HASN'T already been
+    // assigned, assign it to the start:
+    startKeep.value = replaceSuffix(
+      startKeep.value,
+      newWsFull,
+      newWsFull.slice(0, newWsFull.length - newWsEnd.length)
+    );
+  } else if (endKeep) {
+    // We are at the start of the text. Preserve all the whitespace on
+    // endKeep, and just remove whitespace from the end of deletion to the
+    // extent that it overlaps with the start of endKeep.
+    const endKeepWsPrefix = endKeep.value.match(/^\s*/)[0];
+    const deletionWsSuffix = deletion.value.match(/\s*$/)[0];
+    const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
+    deletion.value = removeSuffix(deletion.value, overlap);
+  } else if (startKeep) {
+    // We are at the END of the text. Preserve all the whitespace on
+    // startKeep, and just remove whitespace from the start of deletion to
+    // the extent that it overlaps with the end of startKeep.
+    const startKeepWsSuffix = startKeep.value.match(/\s*$/)[0];
+    const deletionWsPrefix = deletion.value.match(/^\s*/)[0];
+    const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
+    deletion.value = removePrefix(deletion.value, overlap);
   }
 }
+
 
 export const wordWithSpaceDiff = new Diff();
 wordWithSpaceDiff.tokenize = function(value) {
