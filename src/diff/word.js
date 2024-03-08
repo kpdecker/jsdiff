@@ -161,7 +161,9 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
   //
   // 4. Diffing 'foo baz' vs 'foo\nbar baz'
   //    Prior to cleanup, we have K:'foo\n' I:'\nbar ' K:' baz'
-  //    After cleanup, we want K'foo' I:'\nbar' K:' baz'
+  //    After cleanup, we ideally want K'foo' I:'\nbar' K:' baz'
+  //    but don't actually manage this currently (the pre-cleanup change
+  //    objects don't contain enough information to make it possible).
   //
   // 5. Diffing 'foo   bar baz' vs 'foo  baz'
   //    Prior to cleanup, we have K:'foo  ' D:'   bar ' K:'  baz'
