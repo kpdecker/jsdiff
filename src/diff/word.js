@@ -1,5 +1,5 @@
 import Diff from './base';
-import {generateOptions} from '../util/params';
+import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap } from '../util/string';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -21,12 +21,32 @@ import {generateOptions} from '../util/params';
 // Latin Extended Additional, 1E00–1EFF
 const extendedWordChars = 'a-zA-Z\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}';
 
-// A token is any of the following:
-// * A newline (with or without a carriage return)
-// * A run of word characters
-// * A run of whitespace
-// * A single character that doesn't belong to any of the above categories (and is therefore considered punctuation)
-const tokenizeRegex = new RegExp(`\\r?\\n|[${extendedWordChars}]+|[^\\S\\r\\n]+|[^${extendedWordChars}]`, 'ug');
+// Each token is one of the following:
+// - A punctuation mark plus the surrounding whitespace
+// - A word plus the surrounding whitespace
+// - Pure whitespace (but only in the special case where this the entire text
+//   is just whitespace)
+//
+// We have to include surrounding whitespace in the tokens because the two
+// alternative approaches produce horribly broken results:
+// * If we just discard the whitespace, we can't fully reproduce the original
+//   text from the sequence of tokens and any attempt to render the diff will
+//   get the whitespace wrong.
+// * If we have separate tokens for whitespace, then in a typical text every
+//   second token will be a single space character. But this often results in
+//   the optimal diff between two texts being a perverse one that preserves
+//   the spaces between words but deletes and reinserts actual common words.
+//   See https://github.com/kpdecker/jsdiff/issues/160#issuecomment-1866099640
+//   for an example.
+//
+// Keeping the surrounding whitespace of course has implications for .equals
+// and .join, not just .tokenize.
+
+// This regex does NOT fully implement the tokenization rules described above.
+// Instead, it gives runs of whitespace their own "token". The tokenize method
+// then handles stitching whitespace tokens onto adjacent word or punctuation
+// tokens.
+const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, 'ug');
 
 export const wordDiff = new Diff();
 wordDiff.equals = function(left, right, options) {
@@ -34,24 +54,225 @@ wordDiff.equals = function(left, right, options) {
     left = left.toLowerCase();
     right = right.toLowerCase();
   }
-  // The comparisons to the empty string are needed PURELY to signal to
-  // buildValues that the whitespace token should be ignored. The empty string
-  // will never be a token (removeEmpty removes it) but buildValues uses empty
-  // string comparisons to test for ignored tokens and we need to handle that
-  // query here.
-  const leftIsWhitespace = (left === '' || (/^\s+$/).test(left));
-  const rightIsWhitespace = (right === '' || (/^\s+$/).test(right));
-  return left === right || (options.ignoreWhitespace && leftIsWhitespace && rightIsWhitespace);
+
+  return left.trim() === right.trim();
 };
+
 wordDiff.tokenize = function(value) {
-  return value.match(tokenizeRegex) || [];
+  let parts = value.match(tokenizeIncludingWhitespace) || [];
+  const tokens = [];
+  let prevPart = null;
+  parts.forEach(part => {
+    if ((/\s/).test(part)) {
+      if (prevPart == null) {
+        tokens.push(part);
+      } else {
+        tokens.push(tokens.pop() + part);
+      }
+    } else if ((/\s/).test(prevPart)) {
+      if (tokens[tokens.length - 1] == prevPart) {
+        tokens.push(tokens.pop() + part);
+      } else {
+        tokens.push(prevPart + part);
+      }
+    } else {
+      tokens.push(part);
+    }
+
+    prevPart = part;
+  });
+  return tokens;
+};
+
+wordDiff.join = function(tokens) {
+  // Tokens being joined here will always have appeared consecutively in the
+  // same text, so we can simply strip off the leading whitespace from all the
+  // tokens except the first (and except any whitespace-only tokens - but such
+  // a token will always be the first and only token anyway) and then join them
+  // and the whitespace around words and punctuation will end up correct.
+  return tokens.map((token, i) => {
+    if (i == 0) {
+      return token;
+    } else {
+      return token.replace((/^\s+/), '');
+    }
+  }).join('');
+};
+
+wordDiff.postProcess = function(changes, options) {
+  if (!changes || options.oneChangePerToken) {
+    return changes;
+  }
+
+  let lastKeep = null;
+  // Change objects representing any insertion or deletion since the last
+  // "keep" change object. There can be at most one of each.
+  let insertion = null;
+  let deletion = null;
+  changes.forEach(change => {
+    if (change.added) {
+      insertion = change;
+    } else if (change.removed) {
+      deletion = change;
+    } else {
+      if (insertion || deletion) { // May be false at start of text
+        dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change);
+      }
+      lastKeep = change;
+      insertion = null;
+      deletion = null;
+    }
+  });
+  if (insertion || deletion) {
+    dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
+  }
+  return changes;
 };
 
 export function diffWords(oldStr, newStr, options) {
-  options = generateOptions(options, {ignoreWhitespace: true});
+  // This option has never been documented and never will be (it's clearer to
+  // just call `diffWordsWithSpace` directly if you need that behavior), but
+  // has existed in jsdiff for a long time, so we retain support for it here
+  // for the sake of backwards compatibility.
+  if (options?.ignoreWhitespace != null && !options.ignoreWhitespace) {
+    return diffWordsWithSpace(oldStr, newStr, options);
+  }
+
   return wordDiff.diff(oldStr, newStr, options);
 }
 
+function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep) {
+  // Before returning, we tidy up the leading and trailing whitespace of the
+  // change objects to eliminate cases where trailing whitespace in one object
+  // is repeated as leading whitespace in the next.
+  // Below are examples of the outcomes we want here to explain the code.
+  // I=insert, K=keep, D=delete
+  // 1. diffing 'foo bar baz' vs 'foo baz'
+  //    Prior to cleanup, we have K:'foo ' D:' bar ' K:' baz'
+  //    After cleanup, we want:   K:'foo ' D:'bar ' K:'baz'
+  //
+  // 2. Diffing 'foo bar baz' vs 'foo qux baz'
+  //    Prior to cleanup, we have K:'foo ' D:' bar ' I:' qux ' K:' baz'
+  //    After cleanup, we want K:'foo ' D:'bar' I:'qux' K:' baz'
+  //
+  // 3. Diffing 'foo\nbar baz' vs 'foo baz'
+  //    Prior to cleanup, we have K:'foo ' D:'\nbar ' K:' baz'
+  //    After cleanup, we want K'foo' D:'\nbar' K:' baz'
+  //
+  // 4. Diffing 'foo baz' vs 'foo\nbar baz'
+  //    Prior to cleanup, we have K:'foo\n' I:'\nbar ' K:' baz'
+  //    After cleanup, we ideally want K'foo' I:'\nbar' K:' baz'
+  //    but don't actually manage this currently (the pre-cleanup change
+  //    objects don't contain enough information to make it possible).
+  //
+  // 5. Diffing 'foo   bar baz' vs 'foo  baz'
+  //    Prior to cleanup, we have K:'foo  ' D:'   bar ' K:'  baz'
+  //    After cleanup, we want K:'foo  ' D:' bar ' K:'baz'
+  //
+  // Our handling is unavoidably imperfect in the case where there's a single
+  // indel between keeps and the whitespace has changed. For instance, consider
+  // diffing 'foo\tbar\nbaz' vs 'foo baz'. Unless we create an extra change
+  // object to represent the insertion of the space character (which isn't even
+  // a token), we have no way to avoid losing information about the texts'
+  // original whitespace in the result we return. Still, we do our best to
+  // output something that will look sensible if we e.g. print it with
+  // insertions in green and deletions in red.
+
+  // Between two "keep" change objects (or before the first or after the last
+  // change object), we can have either:
+  // * A "delete" followed by an "insert"
+  // * Just an "insert"
+  // * Just a "delete"
+  // We handle the three cases separately.
+  if (deletion && insertion) {
+    const oldWsPrefix = deletion.value.match(/^\s*/)[0];
+    const oldWsSuffix = deletion.value.match(/\s*$/)[0];
+    const newWsPrefix = insertion.value.match(/^\s*/)[0];
+    const newWsSuffix = insertion.value.match(/\s*$/)[0];
+
+    if (startKeep) {
+      const commonWsPrefix = longestCommonPrefix(oldWsPrefix, newWsPrefix);
+      startKeep.value = replaceSuffix(startKeep.value, newWsPrefix, commonWsPrefix);
+      deletion.value = removePrefix(deletion.value, commonWsPrefix);
+      insertion.value = removePrefix(insertion.value, commonWsPrefix);
+    }
+    if (endKeep) {
+      const commonWsSuffix = longestCommonSuffix(oldWsSuffix, newWsSuffix);
+      endKeep.value = replacePrefix(endKeep.value, newWsSuffix, commonWsSuffix);
+      deletion.value = removeSuffix(deletion.value, commonWsSuffix);
+      insertion.value = removeSuffix(insertion.value, commonWsSuffix);
+    }
+  } else if (insertion) {
+    // The whitespaces all reflect what was in the new text rather than
+    // the old, so we essentially have no information about whitespace
+    // insertion or deletion. We just want to dedupe the whitespace.
+    // We do that by having each change object keep its trailing
+    // whitespace and deleting duplicate leading whitespace where
+    // present.
+    if (startKeep) {
+      insertion.value = insertion.value.replace(/^\s*/, '');
+    }
+    if (endKeep) {
+      endKeep.value = endKeep.value.replace(/^\s*/, '');
+    }
+  // otherwise we've got a deletion and no insertion
+  } else if (startKeep && endKeep) {
+    const newWsFull = endKeep.value.match(/^\s*/)[0],
+        delWsStart = deletion.value.match(/^\s*/)[0],
+        delWsEnd = deletion.value.match(/\s*$/)[0];
+
+    // Any whitespace that comes straight after startKeep in both the old and
+    // new texts, assign to startKeep and remove from the deletion.
+    const newWsStart = longestCommonPrefix(newWsFull, delWsStart);
+    deletion.value = removePrefix(deletion.value, newWsStart);
+
+    // Any whitespace that comes straight before endKeep in both the old and
+    // new texts, and hasn't already been assigned to startKeep, assign to
+    // endKeep and remove from the deletion.
+    const newWsEnd = longestCommonSuffix(
+      removePrefix(newWsFull, newWsStart),
+      delWsEnd
+    );
+    deletion.value = removeSuffix(deletion.value, newWsEnd);
+    endKeep.value = replacePrefix(endKeep.value, newWsFull, newWsEnd);
+
+    // If there's any whitespace from the new text that HASN'T already been
+    // assigned, assign it to the start:
+    startKeep.value = replaceSuffix(
+      startKeep.value,
+      newWsFull,
+      newWsFull.slice(0, newWsFull.length - newWsEnd.length)
+    );
+  } else if (endKeep) {
+    // We are at the start of the text. Preserve all the whitespace on
+    // endKeep, and just remove whitespace from the end of deletion to the
+    // extent that it overlaps with the start of endKeep.
+    const endKeepWsPrefix = endKeep.value.match(/^\s*/)[0];
+    const deletionWsSuffix = deletion.value.match(/\s*$/)[0];
+    const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
+    deletion.value = removeSuffix(deletion.value, overlap);
+  } else if (startKeep) {
+    // We are at the END of the text. Preserve all the whitespace on
+    // startKeep, and just remove whitespace from the start of deletion to
+    // the extent that it overlaps with the end of startKeep.
+    const startKeepWsSuffix = startKeep.value.match(/\s*$/)[0];
+    const deletionWsPrefix = deletion.value.match(/^\s*/)[0];
+    const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
+    deletion.value = removePrefix(deletion.value, overlap);
+  }
+}
+
+
+export const wordWithSpaceDiff = new Diff();
+wordWithSpaceDiff.tokenize = function(value) {
+  // Slightly different to the tokenizeIncludingWhitespace regex used above in
+  // that this one treats each individual newline as a distinct tokens, rather
+  // than merging them into other surrounding whitespace. This was requested
+  // in https://github.com/kpdecker/jsdiff/issues/180 &
+  //    https://github.com/kpdecker/jsdiff/issues/211
+  const regex = new RegExp(`(\\r?\\n)|[${extendedWordChars}]+|[^\\S\\n\\r]+|[^${extendedWordChars}]`, 'ug');
+  return value.match(regex) || [];
+};
 export function diffWordsWithSpace(oldStr, newStr, options) {
-  return wordDiff.diff(oldStr, newStr, options);
+  return wordWithSpaceDiff.diff(oldStr, newStr, options);
 }

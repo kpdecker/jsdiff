@@ -36,16 +36,14 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
     Options
     * `ignoreCase`: If `true`, the uppercase and lowercase forms of a character are considered equal. Defaults to `false`.
 
-* `Diff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, treating each word and each word separator (punctuation, newline, or run of whitespace) as a token.
-
-  (Whitespace-only tokens are automatically treated as equal to each other, so changes like changing a space to a newline or a run of multiple spaces will be ignored.)
+* `Diff.diffWords(oldStr, newStr[, options])` - diffs two blocks of text, treating each word and each punctuation mark as a token. Whitespace is ignored when computing the diff (but preserved as far as possible in the final change objects).
 
     Returns a list of [change objects](#change-objects).
 
     Options
     * `ignoreCase`: Same as in `diffChars`. Defaults to false.
 
-* `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - same as `diffWords`, except whitespace-only tokens are not automatically considered equal, so e.g. changing a space to a tab is considered a change.
+* `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - diffs two blocks of text, treating each word, punctuation mark, newline, or run of (non-newline) whitespace as a token.
 
 * `Diff.diffLines(oldStr, newStr[, options])` - diffs two blocks of text, treating each line as a token.
 
@@ -184,6 +182,7 @@ For even more customisation of the diffing behavior, you can create a `new Diff.
 * `removeEmpty(array)`: called on the arrays of tokens returned by `tokenize` and can be used to modify them. Defaults to stripping out falsey tokens, such as empty strings. `diffArrays` overrides this to simply return the `array`, which means that falsey values like empty strings can be handled like any other token by `diffArrays`.
 * `equals(left, right, options)`: called to determine if two tokens (one from the old string, one from the new string) should be considered equal. Defaults to comparing them with `===`.
 * `join(tokens)`: gets called with an array of consecutive tokens that have either all been added, all been removed, or are all common. Needs to join them into a single value that can be used as the `value` property of the [change object](#change-objects) for these tokens. Defaults to simply returning `tokens.join('')`.
+* `postProcess(changeObjects)`: gets called at the end of the algorithm with the [change objects](#change-objects) produced, and can do final cleanups on them. Defaults to simply returning `changeObjects` unchanged.
 
 ### Change Objects
 Many of the methods above return change objects. These objects consist of the following fields:

@@ -157,6 +157,15 @@ describe('diff/line', function() {
       expect(convertChangesToXML(diffResult4)).to.equal('line\n value\nline');
     });
 
+    it('should not ignore the insertion or deletion of lines of whitespace at the end', function() {
+      const finalChange = diffLines('foo\nbar\n', 'foo\nbar\n  \n  \n  \n', {ignoreWhitespace: true}).pop();
+      expect(finalChange.count).to.equal(3);
+      expect(finalChange.added).to.equal(true);
+
+      const finalChange2 = diffLines('foo\nbar\n\n', 'foo\nbar\n', {ignoreWhitespace: true}).pop();
+      expect(finalChange2.removed).to.equal(true);
+    });
+
     it('should keep leading and trailing whitespace in the output', function() {
       function stringify(value) {
         return JSON.stringify(value, null, 2);
@@ -203,6 +212,19 @@ describe('diff/line', function() {
         {newlineIsToken: true}
       );
       expect(convertChangesToXML(diffResult)).to.equal('line1\nline2\n<del>   </del>\n<ins>\n</ins>line4\n   \n');
+    });
+
+    it('supports async mode by passing a function as the options argument', function(done) {
+      diffTrimmedLines(
+        'line\r\nold value \r\nline',
+        'line \r\nnew value\r\nline',
+        function(diffResult) {
+          expect(convertChangesToXML(diffResult)).to.equal(
+            'line \r\n<del>old value \r\n</del><ins>new value\r\n</ins>line'
+          );
+          done();
+        }
+      );
     });
   });
 
