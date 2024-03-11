@@ -27,6 +27,13 @@ describe('diff/character', function() {
       });
     });
 
+    it('should treat a code point that consists of two UTF-16 code units as a single character, not two', function() {
+      const diffResult = diffChars('𝟘𝟙𝟚𝟛', '𝟘𝟙𝟚𝟜𝟝𝟞');
+      expect(diffResult.length).to.equal(3);
+      expect(diffResult[2].count).to.equal(3);
+      expect(convertChangesToXML(diffResult)).to.equal('𝟘𝟙𝟚<del>𝟛</del><ins>𝟜𝟝𝟞</ins>');
+    });
+
     describe('case insensitivity', function() {
       it("is considered when there's no difference", function() {
         const diffResult = diffChars('New Value.', 'New value.', {ignoreCase: true});
