@@ -1,13 +1,7 @@
 import Diff from './base';
+const typedefs = require('../typedefs');
 
 export const characterDiff = new Diff();
-
-// TODO: Add more common options
-// TODO: Move to base.js and import
-/**
- * @typedef BaseDiffOptions
- * @property {number} [timeout]
- */
 
 /**
  * @typedef DiffCharsOptions
@@ -17,6 +11,6 @@ export const characterDiff = new Diff();
 /**
  * @param {string} oldStr
  * @param {string} newStr
- * @param {DiffCharsOptions & BaseDiffOptions} [options]
+ * @param {DiffCharsOptions & typedefs.BaseDiffOptions} [options]
  */
 export function diffChars(oldStr, newStr, options) { return characterDiff.diff(oldStr, newStr, options); }
