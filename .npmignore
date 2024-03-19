@@ -2,7 +2,6 @@
 .eslintrc
 .gitignore
 .npmignore
-.travis.yml
 .vscode
 components
 coverage
