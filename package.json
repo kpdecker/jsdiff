@@ -78,7 +78,7 @@
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.1",
     "mocha": "^6.0.0",
-    "rollup": "^3.0.0",
+    "rollup": "^4.13.0",
     "rollup-plugin-babel": "^4.2.0",
     "semver": "^7.6.0",
     "webpack": "^5.90.3",
