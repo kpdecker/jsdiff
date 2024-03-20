@@ -723,13 +723,13 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) addition', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,3 @@\n'
               + '-line2\n'
               + ' line3\n'
               + '+line6\n'
               + ' line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,3 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '-line5\n'
