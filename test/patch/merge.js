@@ -298,14 +298,14 @@ describe('patch/merge', function() {
 
       it('should merge removal supersets', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,5 +1,3 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
               + '-line4\n'
               + ' line5\n';
         const theirs =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,5 +1,4 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
