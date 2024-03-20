@@ -924,7 +924,7 @@ describe('patch/merge', function() {
       });
       it('should conflict edits that start in the leading section', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,5 +1 @@\n'
               + '-line2\n'
               + '-line3\n'
               + '-line3\n'
@@ -932,7 +932,7 @@ describe('patch/merge', function() {
               + '-line3\n'
               + '+line4\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,5 +2,3 @@\n'
               + ' line3\n'
               + ' line3\n'
               + '-line3\n'
