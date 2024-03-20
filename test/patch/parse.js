@@ -339,14 +339,14 @@ Index: test2
     });
     it('should note removed EOFNL', function() {
       expect(parsePatch(
-`@@ -1,3 +1,4 @@
+`@@ -0,0 +1 @@
 +line5
 \\ No newline at end of file`))
         .to.eql([{
           hunks: [
             {
-              oldStart: 1, oldLines: 3,
-              newStart: 1, newLines: 4,
+              oldStart: 1, oldLines: 0,
+              newStart: 1, newLines: 1,
               lines: [
                 '+line5',
                 '\\ No newline at end of file'
