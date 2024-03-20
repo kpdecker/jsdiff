@@ -896,11 +896,11 @@ describe('patch/merge', function() {
 
       it('should merge removals that start in the leading section', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,2 +0,0 @@\n'
               + '-line2\n'
               + '-line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2 @@\n'
               + '-line3\n'
               + ' line4\n';
         const expected = {
