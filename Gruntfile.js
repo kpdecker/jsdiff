@@ -139,8 +139,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-istanbul');
   grunt.loadNpmTasks('grunt-exec');
 
-  grunt.task.loadTasks('tasks');
-
   grunt.registerTask('dev', ['clean', 'watch']);
   grunt.registerTask('default', ['clean', 'build', 'cover']);
 };
