@@ -1156,11 +1156,11 @@ describe('patch/merge', function() {
 
       it('should handle multiple conflict sections', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,2 +1,2 @@\n'
               + ' line2\n'
               + ' line3\n';
         const theirs =
-              '@@ -1 +1,2 @@\n'
+              '@@ -1,2 +1,2 @@\n'
               + ' line3\n'
               + ' line4\n';
         const expected = {
