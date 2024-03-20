@@ -387,7 +387,7 @@ describe('patch/merge', function() {
 
       it('should conflict removal disjoint context', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,6 +1,3 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
@@ -395,7 +395,7 @@ describe('patch/merge', function() {
               + '-line4\n'
               + ' line5\n';
         const theirs =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,6 +1,4 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
