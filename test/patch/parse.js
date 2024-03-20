@@ -62,7 +62,7 @@ describe('patch/parse', function() {
  line3
 +line4
  line5
-@@ -4,3 +1,4 @@
+@@ -4,4 +1,3 @@
  line2
  line3
 -line4
@@ -317,14 +317,14 @@ Index: test2
 
     it('should note added EOFNL', function() {
       expect(parsePatch(
-`@@ -1,3 +1,4 @@
+`@@ -1,1 +0,0 @@
 -line5
 \\ No newline at end of file`))
         .to.eql([{
           hunks: [
             {
-              oldStart: 1, oldLines: 3,
-              newStart: 1, newLines: 4,
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 0,
               lines: [
                 '-line5',
                 '\\ No newline at end of file'
