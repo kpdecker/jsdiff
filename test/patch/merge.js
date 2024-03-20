@@ -771,13 +771,13 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) on multiple lines with context', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,4 +1,3 @@\n'
               + ' line2\n'
               + '-line3\n'
               + ' line3\n'
               + ' line5\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '+line4\n'
