@@ -976,11 +976,11 @@ describe('patch/merge', function() {
       });
       it('should conflict adds that start in the leading section', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -0,0 +1,2 @@\n'
               + '+line2\n'
               + '+line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2 @@\n'
               + '-line3\n'
               + ' line4\n';
         const expected = {
