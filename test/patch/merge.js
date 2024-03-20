@@ -865,12 +865,12 @@ describe('patch/merge', function() {
       });
       it('should handle edit and addition with context connextion', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1 @@\n'
               + ' line2\n'
               + '-line3\n'
               + '-line4\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2,3 @@\n'
               + ' line3\n'
               + ' line4\n'
               + '+line4\n';
