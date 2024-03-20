@@ -486,7 +486,7 @@ describe('patch/merge', function() {
       });
       it('should conflict addition supersets', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,5 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '+line4\n'
