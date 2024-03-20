@@ -817,13 +817,13 @@ describe('patch/merge', function() {
       });
       it('should conflict edit with remove in middle', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,4 +1,2 @@\n'
               + '-line2\n'
               + ' line3\n'
               + '-line3\n'
               + ' line5\n';
         const theirs =
-              '@@ -1,3 +1,2 @@\n'
+              '@@ -1,3 +1,3 @@\n'
               + ' line2\n'
               + '-line3\n'
               + '-line3\n'
