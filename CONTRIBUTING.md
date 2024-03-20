@@ -35,6 +35,6 @@ yarn publish
 ```
 
 After releasing, remember to:
-* commit the `package.json` change
+* commit the `package.json` change and push it to GitHub
 * create a new version tag on GitHub
 * update `diff.js` on the `gh-pages` branch to the latest built version from the `dist/` folder.
