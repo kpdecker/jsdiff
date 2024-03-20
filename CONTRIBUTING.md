@@ -30,8 +30,7 @@ A full release may be completed with the following:
 
 ```
 yarn clean
-yarn grunt
-yarn grunt uglify
+yarn grunt release
 yarn publish
 ```
 
