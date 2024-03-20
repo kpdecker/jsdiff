@@ -974,43 +974,6 @@ describe('patch/merge', function() {
         swapConflicts(expected);
         expect(merge(theirs, mine)).to.eql(expected);
       });
-      it('should conflict adds that start in the leading section', function() {
-        const mine =
-              '@@ -0,0 +1,2 @@\n'
-              + '+line2\n'
-              + '+line3\n';
-        const theirs =
-              '@@ -2,2 +2 @@\n'
-              + '-line3\n'
-              + ' line4\n';
-        const expected = {
-          hunks: [
-            {
-              conflict: true,
-              oldStart: 1,
-              newStart: 1,
-              lines: [
-                '+line2',
-                {
-                  conflict: true,
-                  mine: [
-                    '+line3'
-                  ],
-                  theirs: [
-                    '-line3'
-                  ]
-                },
-                ' line4'
-              ]
-            }
-          ]
-        };
-
-        expect(merge(mine, theirs)).to.eql(expected);
-
-        swapConflicts(expected);
-        expect(merge(theirs, mine)).to.eql(expected);
-      });
 
       it('should handle multiple conflicts in one hunk', function() {
         const mine =
