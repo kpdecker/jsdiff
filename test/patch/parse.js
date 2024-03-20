@@ -386,13 +386,13 @@ Index: test2
     });
 
     it('should perform sanity checks on line numbers', function() {
-      parsePatch('@@ -1 +1 @@', {strict: true});
+      parsePatch('@@ -1 +1 @@');
 
       expect(function() {
-        parsePatch('@@ -1 +1,4 @@', {strict: true});
+        parsePatch('@@ -1 +1,4 @@');
       }).to['throw']('Added line count did not match for hunk at line 1');
       expect(function() {
-        parsePatch('@@ -1,4 +1 @@', {strict: true});
+        parsePatch('@@ -1,4 +1 @@');
       }).to['throw']('Removed line count did not match for hunk at line 1');
     });
 
@@ -403,9 +403,9 @@ Index: test2
             index: 'foo'
           }]);
     });
-    it('should throw on invalid input in strict mode', function() {
+    it('should throw on invalid input', function() {
       expect(function() {
-        parsePatch('Index: foo\n+++ bar\nblah', {strict: true});
+        parsePatch('Index: foo\n+++ bar\nblah');
       }).to['throw'](/Unknown line 3 "blah"/);
     });
 
