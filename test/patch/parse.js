@@ -86,8 +86,8 @@ describe('patch/parse', function() {
               ]
             },
             {
-              oldStart: 4, oldLines: 3,
-              newStart: 1, newLines: 4,
+              oldStart: 4, oldLines: 4,
+              newStart: 1, newLines: 3,
               lines: [
                 ' line2',
                 ' line3',
