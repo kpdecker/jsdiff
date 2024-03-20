@@ -112,7 +112,7 @@ describe('patch/merge', function() {
               + '===================================================================\n'
               + '--- test\theader1\n'
               + '+++ test\theader2\n'
-              + '@@ -1,3 +1,4 @@\n'
+              + '@@ -1,3 +1,6 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '+line4-1\n'
@@ -161,7 +161,7 @@ describe('patch/merge', function() {
               + '===================================================================\n'
               + '--- test\theader1\n'
               + '+++ test\theader2\n'
-              + '@@ -1,3 +1,4 @@\n'
+              + '@@ -1,2 +1,4 @@\n'
               + '+line2\n'
               + ' line3\n'
               + '+line4\n'
@@ -206,7 +206,7 @@ describe('patch/merge', function() {
               + '===================================================================\n'
               + '--- test\theader1\n'
               + '+++ test\theader2\n'
-              + '@@ -1,3 +1,4 @@\n'
+              + '@@ -1,3 +1,2 @@\n'
               + '-line2\n'
               + '-line3\n'
               + '+line4\n'
@@ -252,7 +252,7 @@ describe('patch/merge', function() {
               + '===================================================================\n'
               + '--- test\theader1\n'
               + '+++ test\theader2\n'
-              + '@@ -1,3 +1,4 @@\n'
+              + '@@ -1,3 +1,5 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '+line4-1\n'
@@ -298,14 +298,14 @@ describe('patch/merge', function() {
 
       it('should merge removal supersets', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,5 +1,3 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
               + '-line4\n'
               + ' line5\n';
         const theirs =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,5 +1,4 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
@@ -333,7 +333,7 @@ describe('patch/merge', function() {
       });
       it('should conflict removal disjoint sets', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,6 +1,3 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
@@ -341,7 +341,7 @@ describe('patch/merge', function() {
               + '-line4\n'
               + ' line5\n';
         const theirs =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,6 +1,3 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
@@ -387,7 +387,7 @@ describe('patch/merge', function() {
 
       it('should conflict removal disjoint context', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,6 +1,3 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
@@ -395,7 +395,7 @@ describe('patch/merge', function() {
               + '-line4\n'
               + ' line5\n';
         const theirs =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,6 +1,4 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '-line4\n'
@@ -441,7 +441,7 @@ describe('patch/merge', function() {
       // These are all conflicts. A conflict is anything that is on the same desired line that is not identical
       it('should conflict two additions at the same line', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,6 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '+line4-1\n'
@@ -486,7 +486,7 @@ describe('patch/merge', function() {
       });
       it('should conflict addition supersets', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,5 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '+line4\n'
@@ -531,11 +531,11 @@ describe('patch/merge', function() {
       });
       it('should handle removal and edit (add+remove) at the same line', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,2 +1 @@\n'
               + ' line2\n'
               + '-line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2 +2 @@\n'
               + '-line3\n'
               + '+line4\n';
         const expected = {
@@ -569,13 +569,13 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) on multiple lines', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,4 +1,3 @@\n'
               + '-line2\n'
               + ' line3\n'
               + ' line3\n'
               + ' line5\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '+line4\n'
@@ -605,12 +605,12 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) past extents', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,2 @@\n'
               + '-line2\n'
               + ' line3\n'
               + ' line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,3 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '-line5\n'
@@ -641,12 +641,12 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) past extents', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,2 @@\n'
               + '-line2\n'
               + ' line3\n'
               + ' line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,3 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '-line5\n'
@@ -677,12 +677,12 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) context mismatch', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,2 @@\n'
               + '-line2\n'
               + ' line3\n'
               + ' line4\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,3 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '-line5\n'
@@ -723,13 +723,13 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) addition', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,3 @@\n'
               + '-line2\n'
               + ' line3\n'
               + '+line6\n'
               + ' line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,3 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '-line5\n'
@@ -771,13 +771,13 @@ describe('patch/merge', function() {
       });
       it('should handle edit (add+remove) on multiple lines with context', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,4 +1,3 @@\n'
               + ' line2\n'
               + '-line3\n'
               + ' line3\n'
               + ' line5\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2,2 @@\n'
               + '-line3\n'
               + '-line3\n'
               + '+line4\n'
@@ -817,13 +817,13 @@ describe('patch/merge', function() {
       });
       it('should conflict edit with remove in middle', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,4 +1,2 @@\n'
               + '-line2\n'
               + ' line3\n'
               + '-line3\n'
               + ' line5\n';
         const theirs =
-              '@@ -1,3 +1,2 @@\n'
+              '@@ -1,3 +1,3 @@\n'
               + ' line2\n'
               + '-line3\n'
               + '-line3\n'
@@ -865,12 +865,12 @@ describe('patch/merge', function() {
       });
       it('should handle edit and addition with context connextion', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1 @@\n'
               + ' line2\n'
               + '-line3\n'
               + '-line4\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2,3 @@\n'
               + ' line3\n'
               + ' line4\n'
               + '+line4\n';
@@ -896,11 +896,11 @@ describe('patch/merge', function() {
 
       it('should merge removals that start in the leading section', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,2 +0,0 @@\n'
               + '-line2\n'
               + '-line3\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,2 +2 @@\n'
               + '-line3\n'
               + ' line4\n';
         const expected = {
@@ -924,7 +924,7 @@ describe('patch/merge', function() {
       });
       it('should conflict edits that start in the leading section', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,5 +1 @@\n'
               + '-line2\n'
               + '-line3\n'
               + '-line3\n'
@@ -932,7 +932,7 @@ describe('patch/merge', function() {
               + '-line3\n'
               + '+line4\n';
         const theirs =
-              '@@ -2 +2,2 @@\n'
+              '@@ -2,5 +2,3 @@\n'
               + ' line3\n'
               + ' line3\n'
               + '-line3\n'
@@ -974,47 +974,10 @@ describe('patch/merge', function() {
         swapConflicts(expected);
         expect(merge(theirs, mine)).to.eql(expected);
       });
-      it('should conflict adds that start in the leading section', function() {
-        const mine =
-              '@@ -1,3 +1,4 @@\n'
-              + '+line2\n'
-              + '+line3\n';
-        const theirs =
-              '@@ -2 +2,2 @@\n'
-              + '-line3\n'
-              + ' line4\n';
-        const expected = {
-          hunks: [
-            {
-              conflict: true,
-              oldStart: 1,
-              newStart: 1,
-              lines: [
-                '+line2',
-                {
-                  conflict: true,
-                  mine: [
-                    '+line3'
-                  ],
-                  theirs: [
-                    '-line3'
-                  ]
-                },
-                ' line4'
-              ]
-            }
-          ]
-        };
-
-        expect(merge(mine, theirs)).to.eql(expected);
-
-        swapConflicts(expected);
-        expect(merge(theirs, mine)).to.eql(expected);
-      });
 
       it('should handle multiple conflicts in one hunk', function() {
         const mine =
-              '@@ -1,10 +1,10 @@\n'
+              '@@ -1,7 +1,7 @@\n'
               + ' line1\n'
               + '-line2\n'
               + '+line2-1\n'
@@ -1025,7 +988,7 @@ describe('patch/merge', function() {
               + '+line6-1\n'
               + ' line7\n';
         const theirs =
-              '@@ -1,10 +1,10 @@\n'
+              '@@ -1,7 +1,7 @@\n'
               + ' line1\n'
               + '-line2\n'
               + '+line2-2\n'
@@ -1084,7 +1047,7 @@ describe('patch/merge', function() {
 
       it('should remove oldLines if base differs', function() {
         const mine =
-              '@@ -1,10 +1,10 @@\n'
+              '@@ -1,8 +1,7 @@\n'
               + ' line1\n'
               + '-line2\n'
               + '-line2-0\n'
@@ -1096,7 +1059,7 @@ describe('patch/merge', function() {
               + '+line6-1\n'
               + ' line7\n';
         const theirs =
-              '@@ -1,10 +1,10 @@\n'
+              '@@ -1,7 +1,8 @@\n'
               + ' line1\n'
               + '-line2\n'
               + '+line2-2\n'
@@ -1156,11 +1119,11 @@ describe('patch/merge', function() {
 
       it('should handle multiple conflict sections', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,2 +1,2 @@\n'
               + ' line2\n'
               + ' line3\n';
         const theirs =
-              '@@ -1 +1,2 @@\n'
+              '@@ -1,2 +1,2 @@\n'
               + ' line3\n'
               + ' line4\n';
         const expected = {

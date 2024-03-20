@@ -1,4 +1,4 @@
-export function parsePatch(uniDiff, options = {}) {
+export function parsePatch(uniDiff) {
   let diffstr = uniDiff.split(/\r?\n/),
       delimiters = uniDiff.match(/\r?\n/g) || [],
       list = [],
@@ -36,13 +36,11 @@ export function parsePatch(uniDiff, options = {}) {
 
     while (i < diffstr.length) {
       let line = diffstr[i];
-
-      if ((/^(Index:|diff|\-\-\-|\+\+\+)\s/).test(line)) {
+      if ((/^(Index:\s|diff\s|\-\-\-\s|\+\+\+\s|===================================================================)/).test(line)) {
         break;
       } else if ((/^@@/).test(line)) {
         index.hunks.push(parseHunk());
-      } else if (line && options.strict) {
-        // Ignore unexpected content unless in strict mode
+      } else if (line) {
         throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(line));
       } else {
         i++;
@@ -132,14 +130,12 @@ export function parsePatch(uniDiff, options = {}) {
       hunk.oldLines = 0;
     }
 
-    // Perform optional sanity checking
-    if (options.strict) {
-      if (addCount !== hunk.newLines) {
-        throw new Error('Added line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
-      }
-      if (removeCount !== hunk.oldLines) {
-        throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
-      }
+    // Perform sanity checking
+    if (addCount !== hunk.newLines) {
+      throw new Error('Added line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
+    }
+    if (removeCount !== hunk.oldLines) {
+      throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
     }
 
     return hunk;

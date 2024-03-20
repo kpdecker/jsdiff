@@ -62,7 +62,7 @@ describe('patch/parse', function() {
  line3
 +line4
  line5
-@@ -4,3 +1,4 @@
+@@ -4,4 +1,3 @@
  line2
  line3
 -line4
@@ -86,8 +86,8 @@ describe('patch/parse', function() {
               ]
             },
             {
-              oldStart: 4, oldLines: 3,
-              newStart: 1, newLines: 4,
+              oldStart: 4, oldLines: 4,
+              newStart: 1, newLines: 3,
               lines: [
                 ' line2',
                 ' line3',
@@ -317,14 +317,14 @@ Index: test2
 
     it('should note added EOFNL', function() {
       expect(parsePatch(
-`@@ -1,3 +1,4 @@
+`@@ -1,1 +0,0 @@
 -line5
 \\ No newline at end of file`))
         .to.eql([{
           hunks: [
             {
-              oldStart: 1, oldLines: 3,
-              newStart: 1, newLines: 4,
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 0,
               lines: [
                 '-line5',
                 '\\ No newline at end of file'
@@ -339,14 +339,14 @@ Index: test2
     });
     it('should note removed EOFNL', function() {
       expect(parsePatch(
-`@@ -1,3 +1,4 @@
+`@@ -0,0 +1 @@
 +line5
 \\ No newline at end of file`))
         .to.eql([{
           hunks: [
             {
-              oldStart: 1, oldLines: 3,
-              newStart: 1, newLines: 4,
+              oldStart: 1, oldLines: 0,
+              newStart: 1, newLines: 1,
               lines: [
                 '+line5',
                 '\\ No newline at end of file'
@@ -361,15 +361,15 @@ Index: test2
     });
     it('should ignore context no EOFNL', function() {
       expect(parsePatch(
-`@@ -1,3 +1,4 @@
+`@@ -1 +1,2 @@
 +line4
  line5
 \\ No newline at end of file`))
         .to.eql([{
           hunks: [
             {
-              oldStart: 1, oldLines: 3,
-              newStart: 1, newLines: 4,
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 2,
               lines: [
                 '+line4',
                 ' line5',
@@ -386,13 +386,13 @@ Index: test2
     });
 
     it('should perform sanity checks on line numbers', function() {
-      parsePatch('@@ -1 +1 @@', {strict: true});
+      parsePatch('@@ -1 +1 @@');
 
       expect(function() {
-        parsePatch('@@ -1 +1,4 @@', {strict: true});
+        parsePatch('@@ -1 +1,4 @@');
       }).to['throw']('Added line count did not match for hunk at line 1');
       expect(function() {
-        parsePatch('@@ -1,4 +1 @@', {strict: true});
+        parsePatch('@@ -1,4 +1 @@');
       }).to['throw']('Removed line count did not match for hunk at line 1');
     });
 
@@ -403,9 +403,9 @@ Index: test2
             index: 'foo'
           }]);
     });
-    it('should throw on invalid input in strict mode', function() {
+    it('should throw on invalid input', function() {
       expect(function() {
-        parsePatch('Index: foo\n+++ bar\nblah', {strict: true});
+        parsePatch('Index: foo\n+++ bar\nblah');
       }).to['throw'](/Unknown line 3 "blah"/);
     });
 
