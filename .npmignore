@@ -12,7 +12,6 @@ index.html
 karma.conf.js
 rollup.config.js
 src
-style.css
 tasks
 test
 yarn-error.log
