@@ -1084,7 +1084,7 @@ describe('patch/merge', function() {
 
       it('should remove oldLines if base differs', function() {
         const mine =
-              '@@ -1,10 +1,10 @@\n'
+              '@@ -1,8 +1,7 @@\n'
               + ' line1\n'
               + '-line2\n'
               + '-line2-0\n'
@@ -1096,7 +1096,7 @@ describe('patch/merge', function() {
               + '+line6-1\n'
               + ' line7\n';
         const theirs =
-              '@@ -1,10 +1,10 @@\n'
+              '@@ -1,7 +1,8 @@\n'
               + ' line1\n'
               + '-line2\n'
               + '+line2-2\n'
