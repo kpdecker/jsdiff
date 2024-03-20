@@ -441,7 +441,7 @@ describe('patch/merge', function() {
       // These are all conflicts. A conflict is anything that is on the same desired line that is not identical
       it('should conflict two additions at the same line', function() {
         const mine =
-              '@@ -1,3 +1,4 @@\n'
+              '@@ -1,3 +1,6 @@\n'
               + ' line2\n'
               + ' line3\n'
               + '+line4-1\n'
