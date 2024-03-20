@@ -26,7 +26,7 @@ If you notice any problems, please report them to the GitHub issue tracker at
 
 ## Releasing
 
-A full release may be completed with the following:
+A full release may be completed by first updating the `"version"` property in package.json, then running the following:
 
 ```
 yarn clean
@@ -34,4 +34,7 @@ yarn grunt release
 yarn publish
 ```
 
-After releasing, remember to update `diff.js` on the `gh-pages` branch to the latest built version from the `dist/` folder.
+After releasing, remember to:
+* commit the `package.json` change
+* create a new version tag on GitHub
+* update `diff.js` on the `gh-pages` branch to the latest built version from the `dist/` folder.
