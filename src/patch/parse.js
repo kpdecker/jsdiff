@@ -36,8 +36,7 @@ export function parsePatch(uniDiff) {
 
     while (i < diffstr.length) {
       let line = diffstr[i];
-
-      if ((/^(Index:|diff|\-\-\-|\+\+\+)\s/).test(line)) {
+      if ((/^(Index:\s|diff\s|\-\-\-\s|\+\+\+\s|===================================================================)/).test(line)) {
         break;
       } else if ((/^@@/).test(line)) {
         index.hunks.push(parseHunk());
