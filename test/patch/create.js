@@ -810,10 +810,6 @@ describe('patch/create', function() {
                 '-xxx',
                 '+yyy'
               ],
-              linedelimiters: [
-                '\n',
-                '\n'
-              ]
             }
           ]
         },
@@ -832,10 +828,6 @@ describe('patch/create', function() {
                 '-aaa',
                 '+bbb'
               ],
-              linedelimiters: [
-                '\n',
-                '\n'
-              ]
             }
           ]
         }
@@ -875,8 +867,7 @@ describe('patch/create', function() {
 
       // Check 2: starting with a structuredPatch, does formatting and then
       // parsing again basically round-trip as long as we wrap it in an array
-      // to match the output of parsePatch and delete the linedelimiters that
-      // parsePatch puts in?
+      // to match the output of parsePatch?
       const patchObj = structuredPatch(
         'oldfile', 'newfile',
         'line2\nline3\nline4\n', 'line2\nline3\nline5',
@@ -884,9 +875,6 @@ describe('patch/create', function() {
       );
 
       const roundTrippedPatch = parsePatch(formatPatch([patchObj]));
-      for (const hunk of roundTrippedPatch[0].hunks) {
-        delete hunk.linedelimiters;
-      }
 
       expect(roundTrippedPatch).to.deep.equal([patchObj]);
     });

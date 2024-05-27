@@ -23,12 +23,6 @@ describe('patch/parse', function() {
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -47,10 +41,6 @@ describe('patch/parse', function() {
                 '-line3',
                 '+line4'
               ],
-              linedelimiters: [
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -78,12 +68,6 @@ describe('patch/parse', function() {
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             },
             {
               oldStart: 4, oldLines: 4,
@@ -94,12 +78,6 @@ describe('patch/parse', function() {
                 '-line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -131,12 +109,6 @@ describe('patch/parse', function() {
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -177,12 +149,6 @@ Index: test2
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }, {
@@ -201,12 +167,6 @@ Index: test2
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -243,12 +203,6 @@ Index: test2
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }, {
@@ -266,12 +220,6 @@ Index: test2
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -304,12 +252,6 @@ Index: test2
                 '+line4',
                 ' line5'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -329,10 +271,6 @@ Index: test2
                 '-line5',
                 '\\ No newline at end of file'
               ],
-              linedelimiters: [
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -351,10 +289,6 @@ Index: test2
                 '+line5',
                 '\\ No newline at end of file'
               ],
-              linedelimiters: [
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -375,11 +309,6 @@ Index: test2
                 ' line5',
                 '\\ No newline at end of file'
               ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n'
-              ]
             }
           ]
         }]);
@@ -459,7 +388,6 @@ Index: test2
                 ' qux',
                 '\\ No newline at end of file'
               ],
-              linedelimiters: [ '\n', '\n', '\n', '\n', '\n', '\n' ]
             }
           ]
         }
@@ -492,7 +420,6 @@ Index: test2
                 ' qux',
                 '\\ No newline at end of file'
               ],
-              linedelimiters: [ '\n', '\n', '\n', '\n', '\n', '\n' ]
             }
           ]
         }
