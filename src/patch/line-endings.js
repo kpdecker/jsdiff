@@ -17,3 +17,19 @@ export function winToUnix(patch) {
     }))
   }));
 }
+
+/**
+ * Returns true if the patch consistently uses Unix line endings (or only involves one line and has
+ * no line endings).
+ */
+export function isUnix(patch) {
+  return !patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))));
+}
+
+/**
+ * Returns true if the patch uses Windows line endings and only Windows line endings.
+ */
+export function isWin(patch) {
+  return patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))))
+    && patch.every(index => index.hunks.every(hunk => hunk.lines.every(line => line.endsWith('\r'))));
+}

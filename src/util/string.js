@@ -86,3 +86,11 @@ function overlapCount(a, b) {
   }
   return k;
 }
+
+
+/**
+ * Returns true if the string consistently uses Windows line endings.
+ */
+export function isWin(string) {
+  return string.includes('\r\n') && !string.match(/(?<!\r)\n/);
+}
