@@ -22,7 +22,7 @@ describe('patch/parse', function() {
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }]);
@@ -40,7 +40,7 @@ describe('patch/parse', function() {
               lines: [
                 '-line3',
                 '+line4'
-              ],
+              ]
             }
           ]
         }]);
@@ -67,7 +67,7 @@ describe('patch/parse', function() {
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             },
             {
               oldStart: 4, oldLines: 4,
@@ -77,7 +77,7 @@ describe('patch/parse', function() {
                 ' line3',
                 '-line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }]);
@@ -108,7 +108,7 @@ describe('patch/parse', function() {
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }]);
@@ -148,7 +148,7 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }, {
@@ -166,7 +166,7 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }]);
@@ -202,7 +202,7 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }, {
@@ -219,7 +219,7 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }]);
@@ -251,7 +251,7 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
+              ]
             }
           ]
         }]);
@@ -270,7 +270,7 @@ Index: test2
               lines: [
                 '-line5',
                 '\\ No newline at end of file'
-              ],
+              ]
             }
           ]
         }]);
@@ -288,7 +288,7 @@ Index: test2
               lines: [
                 '+line5',
                 '\\ No newline at end of file'
-              ],
+              ]
             }
           ]
         }]);
@@ -308,7 +308,7 @@ Index: test2
                 '+line4',
                 ' line5',
                 '\\ No newline at end of file'
-              ],
+              ]
             }
           ]
         }]);
@@ -387,7 +387,7 @@ Index: test2
                 ' baz',
                 ' qux',
                 '\\ No newline at end of file'
-              ],
+              ]
             }
           ]
         }
@@ -419,7 +419,7 @@ Index: test2
                 ' baz',
                 ' qux',
                 '\\ No newline at end of file'
-              ],
+              ]
             }
           ]
         }

@@ -809,7 +809,7 @@ describe('patch/create', function() {
               lines: [
                 '-xxx',
                 '+yyy'
-              ],
+              ]
             }
           ]
         },
@@ -827,7 +827,7 @@ describe('patch/create', function() {
               lines: [
                 '-aaa',
                 '+bbb'
-              ],
+              ]
             }
           ]
         }
