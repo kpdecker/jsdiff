@@ -755,6 +755,80 @@ describe('patch/apply', function() {
       expect(applyPatch(fileContents, patch))
         .to.equal('');
     });
+
+    it('should automatically convert a patch with Unix file endings to Windows when patching a Windows file', () => {
+      // Create patch
+      const oldFile = 'foo\r\nbar\r\nbaz\r\nqux\r\n';
+      const diffFile =
+        'Index: testFileName\n'
+        + '===================================================================\n'
+        + '--- testFileName\tOld Header\n'
+        + '+++ testFileName\tNew Header\n'
+        + '@@ -2,2 +2,3 @@\n'
+        + '-bar\n'
+        + '-baz\n'
+        + '+new\n'
+        + '+two\n'
+        + '+three\n';
+
+      expect(applyPatch(oldFile, diffFile)).to.equal('foo\r\nnew\r\ntwo\r\nthree\r\nqux\r\n');
+    });
+
+    it('should automatically convert a patch with Windows file endings to Unix when patching a Unix file', () => {
+      // Create patch
+      const oldFile = 'foo\nbar\nbaz\nqux\n';
+      const diffFile =
+        'Index: testFileName\r\n'
+        + '===================================================================\r\n'
+        + '--- testFileName\tOld Header\r\n'
+        + '+++ testFileName\tNew Header\r\n'
+        + '@@ -2,2 +2,3 @@\r\n'
+        + '-bar\r\n'
+        + '-baz\r\n'
+        + '+new\r\n'
+        + '+two\r\n'
+        + '+three\r\n';
+
+      expect(applyPatch(oldFile, diffFile)).to.equal('foo\nnew\ntwo\nthree\nqux\n');
+    });
+
+    it('should leave line endings in the patch alone if the target file has mixed file endings, even if this means the patch does not apply', () => {
+      // Create patch
+      const oldFile1 = 'foo\r\nbar\nbaz\nqux\n';
+      const oldFile2 = 'foo\nbar\r\nbaz\r\nqux\n';
+      const diffFile =
+        'Index: testFileName\r\n'
+        + '===================================================================\r\n'
+        + '--- testFileName\tOld Header\r\n'
+        + '+++ testFileName\tNew Header\r\n'
+        + '@@ -2,2 +2,3 @@\r\n'
+        + '-bar\r\n'
+        + '-baz\r\n'
+        + '+new\r\n'
+        + '+two\r\n'
+        + '+three\r\n';
+
+      expect(applyPatch(oldFile1, diffFile)).to.equal(false);
+      expect(applyPatch(oldFile2, diffFile)).to.equal('foo\nnew\r\ntwo\r\nthree\r\nqux\n');
+    });
+
+    it('should leave patch file endings alone if autoConvertLineEndings=false', () => {
+      // Create patch
+      const oldFile = 'foo\r\nbar\r\nbaz\r\nqux\r\n';
+      const diffFile =
+        'Index: testFileName\n'
+        + '===================================================================\n'
+        + '--- testFileName\tOld Header\n'
+        + '+++ testFileName\tNew Header\n'
+        + '@@ -2,2 +2,3 @@\n'
+        + '-bar\n'
+        + '-baz\n'
+        + '+new\n'
+        + '+two\n'
+        + '+three\n';
+
+      expect(applyPatch(oldFile, diffFile, {autoConvertLineEndings: false})).to.equal(false);
+    });
   });
 
   describe('#applyPatches', function() {

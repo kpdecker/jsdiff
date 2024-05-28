@@ -1,21 +1,29 @@
 export function unixToWin(patch) {
-  return patch.map(index => ({
-    ...index,
-    hunks: index.hunks.map(hunk => ({
+  if (Array.isArray(patch)) {
+    return patch.map(unixToWin);
+  }
+
+  return {
+    ...patch,
+    hunks: patch.hunks.map(hunk => ({
       ...hunk,
       lines: hunk.lines.map(line => line.endsWith('\r') ? line : line + '\r')
     }))
-  }));
+  };
 }
 
 export function winToUnix(patch) {
-  return patch.map(index => ({
-    ...index,
-    hunks: index.hunks.map(hunk => ({
+  if (Array.isArray(patch)) {
+    return patch.map(winToUnix);
+  }
+
+  return {
+    ...patch,
+    hunks: patch.hunks.map(hunk => ({
       ...hunk,
       lines: hunk.lines.map(line => line.endsWith('\r') ? line.substring(0, line.length - 1) : line)
     }))
-  }));
+  };
 }
 
 /**
@@ -23,6 +31,7 @@ export function winToUnix(patch) {
  * no line endings).
  */
 export function isUnix(patch) {
+  if (!Array.isArray(patch)) { patch = [patch]; }
   return !patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))));
 }
 
@@ -30,6 +39,7 @@ export function isUnix(patch) {
  * Returns true if the patch uses Windows line endings and only Windows line endings.
  */
 export function isWin(patch) {
+  if (!Array.isArray(patch)) { patch = [patch]; }
   return patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))))
     && patch.every(index => index.hunks.every(hunk => hunk.lines.every(line => line.endsWith('\r'))));
 }

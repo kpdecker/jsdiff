@@ -1,3 +1,5 @@
+import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string';
+import {isWin, isUnix, unixToWin, winToUnix} from './line-endings';
 import {parsePatch} from './parse';
 import distanceIterator from '../util/distance-iterator';
 
@@ -12,6 +14,14 @@ export function applyPatch(source, uniDiff, options = {}) {
     }
 
     uniDiff = uniDiff[0];
+  }
+
+  if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
+    if (hasOnlyWinLineEndings(source) && isUnix(uniDiff)) {
+      uniDiff = unixToWin(uniDiff);
+    } else if (hasOnlyUnixLineEndings(source) && isWin(uniDiff)) {
+      uniDiff = winToUnix(uniDiff);
+    }
   }
 
   // Apply the diff to the input
