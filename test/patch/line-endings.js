@@ -44,4 +44,31 @@ describe('unixToWin and winToUnix', function() {
       + ' line5\n'
     );
   });
+
+  it('should not introduce \r on the last line if there was no newline at EOF', () => {
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\n'
+      + ' line3\n'
+      + '+line4\n'
+      + '\\ No newline at end of file\n'
+    );
+
+    const winPatch = unixToWin(patch);
+    expect(formatPatch(winPatch)).to.equal(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\r\n'
+      + ' line3\r\n'
+      + '+line4\n'
+      + '\\ No newline at end of file\n'
+    );
+  });
 });
