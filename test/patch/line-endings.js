@@ -72,3 +72,17 @@ describe('unixToWin and winToUnix', function() {
     );
   });
 });
+
+describe('isWin', () => {
+  it('should return true if all lines ending with CRLF', () => {
+    throw 'todo';
+  });
+
+  it('should return false if a lines ends with a LF without a CR', () => {
+    throw 'todo';
+  });
+
+  it('should still return true if only the last line in a file is missing a CR and there is a no newline at EOF indicator', () => {
+    throw 'todo';
+  });
+});
