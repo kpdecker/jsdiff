@@ -1,6 +1,6 @@
 import {parsePatch} from '../../lib/patch/parse';
 import {formatPatch} from '../../lib/patch/create';
-import {winToUnix, unixToWin} from '../../lib/patch/line-endings';
+import {winToUnix, unixToWin, isWin} from '../../lib/patch/line-endings';
 
 import {expect} from 'chai';
 
@@ -45,7 +45,7 @@ describe('unixToWin and winToUnix', function() {
     );
   });
 
-  it('should not introduce \r on the last line if there was no newline at EOF', () => {
+  it('should not introduce \\r on the last line if there was no newline at EOF', () => {
     const patch = parsePatch(
       'Index: test\n'
       + '===================================================================\n'
@@ -75,14 +75,45 @@ describe('unixToWin and winToUnix', function() {
 
 describe('isWin', () => {
   it('should return true if all lines ending with CRLF', () => {
-    throw 'todo';
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\r\n'
+      + ' line3\r\n'
+      + '+line4\r\n'
+    );
+    expect(isWin(patch)).to.equal(true);
   });
 
   it('should return false if a lines ends with a LF without a CR', () => {
-    throw 'todo';
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\r\n'
+      + ' line3\r\n'
+      + '+line4\n'
+    );
+    expect(isWin(patch)).to.equal(false);
   });
 
   it('should still return true if only the last line in a file is missing a CR and there is a no newline at EOF indicator', () => {
-    throw 'todo';
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\r\n'
+      + ' line3\r\n'
+      + '+line4\n'
+      + '\\ No newline at end of file\n'
+    );
+    expect(isWin(patch)).to.equal(true);
   });
 });
