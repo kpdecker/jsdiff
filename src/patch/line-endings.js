@@ -7,7 +7,12 @@ export function unixToWin(patch) {
     ...patch,
     hunks: patch.hunks.map(hunk => ({
       ...hunk,
-      lines: hunk.lines.map(line => line.endsWith('\r') ? line : line + '\r')
+      lines: hunk.lines.map(
+        (line, i) =>
+          (line.startsWith('\\') || line.endsWith('\r') || hunk.lines[i + 1]?.startsWith('\\'))
+            ? line
+            : line + '\r'
+      )
     }))
   };
 }

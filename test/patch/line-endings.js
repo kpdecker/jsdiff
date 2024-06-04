@@ -74,7 +74,7 @@ describe('unixToWin and winToUnix', function() {
 });
 
 describe('isWin', () => {
-  it('should return true if all lines ending with CRLF', () => {
+  it('should return true if all lines end with CRLF', () => {
     const patch = parsePatch(
       'Index: test\n'
       + '===================================================================\n'
@@ -88,7 +88,7 @@ describe('isWin', () => {
     expect(isWin(patch)).to.equal(true);
   });
 
-  it('should return false if a lines ends with a LF without a CR', () => {
+  it('should return false if a line ends with a LF without a CR', () => {
     const patch = parsePatch(
       'Index: test\n'
       + '===================================================================\n'
