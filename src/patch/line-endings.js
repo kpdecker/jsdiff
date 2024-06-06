@@ -37,7 +37,13 @@ export function winToUnix(patch) {
  */
 export function isUnix(patch) {
   if (!Array.isArray(patch)) { patch = [patch]; }
-  return !patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))));
+  return !patch.some(
+    index => index.hunks.some(
+      hunk => hunk.lines.some(
+        line => !line.startsWith('\\') && line.endsWith('\r')
+      )
+    )
+  );
 }
 
 /**
@@ -46,5 +52,11 @@ export function isUnix(patch) {
 export function isWin(patch) {
   if (!Array.isArray(patch)) { patch = [patch]; }
   return patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))))
-    && patch.every(index => index.hunks.every(hunk => hunk.lines.every(line => line.endsWith('\r'))));
+    && patch.every(
+      index => index.hunks.every(
+        hunk => hunk.lines.every(
+          (line, i) => line.startsWith('\\') || line.endsWith('\r') || hunk.lines[i + 1]?.startsWith('\\')
+        )
+      )
+    );
 }
