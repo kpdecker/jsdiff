@@ -1,6 +1,6 @@
 import {parsePatch} from '../../lib/patch/parse';
 import {formatPatch} from '../../lib/patch/create';
-import {winToUnix, unixToWin, isWin} from '../../lib/patch/line-endings';
+import {winToUnix, unixToWin, isWin, isUnix} from '../../lib/patch/line-endings';
 
 import {expect} from 'chai';
 
@@ -117,5 +117,35 @@ describe('isWin', () => {
       + '\\ No newline at end of file\n'
     );
     expect(isWin(patch)).to.equal(true);
+  });
+});
+
+describe('isUnix', () => {
+  it('should return false if some lines end with CRLF', () => {
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\r\n'
+      + ' line3\n'
+      + '+line4\r\n'
+    );
+    expect(isUnix(patch)).to.equal(false);
+  });
+
+  it('should return true if no lines end with CRLF', () => {
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\n'
+      + ' line3\n'
+      + '+line4\n'
+    );
+    expect(isUnix(patch)).to.equal(true);
   });
 });
