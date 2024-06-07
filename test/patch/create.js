@@ -708,6 +708,29 @@ describe('patch/create', function() {
         expect(diffResult).to.equal(expectedResult);
       });
     });
+
+
+    it('takes an optional callback option', function(done) {
+      createPatch(
+        'test',
+        'foo\nbar\nbaz\n', 'foo\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        {callback: (res) => {
+          expect(res).to.eql(
+            'Index: test\n'
+            + '===================================================================\n'
+            + '--- test\theader1\n'
+            + '+++ test\theader2\n'
+            + '@@ -1,3 +1,3 @@\n'
+            + ' foo\n'
+            + '-bar\n'
+            + '+barcelona\n'
+            + ' baz\n'
+          );
+          done();
+        }}
+      );
+    });
   });
 
   describe('stripTrailingCr', function() {
