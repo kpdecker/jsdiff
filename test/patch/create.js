@@ -731,6 +731,21 @@ describe('patch/create', function() {
         }}
       );
     });
+
+    it('still supports early termination when in async mode', function(done) {
+      createPatch(
+        'test',
+        'foo\nbar\nbaz\n', 'food\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        {
+          maxEditLength: 1,
+          callback: (res) => {
+            expect(res).to.eql(undefined);
+            done();
+          }
+        }
+      );
+    });
   });
 
   describe('stripTrailingCr', function() {
