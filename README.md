@@ -125,6 +125,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
     The optional `options` object may have the following keys:
 
     - `fuzzFactor`: Number of lines that are allowed to differ before rejecting a patch. Defaults to 0.
+    - `autoConvertLineEndings`: If `true`, and if the file to be patched consistently uses different line endings to the patch (i.e. either the file always uses Unix line endings while the patch uses Windows ones, or vice versa), then `applyPatch` will behave as if the line endings in the patch were the same as those in the source file. (If `false`, the patch will usually fail to apply in such circumstances since lines deleted in the patch won't be considered to match those in the source file.) Defaults to `true`.
     - `compareLine(lineNumber, line, operation, patchContent)`: Callback used to compare to given lines to determine if they should be considered equal when patching. Defaults to strict equality but may be overridden to provide fuzzier comparison. Should return false if the lines should be rejected.
 
 * `Diff.applyPatches(patch, options)` - applies one or more patches.

@@ -1,6 +1,5 @@
 export function parsePatch(uniDiff) {
-  let diffstr = uniDiff.split(/\r?\n/),
-      delimiters = uniDiff.match(/\r?\n/g) || [],
+  let diffstr = uniDiff.split(/\n/),
       list = [],
       i = 0;
 
@@ -51,7 +50,7 @@ export function parsePatch(uniDiff) {
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
   function parseFileHeader(index) {
-    const fileHeader = (/^(---|\+\+\+)\s+(.*)$/).exec(diffstr[i]);
+    const fileHeader = (/^(---|\+\+\+)\s+(.*)\r?$/).exec(diffstr[i]);
     if (fileHeader) {
       let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
       const data = fileHeader[2].split('\t', 2);
@@ -78,8 +77,7 @@ export function parsePatch(uniDiff) {
       oldLines: typeof chunkHeader[2] === 'undefined' ? 1 : +chunkHeader[2],
       newStart: +chunkHeader[3],
       newLines: typeof chunkHeader[4] === 'undefined' ? 1 : +chunkHeader[4],
-      lines: [],
-      linedelimiters: []
+      lines: []
     };
 
     // Unified Diff Format quirk: If the chunk size is 0,
@@ -107,7 +105,6 @@ export function parsePatch(uniDiff) {
 
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
         hunk.lines.push(diffstr[i]);
-        hunk.linedelimiters.push(delimiters[i] || '\n');
 
         if (operation === '+') {
           addCount++;

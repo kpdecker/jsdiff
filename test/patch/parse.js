@@ -22,12 +22,6 @@ describe('patch/parse', function() {
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -46,10 +40,6 @@ describe('patch/parse', function() {
               lines: [
                 '-line3',
                 '+line4'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -77,12 +67,6 @@ describe('patch/parse', function() {
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             },
             {
@@ -93,12 +77,6 @@ describe('patch/parse', function() {
                 ' line3',
                 '-line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -130,12 +108,6 @@ describe('patch/parse', function() {
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -176,12 +148,6 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -200,12 +166,6 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -242,12 +202,6 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -265,12 +219,6 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -303,12 +251,6 @@ Index: test2
                 ' line3',
                 '+line4',
                 ' line5'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -328,10 +270,6 @@ Index: test2
               lines: [
                 '-line5',
                 '\\ No newline at end of file'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -350,10 +288,6 @@ Index: test2
               lines: [
                 '+line5',
                 '\\ No newline at end of file'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -374,11 +308,6 @@ Index: test2
                 '+line4',
                 ' line5',
                 '\\ No newline at end of file'
-              ],
-              linedelimiters: [
-                '\n',
-                '\n',
-                '\n'
               ]
             }
           ]
@@ -458,8 +387,7 @@ Index: test2
                 ' baz',
                 ' qux',
                 '\\ No newline at end of file'
-              ],
-              linedelimiters: [ '\n', '\n', '\n', '\n', '\n', '\n' ]
+              ]
             }
           ]
         }
@@ -491,8 +419,7 @@ Index: test2
                 ' baz',
                 ' qux',
                 '\\ No newline at end of file'
-              ],
-              linedelimiters: [ '\n', '\n', '\n', '\n', '\n', '\n' ]
+              ]
             }
           ]
         }

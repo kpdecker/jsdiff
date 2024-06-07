@@ -15,7 +15,6 @@ export function reversePatch(structuredPatch) {
         oldStart: hunk.newStart,
         newLines: hunk.oldLines,
         newStart: hunk.oldStart,
-        linedelimiters: hunk.linedelimiters,
         lines: hunk.lines.map(l => {
           if (l.startsWith('-')) { return `+${l.slice(1)}`; }
           if (l.startsWith('+')) { return `-${l.slice(1)}`; }

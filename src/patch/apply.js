@@ -1,3 +1,5 @@
+import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string';
+import {isWin, isUnix, unixToWin, winToUnix} from './line-endings';
 import {parsePatch} from './parse';
 import distanceIterator from '../util/distance-iterator';
 
@@ -14,9 +16,16 @@ export function applyPatch(source, uniDiff, options = {}) {
     uniDiff = uniDiff[0];
   }
 
+  if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
+    if (hasOnlyWinLineEndings(source) && isUnix(uniDiff)) {
+      uniDiff = unixToWin(uniDiff);
+    } else if (hasOnlyUnixLineEndings(source) && isWin(uniDiff)) {
+      uniDiff = winToUnix(uniDiff);
+    }
+  }
+
   // Apply the diff to the input
-  let lines = source.split(/\r?\n/),
-      delimiters = source.match(/\r?\n/g) || [],
+  let lines = source.split('\n'),
       hunks = uniDiff.hunks,
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
@@ -88,18 +97,15 @@ export function applyPatch(source, uniDiff, options = {}) {
     for (let j = 0; j < hunk.lines.length; j++) {
       let line = hunk.lines[j],
           operation = (line.length > 0 ? line[0] : ' '),
-          content = (line.length > 0 ? line.substr(1) : line),
-          delimiter = hunk.linedelimiters && hunk.linedelimiters[j] || '\n';
+          content = (line.length > 0 ? line.substr(1) : line);
 
       if (operation === ' ') {
         toPos++;
       } else if (operation === '-') {
         lines.splice(toPos, 1);
-        delimiters.splice(toPos, 1);
       /* istanbul ignore else */
       } else if (operation === '+') {
         lines.splice(toPos, 0, content);
-        delimiters.splice(toPos, 0, delimiter);
         toPos++;
       } else if (operation === '\\') {
         let previousOperation = hunk.lines[j - 1] ? hunk.lines[j - 1][0] : null;
@@ -116,16 +122,11 @@ export function applyPatch(source, uniDiff, options = {}) {
   if (removeEOFNL) {
     while (!lines[lines.length - 1]) {
       lines.pop();
-      delimiters.pop();
     }
   } else if (addEOFNL) {
     lines.push('');
-    delimiters.push('\n');
   }
-  for (let _k = 0; _k < lines.length - 1; _k++) {
-    lines[_k] = lines[_k] + delimiters[_k];
-  }
-  return lines.join('');
+  return lines.join('\n');
 }
 
 // Wrapper that supports multiple file patches via callbacks.

@@ -86,3 +86,18 @@ function overlapCount(a, b) {
   }
   return k;
 }
+
+
+/**
+ * Returns true if the string consistently uses Windows line endings.
+ */
+export function hasOnlyWinLineEndings(string) {
+  return string.includes('\r\n') && !string.match(/(?<!\r)\n/);
+}
+
+/**
+ * Returns true if the string consistently uses Unix line endings.
+ */
+export function hasOnlyUnixLineEndings(string) {
+  return !string.includes('\r\n') && string.includes('\n');
+}
