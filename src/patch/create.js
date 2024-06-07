@@ -158,11 +158,33 @@ export function formatPatch(diff) {
 }
 
 export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-  const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
-  if (!patchObj) {
-    return;
+  if (!options?.callback) {
+    const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
+    if (!patchObj) {
+      return;
+    }
+    return formatPatch(patchObj);
+  } else {
+    const {callback} = options;
+    structuredPatch(
+      oldFileName,
+      newFileName,
+      oldStr,
+      newStr,
+      oldHeader,
+      newHeader,
+      {
+        ...options,
+        callback: patchObj => {
+          if (!patchObj) {
+            callback();
+          } else {
+            callback(formatPatch(patchObj));
+          }
+        }
+      }
+    );
   }
-  return formatPatch(patchObj);
 }
 
 export function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {
