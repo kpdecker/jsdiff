@@ -766,6 +766,25 @@ describe('patch/create', function() {
       });
     });
 
+    it('takes an optional callback option', function(done) {
+      structuredPatch(
+        'oldfile', 'newfile',
+        'foo\nbar\nbaz\n', 'foo\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        {callback: (res) => {
+          expect(res).to.eql({
+            oldFileName: 'oldfile', newFileName: 'newfile',
+            oldHeader: 'header1', newHeader: 'header2',
+            hunks: [{
+              oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
+              lines: [' foo', '-bar', '+barcelona', ' baz']
+            }]
+          });
+          done();
+        }}
+      );
+    });
+
     describe('given options.maxEditLength', function() {
       const options = { maxEditLength: 1 };
 
