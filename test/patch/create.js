@@ -708,6 +708,66 @@ describe('patch/create', function() {
         expect(diffResult).to.equal(expectedResult);
       });
     });
+
+
+    it('takes an optional callback option', function(done) {
+      createPatch(
+        'test',
+        'foo\nbar\nbaz\n', 'foo\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        {callback: (res) => {
+          expect(res).to.eql(
+            'Index: test\n'
+            + '===================================================================\n'
+            + '--- test\theader1\n'
+            + '+++ test\theader2\n'
+            + '@@ -1,3 +1,3 @@\n'
+            + ' foo\n'
+            + '-bar\n'
+            + '+barcelona\n'
+            + ' baz\n'
+          );
+          done();
+        }}
+      );
+    });
+
+    it('lets you provide a callback by passing a function as the `options` parameter', function(done) {
+      createPatch(
+        'test',
+        'foo\nbar\nbaz\n', 'foo\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        res => {
+          expect(res).to.eql(
+            'Index: test\n'
+            + '===================================================================\n'
+            + '--- test\theader1\n'
+            + '+++ test\theader2\n'
+            + '@@ -1,3 +1,3 @@\n'
+            + ' foo\n'
+            + '-bar\n'
+            + '+barcelona\n'
+            + ' baz\n'
+          );
+          done();
+        }
+      );
+    });
+
+    it('still supports early termination when in async mode', function(done) {
+      createPatch(
+        'test',
+        'foo\nbar\nbaz\n', 'food\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        {
+          maxEditLength: 1,
+          callback: (res) => {
+            expect(res).to.eql(undefined);
+            done();
+          }
+        }
+      );
+    });
   });
 
   describe('stripTrailingCr', function() {
@@ -764,6 +824,44 @@ describe('patch/create', function() {
           lines: [' line2', ' line3', '-line4', '+line5', '\\ No newline at end of file']
         }]
       });
+    });
+
+    it('takes an optional callback option', function(done) {
+      structuredPatch(
+        'oldfile', 'newfile',
+        'foo\nbar\nbaz\n', 'foo\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        {callback: (res) => {
+          expect(res).to.eql({
+            oldFileName: 'oldfile', newFileName: 'newfile',
+            oldHeader: 'header1', newHeader: 'header2',
+            hunks: [{
+              oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
+              lines: [' foo', '-bar', '+barcelona', ' baz']
+            }]
+          });
+          done();
+        }}
+      );
+    });
+
+    it('lets you provide a callback by passing a function as the `options` parameter', function(done) {
+      structuredPatch(
+        'oldfile', 'newfile',
+        'foo\nbar\nbaz\n', 'foo\nbarcelona\nbaz\n',
+        'header1', 'header2',
+        res => {
+          expect(res).to.eql({
+            oldFileName: 'oldfile', newFileName: 'newfile',
+            oldHeader: 'header1', newHeader: 'header2',
+            hunks: [{
+              oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
+              lines: [' foo', '-bar', '+barcelona', ' baz']
+            }]
+          });
+          done();
+        }
+      );
     });
 
     describe('given options.maxEditLength', function() {

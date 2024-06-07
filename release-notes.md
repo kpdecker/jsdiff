@@ -25,6 +25,7 @@
 - [#490](https://github.com/kpdecker/jsdiff/pull/490) **When calling diffing functions in async mode by passing a `callback` option, the diff result will now be passed as the *first* argument to the callback instead of the second.** (Previously, the first argument was never used at all and would always have value `undefined`.)
 - [#489](github.com/kpdecker/jsdiff/pull/489) **`this.options` no longer exists on `Diff` objects.** Instead, `options` is now passed as an argument to methods that rely on options, like `equals(left, right, options)`. This fixes a race condition in async mode, where diffing behaviour could be changed mid-execution if a concurrent usage of the same `Diff` instances overwrote its `options`.
 - [#518](https://github.com/kpdecker/jsdiff/pull/518) **`linedelimiters` no longer exists** on patch objects; instead, when a patch with Windows-style CRLF line endings is parsed, **the lines in `lines` will end with `\r`**. There is now a **new `autoConvertLineEndings` option, on by default**, which makes it so that when a patch with Windows-style line endings is applied to a source file with Unix style line endings, the patch gets autoconverted to use Unix-style line endings, and when a patch with Unix-style line endings is applied to a source file with Windows-style line endings, it gets autoconverted to use Windows-style line endings.
+- [#521](https://github.com/kpdecker/jsdiff/pull/521) **the `callback` option is now supported by `structuredPatch`, `createPatch`, and `createTwoFilesPatch`**
 
 ## v5.2.0
 
