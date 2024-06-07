@@ -4,6 +4,9 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   if (!options) {
     options = {};
   }
+  if (typeof options === 'function') {
+    options = {callback: options};
+  }
   if (typeof options.context === 'undefined') {
     options.context = 4;
   }
@@ -158,6 +161,10 @@ export function formatPatch(diff) {
 }
 
 export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+  if (typeof options === 'function') {
+    options = {callback: options};
+  }
+
   if (!options?.callback) {
     const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
     if (!patchObj) {
