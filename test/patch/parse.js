@@ -82,6 +82,7 @@ describe('patch/parse', function() {
           ]
         }]);
     });
+
     it('should parse single index patches', function() {
       expect(parsePatch(
 `Index: test
@@ -113,6 +114,7 @@ describe('patch/parse', function() {
           ]
         }]);
     });
+
     it('should parse multiple index files', function() {
       expect(parsePatch(
 `Index: test
@@ -225,7 +227,7 @@ Index: test2
         }]);
     });
 
- it('should parse patches with filenames having quotes and back slashes', function() {
+    it('should parse patches with filenames having quotes and back slashes', function() {
       expect(parsePatch(
 `Index: test
 ===================================================================
@@ -275,6 +277,7 @@ Index: test2
           ]
         }]);
     });
+
     it('should note removed EOFNL', function() {
       expect(parsePatch(
 `@@ -0,0 +1 @@
@@ -293,6 +296,7 @@ Index: test2
           ]
         }]);
     });
+
     it('should ignore context no EOFNL', function() {
       expect(parsePatch(
 `@@ -1 +1,2 @@
@@ -332,6 +336,7 @@ Index: test2
             index: 'foo'
           }]);
     });
+
     it('should throw on invalid input', function() {
       expect(function() {
         parsePatch('Index: foo\n+++ bar\nblah');
