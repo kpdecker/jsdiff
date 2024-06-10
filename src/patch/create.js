@@ -131,10 +131,9 @@ export function formatPatch(diff) {
   }
 
   const ret = [];
-  if (diff.oldFileName == diff.newFileName) {
-    ret.push('Index: ' + diff.oldFileName);
+  if (diff.leadingGarbage) {
+    ret.push(diff.leadingGarbage);
   }
-  ret.push('===================================================================');
   ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
   ret.push('+++ ' + diff.newFileName + (typeof diff.newHeader === 'undefined' ? '' : '\t' + diff.newHeader));
 
@@ -155,6 +154,10 @@ export function formatPatch(diff) {
       + ' @@'
     );
     ret.push.apply(ret, hunk.lines);
+  }
+
+  if (diff.trailingGarbage) {
+    ret.push(diff.trailingGarbage);
   }
 
   return ret.join('\n') + '\n';
