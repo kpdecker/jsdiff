@@ -430,5 +430,79 @@ Index: test2
         }
       ]);
     });
+
+    it('should preserve leading garbage', () => {
+      const patch = parsePatch(`diff --git a/bar b/bar
+index dccca17..5b1bf3f 100644
+--- a/bar
++++ b/bar
+@@ -2,3 +2,5 @@ wiggly
+ wobbly
+ squiggly
+ squabbly
++flippety
++floppety
+diff --git a/foo b/foo
+index 7a4a73a..38d82a3 100644
+--- a/foo
++++ b/foo
+@@ -1,4 +1,4 @@
+ first line
+ second line
+-third line
++some other line
+ fourth line
+`);
+      expect(patch).to.eql([
+        {
+          oldFileName: 'a/bar',
+          oldHeader: '',
+          newFileName: 'b/bar',
+          newHeader: '',
+          leadingGarbage: 'diff --git a/bar b/bar\nindex dccca17..5b1bf3f 100644\n',
+          hunks: [
+            {
+              oldStart: 2,
+              oldLines: 3,
+              newStart: 2,
+              newLines: 5,
+              lines: [
+                ' wobbly',
+                ' squiggly',
+                ' squabbly',
+                '+flippety',
+                '+floppety'
+              ]
+            }
+          ]
+        },
+        {
+          oldFileName: 'a/foo',
+          oldHeader: '',
+          newFileName: 'b/foo',
+          newHeader: '',
+          leadingGarbage: 'diff --git a/foo b/foo\nindex 7a4a73a..38d82a3 100644\n',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 4,
+              newStart: 1,
+              newLines: 4,
+              lines: [
+                ' first line',
+                ' second line',
+                '-third line',
+                '+some other line',
+                ' fourth line'
+              ]
+            }
+          ]
+        }
+      ]);
+    });
+
+    it('should preserve trailing garbage on the final file', () => {
+      // TODO
+    });
   });
 });
