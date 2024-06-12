@@ -7,6 +7,8 @@ export function parsePatch(uniDiff) {
     let index = {};
     list.push(index);
 
+    const leadingGarbageLines = [];
+
     // Parse diff metadata
     while (i < diffstr.length) {
       let line = diffstr[i];
@@ -15,6 +17,7 @@ export function parsePatch(uniDiff) {
 
       // File header found, end parsing diff metadata
       if ((/^(\-\-\-|\+\+\+|@@)\s/).test(line)) {
+        index.leadingGarbage = leadingGarbageLines.join('\n');
         break;
       }
 
@@ -24,6 +27,7 @@ export function parsePatch(uniDiff) {
         index.index = header[1];
       }
 
+      leadingGarbageLines.push(line);
       i++;
     }
 
@@ -47,6 +51,8 @@ export function parsePatch(uniDiff) {
         i++;
       }
     }
+
+    // TODO: Trailing garbage on final index
   }
 
   // Parses the --- and +++ headers, if none are found, no lines

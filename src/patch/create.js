@@ -117,10 +117,19 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
       }
     }
 
+    let leadingGarbage;
+    if (oldFileName == newFileName) {
+      leadingGarbage = `Index: ${oldFileName}\n===================================================================`;
+    } else {
+      leadingGarbage = '===================================================================';
+    }
+
+
     return {
-      oldFileName: oldFileName, newFileName: newFileName,
-      oldHeader: oldHeader, newHeader: newHeader,
-      hunks: hunks
+      oldFileName, newFileName,
+      oldHeader, newHeader,
+      hunks,
+      leadingGarbage
     };
   }
 }
