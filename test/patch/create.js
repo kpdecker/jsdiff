@@ -819,6 +819,7 @@ describe('patch/create', function() {
       expect(res).to.eql({
         oldFileName: 'oldfile', newFileName: 'newfile',
         oldHeader: 'header1', newHeader: 'header2',
+        leadingGarbage: '===================================================================',
         hunks: [{
           oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
           lines: [' line2', ' line3', '-line4', '+line5', '\\ No newline at end of file']
@@ -835,6 +836,7 @@ describe('patch/create', function() {
           expect(res).to.eql({
             oldFileName: 'oldfile', newFileName: 'newfile',
             oldHeader: 'header1', newHeader: 'header2',
+            leadingGarbage: '===================================================================',
             hunks: [{
               oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
               lines: [' foo', '-bar', '+barcelona', ' baz']
@@ -854,6 +856,7 @@ describe('patch/create', function() {
           expect(res).to.eql({
             oldFileName: 'oldfile', newFileName: 'newfile',
             oldHeader: 'header1', newHeader: 'header2',
+            leadingGarbage: '===================================================================',
             hunks: [{
               oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
               lines: [' foo', '-bar', '+barcelona', ' baz']
@@ -931,14 +934,13 @@ describe('patch/create', function() {
         }
       ];
       expect(formatPatch(patch)).to.equal(
-        '===================================================================\n' +
+        // TODO: Verify this is a legit patch before merging this PR. What does diff -u emit?
         '--- foo\t2023-12-29 15:48:17.976616966 +0000\n' +
         '+++ bar\t2023-12-29 15:48:21.400516845 +0000\n' +
         '@@ -1,1 +1,1 @@\n' +
         '-xxx\n' +
         '+yyy\n' +
         '\n' +
-        '===================================================================\n' +
         '--- baz\t2023-12-29 15:48:29.376283616 +0000\n' +
         '+++ qux\t2023-12-29 15:48:32.908180343 +0000\n' +
         '@@ -1,1 +1,1 @@\n' +

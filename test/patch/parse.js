@@ -13,6 +13,7 @@ describe('patch/parse', function() {
 +line4
  line5`))
         .to.eql([{
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -33,6 +34,7 @@ describe('patch/parse', function() {
 -line3
 +line4`))
         .to.eql([{
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -58,6 +60,7 @@ describe('patch/parse', function() {
 -line4
  line5`))
         .to.eql([{
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -100,6 +103,7 @@ describe('patch/parse', function() {
           oldHeader: 'header1',
           newFileName: 'to',
           newHeader: 'header2',
+          leadingGarbage: 'Index: test\n===================================================================',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -141,6 +145,7 @@ Index: test2
           oldHeader: 'header1',
           newFileName: 'to',
           newHeader: 'header2',
+          leadingGarbage: 'Index: test\n===================================================================',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -159,6 +164,7 @@ Index: test2
           oldHeader: 'header1',
           newFileName: 'to',
           newHeader: 'header2',
+          leadingGarbage: 'Index: test2\n===================================================================',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -195,6 +201,7 @@ Index: test2
           oldHeader: 'header1',
           newFileName: 'to',
           newHeader: 'header2',
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -212,6 +219,7 @@ Index: test2
           oldHeader: 'header1',
           newFileName: 'to',
           newHeader: 'header2',
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -244,6 +252,7 @@ Index: test2
           oldHeader: 'header1',
           newFileName: 'to\\a\\file\\with\\quotes\\and\\backslash',
           newHeader: 'header2',
+          leadingGarbage: 'Index: test\n===================================================================',
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -265,6 +274,7 @@ Index: test2
 -line5
 \\ No newline at end of file`))
         .to.eql([{
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -284,6 +294,7 @@ Index: test2
 +line5
 \\ No newline at end of file`))
         .to.eql([{
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 0,
@@ -304,6 +315,7 @@ Index: test2
  line5
 \\ No newline at end of file`))
         .to.eql([{
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -379,6 +391,7 @@ Index: test2
           oldHeader: '2023-12-20 16:11:20.908225554 +0000',
           newFileName: 'bar',
           newHeader: '2023-12-20 16:11:34.391473579 +0000',
+          leadingGarbage: '',
           hunks: [
             {
               oldStart: 1,
@@ -411,6 +424,7 @@ Index: test2
           newFileName: 'foo',
           newHeader: '',
           index: 'foo',
+          leadingGarbage: 'Index: foo\n===================================================================',
           hunks: [
             {
               oldStart: 1,
@@ -459,7 +473,7 @@ index 7a4a73a..38d82a3 100644
           oldHeader: '',
           newFileName: 'b/bar',
           newHeader: '',
-          leadingGarbage: 'diff --git a/bar b/bar\nindex dccca17..5b1bf3f 100644\n',
+          leadingGarbage: 'diff --git a/bar b/bar\nindex dccca17..5b1bf3f 100644',
           hunks: [
             {
               oldStart: 2,
@@ -481,7 +495,7 @@ index 7a4a73a..38d82a3 100644
           oldHeader: '',
           newFileName: 'b/foo',
           newHeader: '',
-          leadingGarbage: 'diff --git a/foo b/foo\nindex 7a4a73a..38d82a3 100644\n',
+          leadingGarbage: 'diff --git a/foo b/foo\nindex 7a4a73a..38d82a3 100644',
           hunks: [
             {
               oldStart: 1,
