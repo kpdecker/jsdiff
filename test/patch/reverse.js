@@ -61,7 +61,8 @@ describe('patch/reverse', function() {
         '+bar\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        '===================================================================\n' +
+        'diff --git a/README.md b/README.md\n' +
+        'index 06eebfa..40919a6 100644\n' +
         '--- b/README.md\t\n' +
         '+++ a/README.md\t\n' +
         '@@ -1,7 +1,5 @@\n' +
@@ -79,7 +80,8 @@ describe('patch/reverse', function() {
         '-\n' +
         '-bar\n' +
         '\n' +
-        '===================================================================\n' +
+        'diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md\n' +
+        'index 20b807a..4a96aff 100644\n' +
         '--- b/CONTRIBUTING.md\t\n' +
         '+++ a/CONTRIBUTING.md\t\n' +
         '@@ -2,8 +2,6 @@\n' +
