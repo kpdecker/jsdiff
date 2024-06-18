@@ -100,17 +100,8 @@ export function parsePatch(uniDiff) {
 
     let addCount = 0,
         removeCount = 0;
-    for (; i < diffstr.length; i++) {
-      // Lines starting with '---' could be mistaken for the "remove line" operation
-      // But they could be the header for the next file. Therefore prune such cases out.
-      if (diffstr[i].indexOf('--- ') === 0
-            && (i + 2 < diffstr.length)
-            && diffstr[i + 1].indexOf('+++ ') === 0
-            && diffstr[i + 2].indexOf('@@') === 0) {
-          break;
-      }
+    for (; removeCount < hunk.oldLines || addCount < hunk.newLines || diffstr[i]?.startsWith('\\'); i++) {
       let operation = (diffstr[i].length == 0 && i != (diffstr.length - 1)) ? ' ' : diffstr[i][0];
-
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
         hunk.lines.push(diffstr[i]);
 
@@ -123,7 +114,7 @@ export function parsePatch(uniDiff) {
           removeCount++;
         }
       } else {
-        break;
+        throw new Error(`Hunk at line ${chunkHeaderIndex} contained invalid line ${diffstr[i]}`);
       }
     }
 
