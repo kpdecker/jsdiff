@@ -92,7 +92,11 @@ export function parsePatch(uniDiff) {
 
     let addCount = 0,
         removeCount = 0;
-    for (; removeCount < hunk.oldLines || addCount < hunk.newLines || diffstr[i]?.startsWith('\\'); i++) {
+    for (
+      ;
+      i < diffstr.length && (removeCount < hunk.oldLines || addCount < hunk.newLines || diffstr[i]?.startsWith('\\'));
+      i++
+    ) {
       let operation = (diffstr[i].length == 0 && i != (diffstr.length - 1)) ? ' ' : diffstr[i][0];
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
         hunk.lines.push(diffstr[i]);
