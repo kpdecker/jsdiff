@@ -118,7 +118,7 @@ export function parsePatch(uniDiff) {
           removeCount++;
         }
       } else {
-        throw new Error(`Hunk at line ${chunkHeaderIndex} contained invalid line ${diffstr[i]}`);
+        throw new Error(`Hunk at line ${chunkHeaderIndex + 1} contained invalid line ${diffstr[i]}`);
       }
     }
 

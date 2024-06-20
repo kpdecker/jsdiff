@@ -618,5 +618,25 @@ index 7a4a73a..38d82a3 100644
         ]
       }]);
     });
+
+    it('should emit an error if a hunk contains an invalid line', () => {
+      // Within a hunk, every line must either start with '+' (insertion), '-' (deletion),
+      // ' ' (context line, i.e. not deleted nor inserted) or a backslash (for
+      // '\\ No newline at end of file' lines). Seeing anything else before the end of the hunk is
+      // an error.
+
+      const patchStr = `Index: test
+===================================================================
+--- from\theader1
++++ to\theader2
+@@ -1,3 +1,4 @@
+ line2
+line3
++line4
+ line5`;
+
+      // eslint-disable-next-line dot-notation
+      expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
+    });
   });
 });
