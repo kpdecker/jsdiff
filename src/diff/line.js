@@ -45,6 +45,13 @@ lineDiff.equals = function(left, right, options) {
     if (!options.newlineIsToken || !right.includes('\n')) {
       right = right.trim();
     }
+  } else if (options.ignoreNewlineAtEof && !options.newlineIsToken) {
+    if (left.endsWith('\n')) {
+      left = left.slice(0, -1);
+    }
+    if (right.endsWith('\n')) {
+      right = right.slice(0, -1);
+    }
   }
   return Diff.prototype.equals.call(this, left, right, options);
 };

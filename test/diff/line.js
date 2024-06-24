@@ -244,4 +244,27 @@ describe('diff/line', function() {
       {value: 'line\nline', count: 2, added: false, removed: false}
     ]);
   });
+
+  it('ignores absence of newline on the last line of file wrt equality when ignoreNewlineAtEof', function() {
+    // Example taken directly from https://github.com/kpdecker/jsdiff/issues/324
+    expect(diffLines('a\nb\nc', 'a\nb')).to.eql(
+      [
+        { count: 1, added: false, removed: false, value: 'a\n' },
+        { count: 2, added: false, removed: true, value: 'b\nc' },
+        { count: 1, added: true, removed: false, value: 'b' }
+      ]
+    );
+    expect(diffLines('a\nb\nc', 'a\nb', { ignoreNewlineAtEof: true })).to.eql(
+      [
+        { count: 2, added: false, removed: false, value: 'a\nb' },
+        { count: 1, added: false, removed: true, value: 'c' }
+      ]
+    );
+    expect(diffLines('a\nb', 'a\nb\nc', { ignoreNewlineAtEof: true })).to.eql(
+      [
+        { count: 2, added: false, removed: false, value: 'a\nb\n' },
+        { count: 1, added: true, removed: false, value: 'c' }
+      ]
+    );
+  });
 });
