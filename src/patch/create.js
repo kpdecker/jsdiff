@@ -165,10 +165,6 @@ export function formatPatch(diff) {
     ret.push.apply(ret, hunk.lines);
   }
 
-  if (diff.trailingGarbage) {
-    ret.push(diff.trailingGarbage);
-  }
-
   return ret.join('\n') + '\n';
 }
 
