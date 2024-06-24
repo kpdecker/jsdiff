@@ -634,5 +634,89 @@ line3
       // eslint-disable-next-line dot-notation
       expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
     });
+
+    it("shouldn't choke on a diffx diff", () => {
+      // Taken from https://diffx.org/_/downloads/en/latest/pdf/.
+      // diffx is little-used and probably unimportant in and of itself but it's a good test of
+      // unusual but realistic leading garbage.
+      const patchStr = `#diffx: encoding=utf-8, version=1.0
+#.change:
+#..preamble: indent=4, length=319, mimetype=text/markdown
+    Convert legacy header building code to Python 3.
+    Header building for messages used old Python 2.6-era list comprehensions
+    with tuples rather than modern dictionary comprehensions in order to build
+    a message list. This change modernizes that, and swaps out six for a
+    3-friendly \`.items()\` call.
+#..meta: format=json, length=270
+{
+    "author": "Christian Hammond <christian@example.com>",
+    "committer": "Christian Hammond <christian@example.com>",
+    "committer date": "2021-06-02T13:12:06-07:00",
+    "date": "2021-06-01T19:26:31-07:00",
+    "id": "a25e7b28af5e3184946068f432122c68c1a30b23"
+}
+#..file:
+#...meta: format=json, length=176
+{
+    "path": "/src/message.py",
+    "revision": {
+        "new": "f814cf74766ba3e6d175254996072233ca18a690",
+        "old": "9f6a412b3aee0a55808928b43f848202b4ee0f8d"
+    }
+}
+#...diff: length=629
+--- /src/message.py
++++ /src/message.py
+@@ -164,10 +164,10 @@
+             not isinstance(headers, MultiValueDict)):
+             # Instantiating a MultiValueDict from a dict does not ensure that
+             # values are lists, so we have to ensure that ourselves.
+-              headers = MultiValueDict(dict(
+-                  (key, [value])
+-                  for key, value in six.iteritems(headers)
+-              ))
++              headers = MultiValueDict({
++                  key: [value]
++                  for key, value in headers.items()
++              })
+
+             if in_reply_to:
+                 headers['In-Reply-To'] = in_reply_to
+`;
+
+      expect(parsePatch(patchStr)).to.eql([
+        {
+          leadingGarbage: '#diffx: encoding=utf-8, version=1.0\n#.change:\n#..preamble: indent=4, length=319, mimetype=text/markdown\n    Convert legacy header building code to Python 3.\n    Header building for messages used old Python 2.6-era list comprehensions\n    with tuples rather than modern dictionary comprehensions in order to build\n    a message list. This change modernizes that, and swaps out six for a\n    3-friendly `.items()` call.\n#..meta: format=json, length=270\n{\n    \"author\": \"Christian Hammond <christian@example.com>\",\n    \"committer\": \"Christian Hammond <christian@example.com>\",\n    \"committer date\": \"2021-06-02T13:12:06-07:00\",\n    \"date\": \"2021-06-01T19:26:31-07:00\",\n    \"id\": \"a25e7b28af5e3184946068f432122c68c1a30b23\"\n}\n#..file:\n#...meta: format=json, length=176\n{\n    \"path\": \"/src/message.py\",\n    \"revision\": {\n        \"new\": \"f814cf74766ba3e6d175254996072233ca18a690\",\n        \"old\": \"9f6a412b3aee0a55808928b43f848202b4ee0f8d\"\n    }\n}\n#...diff: length=629',
+          oldFileName: '/src/message.py',
+          oldHeader: '',
+          newFileName: '/src/message.py',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 164,
+              oldLines: 10,
+              newStart: 164,
+              newLines: 10,
+              lines: [
+                '             not isinstance(headers, MultiValueDict)):',
+                '             # Instantiating a MultiValueDict from a dict does not ensure that',
+                '             # values are lists, so we have to ensure that ourselves.',
+                '-              headers = MultiValueDict(dict(',
+                '-                  (key, [value])',
+                '-                  for key, value in six.iteritems(headers)',
+                '-              ))',
+                '+              headers = MultiValueDict({',
+                '+                  key: [value]',
+                '+                  for key, value in headers.items()',
+                '+              })',
+                '',
+                '             if in_reply_to:',
+                "                 headers['In-Reply-To'] = in_reply_to"
+              ]
+            }
+          ]
+        }
+      ]);
+    });
   });
 });

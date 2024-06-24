@@ -13,8 +13,6 @@ export function parsePatch(uniDiff) {
     while (i < diffstr.length) {
       let line = diffstr[i];
 
-      // TODO: Prior to this, chomp garbage
-
       // File header found, end parsing diff metadata
       if ((/^(\-\-\-|\+\+\+|@@)\s/).test(line)) {
         index.leadingGarbage = leadingGarbageLines.join('\n');
