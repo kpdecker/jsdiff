@@ -46,6 +46,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
     Options
     * `ignoreWhitespace`: `true` to ignore leading and trailing whitespace characters when checking if two lines are equal. Defaults to `false`.
+    * `ignoreNewlineAtEof`: `true` to ignore a missing newline character at the end of the last line when comparing it to other lines. (By default, the line `'b\n'` in text `'a\nb\nc'` is not considered equal to the line `'b'` in text `'a\nb'`; this option makes them be considered equal.) Ignored if `ignoreWhitespace` or `newlineIsToken` are also true.
     * `stripTrailingCr`: `true` to remove all trailing CR (`\r`) characters before performing the diff. Defaults to `false`.
       This helps to get a useful diff when diffing UNIX text files against Windows text files.
     * `newlineIsToken`: `true` to treat the newline character at the end of each line as its own token. This allows for changes to the newline structure to occur independently of the line content and to be treated as such. In general this is the more human friendly form of `diffLines`; the default behavior with this option turned off is better suited for patches and other computer friendly output. Defaults to `false`.
