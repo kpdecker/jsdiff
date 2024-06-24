@@ -27,6 +27,7 @@
 - [#518](https://github.com/kpdecker/jsdiff/pull/518) **`linedelimiters` no longer exists** on patch objects; instead, when a patch with Windows-style CRLF line endings is parsed, **the lines in `lines` will end with `\r`**. There is now a **new `autoConvertLineEndings` option, on by default**, which makes it so that when a patch with Windows-style line endings is applied to a source file with Unix style line endings, the patch gets autoconverted to use Unix-style line endings, and when a patch with Unix-style line endings is applied to a source file with Windows-style line endings, it gets autoconverted to use Windows-style line endings.
 - [#521](https://github.com/kpdecker/jsdiff/pull/521) **the `callback` option is now supported by `structuredPatch`, `createPatch`, and `createTwoFilesPatch`**
 - [#529](https://github.com/kpdecker/jsdiff/pull/522) **`parsePatch` can now parse patches where lines starting with `--` or `++` are deleted/inserted**; previously, there were edge cases where the parser would choke on valid patches or give wrong results.
+- [#530](https://github.com/kpdecker/jsdiff/pull/530) **Added `ignoreNewlineAtEof` option` to `diffLines`**
 
 ## v5.2.0
 
