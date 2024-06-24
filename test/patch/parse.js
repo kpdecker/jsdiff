@@ -449,7 +449,6 @@ Index: test2
         oldHeader: '2024-06-14 22:16:31.444276792 +0100',
         newFileName: 'bar',
         newHeader: '2024-06-14 22:17:14.910611219 +0100',
-        leadingGarbage: '',
         hunks: [
           {
             oldStart: 1,
@@ -518,7 +517,6 @@ Index: test2
         oldHeader: '2024-06-14 21:57:04.341065736 +0100',
         newFileName: 'bar',
         newHeader: '2024-06-14 22:00:57.988080321 +0100',
-        leadingGarbage: '',
         hunks: [
           { oldStart: 4, oldLines: 1, newStart: 4, newLines: 1, lines: ['--- bla', '+++ bla'] },
           { oldStart: 7, oldLines: 0, newStart: 7, newLines: 1, lines: ['+seventh'] }
