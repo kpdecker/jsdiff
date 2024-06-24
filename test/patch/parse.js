@@ -430,8 +430,8 @@ Index: test2
       // Regression test for https://github.com/kpdecker/jsdiff/issues/524
       // Not only are these considered valid by GNU patch, but jsdiff's own formatPatch method
       // emits patches like this, which jsdiff used to then be unable to parse!
-      const patchStr = `--- foo 2024-06-14 22:16:31.444276792 +0100
-+++ bar 2024-06-14 22:17:14.910611219 +0100
+      const patchStr = `--- foo\t2024-06-14 22:16:31.444276792 +0100
++++ bar\t2024-06-14 22:17:14.910611219 +0100
 @@ -1,7 +1,7 @@
  first
  second
@@ -503,8 +503,8 @@ Index: test2
       // determine where a hunk or file ends in a unified diff patch without heeding those line
       // counts.
 
-      const patchStr = `--- foo 2024-06-14 21:57:04.341065736 +0100
-+++ bar 2024-06-14 22:00:57.988080321 +0100
+      const patchStr = `--- foo\t2024-06-14 21:57:04.341065736 +0100
++++ bar\t2024-06-14 22:00:57.988080321 +0100
 @@ -4 +4 @@
 --- bla
 +++ bla
@@ -513,15 +513,35 @@ Index: test2
 `;
 
       expect(parsePatch(patchStr)).to.eql([{
-        oldFileName: 'foo 2024-06-14 21:57:04.341065736 +0100',
-        oldHeader: '',
-        newFileName: 'bar 2024-06-14 22:00:57.988080321 +0100',
-        newHeader: '',
+        oldFileName: 'foo',
+        oldHeader: '2024-06-14 21:57:04.341065736 +0100',
+        newFileName: 'bar',
+        newHeader: '2024-06-14 22:00:57.988080321 +0100',
         hunks: [
           { oldStart: 4, oldLines: 1, newStart: 4, newLines: 1, lines: ['--- bla', '+++ bla'] },
           { oldStart: 7, oldLines: 0, newStart: 7, newLines: 1, lines: ['+seventh'] }
         ]
       }]);
+    });
+
+    it('should emit an error if a hunk contains an invalid line', () => {
+      // Within a hunk, every line must either start with '+' (insertion), '-' (deletion),
+      // ' ' (context line, i.e. not deleted nor inserted) or a backslash (for
+      // '\\ No newline at end of file' lines). Seeing anything else before the end of the hunk is
+      // an error.
+
+      const patchStr = `Index: test
+===================================================================
+--- from\theader1
++++ to\theader2
+@@ -1,3 +1,4 @@
+ line2
+line3
++line4
+ line5`;
+
+      // eslint-disable-next-line dot-notation
+      expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
     });
   });
 });
