@@ -51,8 +51,6 @@ export function parsePatch(uniDiff) {
         i++;
       }
     }
-
-    // TODO: Trailing garbage on final index
   }
 
   // Parses the --- and +++ headers, if none are found, no lines

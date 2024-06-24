@@ -515,10 +515,6 @@ index 7a4a73a..38d82a3 100644
       ]);
     });
 
-    it('should preserve trailing garbage on the final file', () => {
-      // TODO
-    });
-
     it('should tolerate patches with extra trailing newlines after hunks', () => {
       // Regression test for https://github.com/kpdecker/jsdiff/issues/524
       // Not only are these considered valid by GNU patch, but jsdiff's own formatPatch method
