@@ -1,4 +1,4 @@
-export function parsePatch(uniDiff) {
+export function parsePatch(uniDiff, options = {discardGarbage: false}) {
   let diffstr = uniDiff.split(/\n/),
       list = [],
       i = 0;
@@ -15,7 +15,9 @@ export function parsePatch(uniDiff) {
 
       // File header found, end parsing diff metadata
       if ((/^(\-\-\-|\+\+\+|@@)\s/).test(line)) {
-        index.leadingGarbage = leadingGarbageLines.join('\n');
+        if (!options.discardGarbage) {
+          index.leadingGarbage = leadingGarbageLines.join('\n');
+        }
         break;
       }
 

@@ -950,10 +950,8 @@ describe('patch/create', function() {
     });
     it('should roughly be the inverse of parsePatch', function() {
       // There are so many differences in how a semantically-equivalent patch
-      // can be formatted in unified diff format, AND in JsDiff's structured
-      // patch format as long as https://github.com/kpdecker/jsdiff/issues/434
-      // goes unresolved, that a stronger claim than "roughly the inverse" is
-      // sadly not possible here.
+      // can be formatted in unified diff format that a stronger claim than "roughly the inverse"
+      // is sadly not possible here.
 
       // Check 1: starting with a patch in uniform diff format, does
       // formatPatch(parsePatch(...)) round-trip?

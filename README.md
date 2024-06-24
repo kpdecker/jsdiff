@@ -139,9 +139,13 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
     Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
 
-* `Diff.parsePatch(diffStr)` - Parses a patch into structured data
+* `Diff.parsePatch(diffStr[, options])` - Parses a unified diff format patch (possibly representing multiple diffs, to different files) into structured data.
 
-    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `Diff.structuredPatch`.
+    Return an array of objects, one per file diff, suitable for use with the `applyPatch` method. This parses to the same structure returned by `Diff.structuredPatch`, except that each object by default also has a `leadingGarbage` key containing any content preceding the `---` and `+++` file headers.
+
+    The optional `options` argument may have the following keys:
+
+    - `discardGarbage`: if true, `parsePatch` won't set the `leadingGarbage` property.
 
 * `Diff.reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
 

@@ -445,8 +445,8 @@ Index: test2
       ]);
     });
 
-    it('should preserve leading garbage', () => {
-      const patch = parsePatch(`diff --git a/bar b/bar
+    it('should preserve leading garbage unless discardGarbage: true is specified', () => {
+      const patchStr = `diff --git a/bar b/bar
 index dccca17..5b1bf3f 100644
 --- a/bar
 +++ b/bar
@@ -466,8 +466,8 @@ index 7a4a73a..38d82a3 100644
 -third line
 +some other line
  fourth line
-`);
-      expect(patch).to.eql([
+`;
+      const expectedResult = [
         {
           oldFileName: 'a/bar',
           oldHeader: '',
@@ -512,7 +512,14 @@ index 7a4a73a..38d82a3 100644
             }
           ]
         }
-      ]);
+      ];
+
+      expect(parsePatch(patchStr)).to.eql(expectedResult);
+
+      for (const file of expectedResult) {
+        delete file.leadingGarbage;
+      }
+      expect(parsePatch(patchStr, {discardGarbage: true})).to.eql(expectedResult);
     });
 
     it('should tolerate patches with extra trailing newlines after hunks', () => {
