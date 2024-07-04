@@ -547,14 +547,30 @@ describe('patch/apply', function() {
     });
 
     it("should fail if a line to delete doesn't match, even with fuzz factor", function() {
-      // TODO
+      const patch = 'Index: foo.txt\n' +
+        '===================================================================\n' +
+        '--- foo.txt\n' +
+        '+++ foo.txt\n' +
+        '@@ -1,4 +1,3 @@\n' +
+        ' foo\n' +
+        '-bar\n' +
+        ' baz\n' +
+        ' qux\n';
+
+      // Sanity-check - patch should apply fine to this:
+      const result1 = applyPatch('foo\nbar\nbaz\nqux\n', patch, {fuzzFactor: 99});
+      expect(result1).to.equal('foo\nbaz\nqux\n');
+
+      // ... but not to this:
+      const result2 = applyPatch('foo\nSOMETHING ENTIRELY DIFFERENT\nbaz\nqux\n', patch, {fuzzFactor: 99});
+      expect(result2).to.equal(false);
     });
 
     it("should fail if lines immediately surrounding an insertion don't match, regardless of fuzz factor", function() {
       // TODO
     });
 
-    it("should fail if number of lines of context mismatch is greater than fuzz factor", function() {
+    it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
       // TODO
     });
 
