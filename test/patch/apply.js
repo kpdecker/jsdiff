@@ -525,7 +525,9 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
-    it('should succeed within fuzz factor', function() {
+    it('should succeed when context lines are modified fuzz factor', function() {
+      // TODO: Surely this should fail? How do we know if line4 should go before or after the
+      //       second line2 here? We cannot know, right? Wouldn't GNU patch, Git, etc reject this?
       expect(applyPatch(
           'line2\n'
           + 'line2\n'
@@ -571,6 +573,18 @@ describe('patch/apply', function() {
     });
 
     it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
+      // TODO
+    });
+
+    it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
+      // TODO
+    });
+
+    it('should, given a fuzz factor, allow mismatches due to missing lines', function() {
+      // TODO
+    });
+
+    it('should, given a fuzz factor, allow mismatches caused by lines being changed', function() {
       // TODO
     });
 
