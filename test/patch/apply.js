@@ -546,6 +546,18 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    it("should fail if a line to delete doesn't match, even with fuzz factor", function() {
+      // TODO
+    });
+
+    it("should fail if lines immediately surrounding an insertion don't match, regardless of fuzz factor", function() {
+      // TODO
+    });
+
+    it("should fail if number of lines of context mismatch is greater than fuzz factor", function() {
+      // TODO
+    });
+
     it('should succeed when hunk needs a negative offset', function() {
       expect(applyPatch(
           'line1\n'
