@@ -29,104 +29,212 @@ export function applyPatch(source, uniDiff, options = {}) {
       hunks = uniDiff.hunks,
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
-      errorCount = 0,
       fuzzFactor = options.fuzzFactor || 0,
-      minLine = 0,
-      offset = 0,
+      minLine = -1;
 
-      removeEOFNL,
-      addEOFNL;
-
-  /**
-   * Checks if the hunk exactly fits on the provided location
-   */
-  function hunkFits(hunk, toPos) {
-    for (let j = 0; j < hunk.lines.length; j++) {
-      let line = hunk.lines[j],
-          operation = (line.length > 0 ? line[0] : ' '),
-          content = (line.length > 0 ? line.substr(1) : line);
-
-      if (operation === ' ' || operation === '-') {
-        // Context sanity check
-        if (!compareLine(toPos + 1, lines[toPos], operation, content)) {
-          errorCount++;
-
-          if (errorCount > fuzzFactor) {
-            return false;
-          }
-        }
-        toPos++;
-      }
-    }
-
-    return true;
+  if (fuzzFactor < 0) {
+    throw new Error('fuzzFactor must be non-negative');
   }
 
-  // Search best fit offsets for each hunk based on the previous ones
-  for (let i = 0; i < hunks.length; i++) {
-    let hunk = hunks[i],
-        maxLine = lines.length - hunk.oldLines,
-        localOffset = 0,
-        toPos = offset + hunk.oldStart - 1;
-
-    let iterator = distanceIterator(toPos, minLine, maxLine);
-
-    for (; localOffset !== undefined; localOffset = iterator()) {
-      if (hunkFits(hunk, toPos + localOffset)) {
-        hunk.offset = offset += localOffset;
-        break;
+  // Before anything else, handle EOFNL insertion/removal. If the patch tells us to make a change
+  // to the EOFNL that redundant/impossible - i.e. to remove a newline that's not there, or add a
+  // newline that already exists - then we either return false and fail to apply the patch (if
+  // fuzzFactor is 0) or simply ignore the problem and do nothing (if fuzzFactor is >0).
+  // If we do need to remove/add a newline at EOF, this will always be in the final hunk:
+  let prevLine = '',
+      removeEOFNL = false,
+      addEOFNL = false;
+  for (const line of hunks[hunks.length - 1].lines) {
+    if (line[0] == '\\') {
+      if (prevLine[0] == '+') {
+        removeEOFNL = true;
+      } else if (prevLine[1] == '-') {
+        addEOFNL = true;
+      } else {
+        throw new Error(`Unsure how to interpret line ${line} which does not follow an insertion or deletion`);
       }
+      break;
     }
-
-    if (localOffset === undefined) {
+    prevLine = line;
+  }
+  if (removeEOFNL) {
+    if (lines[lines.length - 1] == '') {
+      lines.pop();
+    } else if (!fuzzFactor) {
       return false;
     }
-
-    // Set lower text limit to end of the current hunk, so next ones don't try
-    // to fit over already patched text
-    minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
+  } else if (addEOFNL) {
+    if (lines[lines.length - 1] != '') {
+      lines.push('');
+    } else if (!fuzzFactor) {
+      return false;
+    }
   }
 
-  // Apply patch hunks
-  let diffOffset = 0;
-  for (let i = 0; i < hunks.length; i++) {
-    let hunk = hunks[i],
-        toPos = hunk.oldStart + hunk.offset + diffOffset - 1;
-    diffOffset += hunk.newLines - hunk.oldLines;
+  /**
+   * Checks if the hunk can be made to fit at the provided location with at most `maxErrors`
+   * insertions, substitutions, or deletions, while ensuring also that:
+   * - lines deleted in the hunk match exactly, and
+   * - wherever an insertion operation or block of insertion operations appears in the hunk, the
+   *   immediately preceding and following lines of context match exactly
+   *
+   * `toPos` should be set such that lines[toPos] is meant to match hunkLines[0].
+   *
+   * If the hunk can be applied, returns an object with properties `oldLineLastI` and
+   * `replacementLines`. Otherwise, returns null.
+   */
+  function applyHunk(
+    hunkLines,
+    toPos,
+    maxErrors,
+    hunkLinesI = 0,
+    lastContextLineMatched = true,
+    patchedLines = [],
+    patchedLinesLength = 0,
+    nConsecutiveOldContextLines = 0,
+  ) {
+    let nextContextLineMustMatch = false;
+    for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
+      let hunkLine = hunkLines[hunkLinesI],
+          operation = (hunkLine.length > 0 ? hunkLine[0] : ' '),
+          content = (hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine);
 
-    for (let j = 0; j < hunk.lines.length; j++) {
-      let line = hunk.lines[j],
-          operation = (line.length > 0 ? line[0] : ' '),
-          content = (line.length > 0 ? line.substr(1) : line);
+      if (operation === '-') {
+        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+          toPos++;
+        } else {
+          if (!maxErrors || lines[toPos] == null) {
+            return null;
+          }
+          patchedLines[patchedLinesLength] = lines[toPos];
+          return applyHunk(
+            hunkLines,
+            toPos + 1,
+            maxErrors - 1,
+            hunkLinesI,
+            false,
+            patchedLines,
+            patchedLinesLength + 1,
+          );
+        }
+      }
+
+      if (operation === '+') {
+        if (!lastContextLineMatched) {
+          return null;
+        }
+        patchedLines[patchedLinesLength] = content;
+        patchedLinesLength++;
+        nextContextLineMustMatch = true;
+      }
 
       if (operation === ' ') {
-        toPos++;
-      } else if (operation === '-') {
-        lines.splice(toPos, 1);
-      /* istanbul ignore else */
-      } else if (operation === '+') {
-        lines.splice(toPos, 0, content);
-        toPos++;
-      } else if (operation === '\\') {
-        let previousOperation = hunk.lines[j - 1] ? hunk.lines[j - 1][0] : null;
-        if (previousOperation === '+') {
-          removeEOFNL = true;
-        } else if (previousOperation === '-') {
-          addEOFNL = true;
+        nConsecutiveOldContextLines++;
+        patchedLines[patchedLinesLength] = lines[toPos];
+        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+          patchedLinesLength++;
+          lastContextLineMatched = true;
+          toPos++;
+        } else {
+          if (nextContextLineMustMatch) {
+            return null;
+          }
+
+          // Consider 3 possibilities in sequence:
+          // 1. lines contains a *substitution* not included in the patch context, or
+          // 2. lines contains an *insertion* not included in the patch context, or
+          // 3. lines contains a *deletion* not included in the patch context
+          // The first two options are of course only possible if the line from lines is non-null -
+          // i.e. only option 3 is possible if we've overrun the end of the old file.
+          return (
+            lines[toPos] && (
+              applyHunk(
+                hunkLines,
+                toPos + 1,
+                maxErrors - 1,
+                hunkLinesI + 1,
+                false,
+                patchedLines,
+                patchedLinesLength + 1
+              ) || applyHunk(
+                hunkLines,
+                toPos + 1,
+                maxErrors - 1,
+                hunkLinesI,
+                false,
+                patchedLines,
+                patchedLinesLength + 1
+              )
+            ) || applyHunk(
+              hunkLines,
+              toPos,
+              maxErrors - 1,
+              hunkLinesI + 1,
+              false,
+              patchedLines,
+              patchedLinesLength
+            )
+          );
         }
       }
     }
+
+    // Before returning, trim any unmodified context lines off the end of patchedLines and reduce
+    // toPos (and thus oldLineLastI) accordingly. This allows later hunks to be applied to a region
+    // that starts in this hunk's trailing context.
+    patchedLinesLength -= nConsecutiveOldContextLines;
+    toPos -= nConsecutiveOldContextLines;
+    patchedLines.length = patchedLinesLength;
+    return {
+      patchedLines,
+      oldLineLastI: toPos
+    };
   }
 
-  // Handle EOFNL insertion/removal
-  if (removeEOFNL) {
-    while (!lines[lines.length - 1]) {
-      lines.pop();
+  const resultLines = [];
+
+  // Search best fit offsets for each hunk based on the previous ones
+  let prevHunkOffset = 0;
+  for (const hunk of hunks) {
+    for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
+      let maxLine = lines.length - hunk.oldLines + fuzzFactor,
+          toPos = hunk.oldStart + prevHunkOffset - 1;
+
+      let iterator = distanceIterator(toPos, minLine, maxLine);
+      let hunkResult;
+
+      for (; toPos !== undefined; toPos = iterator()) {
+        hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
+        if (hunkResult) {
+          break;
+        }
+      }
+
+      if (!hunkResult) {
+        return false;
+      }
+
+      // Copy everything from the end of where we applied the last hunk to the start of this hunk
+      for (let i = minLine + 1; i < toPos; i++) {
+        resultLines.push(lines[i]);
+      }
+
+      // Add the lines produced by applying the hunk:
+      for (const line of hunkResult.patchedLines) {
+        resultLines.push(line);
+      }
+
+      // Set lower text limit to end of the current hunk, so next ones don't try
+      // to fit over already patched text
+      minLine = hunkResult.oldLineLastI + 1;
+
+      // Note the offset between where the patch said the hunk should've applied and where we
+      // applied it, so we can adjust future hunks accordingly:
+      prevHunkOffset = toPos + 1 - hunk.oldStart;
     }
-  } else if (addEOFNL) {
-    lines.push('');
   }
-  return lines.join('\n');
+
+  return resultLines.join('\n');
 }
 
 // Wrapper that supports multiple file patches via callbacks.
