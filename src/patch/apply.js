@@ -36,6 +36,11 @@ export function applyPatch(source, uniDiff, options = {}) {
     throw new Error('fuzzFactor must be non-negative');
   }
 
+  // Special case for empty patch.
+  if (!hunks.length) {
+    return source;
+  }
+
   // Before anything else, handle EOFNL insertion/removal. If the patch tells us to make a change
   // to the EOFNL that is redundant/impossible - i.e. to remove a newline that's not there, or add a
   // newline that already exists - then we either return false and fail to apply the patch (if
