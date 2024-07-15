@@ -37,7 +37,7 @@ export function applyPatch(source, uniDiff, options = {}) {
   }
 
   // Before anything else, handle EOFNL insertion/removal. If the patch tells us to make a change
-  // to the EOFNL that redundant/impossible - i.e. to remove a newline that's not there, or add a
+  // to the EOFNL that is redundant/impossible - i.e. to remove a newline that's not there, or add a
   // newline that already exists - then we either return false and fail to apply the patch (if
   // fuzzFactor is 0) or simply ignore the problem and do nothing (if fuzzFactor is >0).
   // If we do need to remove/add a newline at EOF, this will always be in the final hunk:
@@ -48,10 +48,8 @@ export function applyPatch(source, uniDiff, options = {}) {
     if (line[0] == '\\') {
       if (prevLine[0] == '+') {
         removeEOFNL = true;
-      } else if (prevLine[1] == '-') {
+      } else if (prevLine[0] == '-') {
         addEOFNL = true;
-      } else {
-        throw new Error(`Unsure how to interpret line ${line} which does not follow an insertion or deletion`);
       }
       break;
     }
