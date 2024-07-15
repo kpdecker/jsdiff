@@ -141,7 +141,7 @@ export function applyPatch(source, uniDiff, options = {}) {
           lastContextLineMatched = true;
           toPos++;
         } else {
-          if (nextContextLineMustMatch) {
+          if (nextContextLineMustMatch || !maxErrors) {
             return null;
           }
 
