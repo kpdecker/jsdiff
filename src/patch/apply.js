@@ -30,7 +30,7 @@ export function applyPatch(source, uniDiff, options = {}) {
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
       fuzzFactor = options.fuzzFactor || 0,
-      minLine = -1;
+      minLine = 0;
 
   if (fuzzFactor < 0) {
     throw new Error('fuzzFactor must be non-negative');
@@ -102,6 +102,7 @@ export function applyPatch(source, uniDiff, options = {}) {
       if (operation === '-') {
         if (compareLine(toPos + 1, lines[toPos], operation, content)) {
           toPos++;
+          nConsecutiveOldContextLines = 0;
         } else {
           if (!maxErrors || lines[toPos] == null) {
             return null;
@@ -125,6 +126,7 @@ export function applyPatch(source, uniDiff, options = {}) {
         }
         patchedLines[patchedLinesLength] = content;
         patchedLinesLength++;
+        nConsecutiveOldContextLines = 0;
         nextContextLineMustMatch = true;
       }
 
@@ -187,7 +189,7 @@ export function applyPatch(source, uniDiff, options = {}) {
     patchedLines.length = patchedLinesLength;
     return {
       patchedLines,
-      oldLineLastI: toPos
+      oldLineLastI: toPos - 1
     };
   }
 
@@ -215,7 +217,7 @@ export function applyPatch(source, uniDiff, options = {}) {
       }
 
       // Copy everything from the end of where we applied the last hunk to the start of this hunk
-      for (let i = minLine + 1; i < toPos; i++) {
+      for (let i = minLine; i < toPos; i++) {
         resultLines.push(lines[i]);
       }
 
@@ -232,6 +234,11 @@ export function applyPatch(source, uniDiff, options = {}) {
       // applied it, so we can adjust future hunks accordingly:
       prevHunkOffset = toPos + 1 - hunk.oldStart;
     }
+  }
+
+  // Copy over the rest of the lines from the old text
+  for (let i = minLine; i < lines.length; i++) {
+    resultLines.push(lines[i]);
   }
 
   return resultLines.join('\n');
