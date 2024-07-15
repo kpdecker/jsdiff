@@ -201,42 +201,41 @@ export function applyPatch(source, uniDiff, options = {}) {
   // Search best fit offsets for each hunk based on the previous ones
   let prevHunkOffset = 0;
   for (const hunk of hunks) {
-    for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
-      let maxLine = lines.length - hunk.oldLines + fuzzFactor,
-          toPos = hunk.oldStart + prevHunkOffset - 1;
-
+    let hunkResult;
+    let maxLine = lines.length - hunk.oldLines + fuzzFactor;
+    let toPos;
+    maxErrorsLoop: for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
+      toPos = hunk.oldStart + prevHunkOffset - 1
       let iterator = distanceIterator(toPos, minLine, maxLine);
-      let hunkResult;
-
       for (; toPos !== undefined; toPos = iterator()) {
         hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
         if (hunkResult) {
-          break;
+          break maxErrorsLoop;
         }
       }
-
-      if (!hunkResult) {
-        return false;
-      }
-
-      // Copy everything from the end of where we applied the last hunk to the start of this hunk
-      for (let i = minLine; i < toPos; i++) {
-        resultLines.push(lines[i]);
-      }
-
-      // Add the lines produced by applying the hunk:
-      for (const line of hunkResult.patchedLines) {
-        resultLines.push(line);
-      }
-
-      // Set lower text limit to end of the current hunk, so next ones don't try
-      // to fit over already patched text
-      minLine = hunkResult.oldLineLastI + 1;
-
-      // Note the offset between where the patch said the hunk should've applied and where we
-      // applied it, so we can adjust future hunks accordingly:
-      prevHunkOffset = toPos + 1 - hunk.oldStart;
     }
+
+    if (!hunkResult) {
+      return false;
+    }
+
+    // Copy everything from the end of where we applied the last hunk to the start of this hunk
+    for (let i = minLine; i < toPos; i++) {
+      resultLines.push(lines[i]);
+    }
+
+    // Add the lines produced by applying the hunk:
+    for (const line of hunkResult.patchedLines) {
+      resultLines.push(line);
+    }
+
+    // Set lower text limit to end of the current hunk, so next ones don't try
+    // to fit over already patched text
+    minLine = hunkResult.oldLineLastI + 1;
+
+    // Note the offset between where the patch said the hunk should've applied and where we
+    // applied it, so we can adjust future hunks accordingly:
+    prevHunkOffset = toPos + 1 - hunk.oldStart;
   }
 
   // Copy over the rest of the lines from the old text
