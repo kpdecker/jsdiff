@@ -526,24 +526,22 @@ describe('patch/apply', function() {
     });
 
     it('should succeed when context lines are modified fuzz factor', function() {
-      // TODO: Surely this should fail? How do we know if line4 should go before or after the
-      //       second line2 here? We cannot know, right? Wouldn't GNU patch, Git, etc reject this?
       expect(applyPatch(
           'line2\n'
-          + 'line2\n'
+          + 'line3\n'
           + 'line5\n',
 
           '--- test\theader1\n'
           + '+++ test\theader2\n'
           + '@@ -1,3 +1,4 @@\n'
-          + ' line2\n'
+          + ' line1\n'
           + ' line3\n'
           + '+line4\n'
           + ' line5\n',
           {fuzzFactor: 1}))
         .to.equal(
-          'line2\n'
-          + 'line2\n'
+          'line1\n'
+          + 'line3\n'
           + 'line4\n'
           + 'line5\n');
     });
