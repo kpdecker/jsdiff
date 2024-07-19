@@ -94,8 +94,8 @@ export function applyPatch(source, uniDiff, options = {}) {
     lastContextLineMatched = true,
     patchedLines = [],
     patchedLinesLength = 0,
-    nConsecutiveOldContextLines = 0,
   ) {
+    let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
     for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
       let hunkLine = hunkLines[hunkLinesI],
