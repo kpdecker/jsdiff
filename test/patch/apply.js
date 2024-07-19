@@ -525,6 +525,7 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
+    // TODO: Delete this test with incoherent description once obsoleted by new ones below
     it('should succeed when context lines are modified fuzz factor', function() {
       expect(applyPatch(
           'line2\n'
@@ -606,10 +607,6 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
-    it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
-      // TODO
-    });
-
     it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
       // TODO
     });
@@ -619,6 +616,10 @@ describe('patch/apply', function() {
     });
 
     it('should, given a fuzz factor, allow mismatches caused by lines being changed', function() {
+      // TODO
+    });
+
+    it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
       // TODO
     });
 
