@@ -18,7 +18,7 @@ export default function(start, minLine, maxLine) {
       // Check if trying to fit beyond text length, and if not, check it fits
       // after offset location (or desired location on first iteration)
       if (start + localOffset <= maxLine) {
-        return localOffset;
+        return start + localOffset;
       }
 
       forwardExhausted = true;
@@ -32,7 +32,7 @@ export default function(start, minLine, maxLine) {
       // Check if trying to fit before text beginning, and if not, check it fits
       // before offset location
       if (minLine <= start - localOffset) {
-        return -localOffset++;
+        return start - localOffset++;
       }
 
       backwardExhausted = true;
