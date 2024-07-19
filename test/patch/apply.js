@@ -586,6 +586,10 @@ describe('patch/apply', function() {
       // TODO
     });
 
+    it('should adjust where it starts looking to apply the hunk based on offsets of prior hunks', function() {
+      // TODO: example where hunk context is replicated 3 times
+    })
+
     it('should succeed when hunk needs a negative offset', function() {
       expect(applyPatch(
           'line1\n'
@@ -599,6 +603,48 @@ describe('patch/apply', function() {
           + ' line1\n'
           + '+line2\n'
           + ' line3\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('can handle an insertion before the first line', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,2 +1,3 @@\n'
+          + '+line1\n'
+          + ' line2\n'
+          + ' line3\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('can handle an insertion after the first line', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -3,2 +3,3 @@\n'
+          + ' line3\n'
+          + ' line4\n'
+          + '+line5\n'))
         .to.equal(
           'line1\n'
           + 'line2\n'
