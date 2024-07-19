@@ -139,6 +139,7 @@ export function applyPatch(source, uniDiff, options = {}) {
         if (compareLine(toPos + 1, lines[toPos], operation, content)) {
           patchedLinesLength++;
           lastContextLineMatched = true;
+          nextContextLineMustMatch = false;
           toPos++;
         } else {
           if (nextContextLineMustMatch || !maxErrors) {

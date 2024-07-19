@@ -676,7 +676,7 @@ describe('patch/apply', function() {
         {fuzzFactor: 2}
       )).to.equal(
         'line1\n'
-        + 'line3\n'
+        + 'line2\n'
         + 'line4\n'
         + 'line5\n'
         + 'line6\n'
