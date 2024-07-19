@@ -686,7 +686,42 @@ describe('patch/apply', function() {
     });
 
     it('should, given a fuzz factor, allow mismatches caused by lines being changed', function() {
-      // TODO
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'lineEIGHT\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(
+        'line1\n'
+        + 'line2\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line5\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'lineEIGHT\n'
+        + 'line10\n',
+      );
     });
 
     it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
@@ -749,7 +784,33 @@ describe('patch/apply', function() {
         {fuzzFactor: 1}
       )).to.equal(false);
 
-      // TODO: subbed lines
+      // 3 changed context lines, but fuzzFactor of 2
+      expect(applyPatch(
+        'line1\n'
+        + 'lineTWO\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'lineEIGHT\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(false);
 
       // TODO: a mixture
     });
