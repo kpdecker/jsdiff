@@ -32,8 +32,8 @@ export function applyPatch(source, uniDiff, options = {}) {
       fuzzFactor = options.fuzzFactor || 0,
       minLine = 0;
 
-  if (fuzzFactor < 0) {
-    throw new Error('fuzzFactor must be non-negative');
+  if (fuzzFactor < 0 || !Number.isInteger(fuzzFactor)) {
+    throw new Error('fuzzFactor must be a non-negative integer');
   }
 
   // Special case for empty patch.

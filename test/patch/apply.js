@@ -1491,6 +1491,48 @@ describe('patch/apply', function() {
 
       expect(applyPatch(oldFile, diffFile, {autoConvertLineEndings: false})).to.equal(false);
     });
+
+    it('rejects negative or non-integer fuzz factors', () => {
+      expect(() => {
+        applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          'Index: test\n'
+          + '===================================================================\n'
+          + '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n',
+
+          {fuzzFactor: -1}
+        );
+      }).to['throw']('fuzzFactor must be a non-negative integer');
+
+      expect(() => {
+        applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          'Index: test\n'
+          + '===================================================================\n'
+          + '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n',
+
+          {fuzzFactor: 1.5}
+        );
+      }).to['throw']('fuzzFactor must be a non-negative integer');
+    });
   });
 
   describe('#applyPatches', function() {
