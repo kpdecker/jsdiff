@@ -566,8 +566,44 @@ describe('patch/apply', function() {
       expect(result2).to.equal(false);
     });
 
-    it("should fail if lines immediately surrounding an insertion don't match, regardless of fuzz factor", function() {
-      // TODO
+    it("should fail if either line immediately next to an insertion doesn't match, regardless of fuzz factor", function() {
+      expect(applyPatch(
+          'lineA\n'
+          + 'lineB\n'
+          + 'lineC\n'
+          + 'lineD\n'
+          + 'lineE\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,5 +1,6 @@\n'
+          + ' lineA\n'
+          + ' lineB\n'
+          + ' lineC\n'
+          + '+lineNEW\n'
+          + ' lineX\n'
+          + ' lineE\n',
+          {fuzzFactor: 10}))
+        .to.equal(false);
+
+      expect(applyPatch(
+          'lineA\n'
+          + 'lineB\n'
+          + 'lineC\n'
+          + 'lineD\n'
+          + 'lineE\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,5 +1,6 @@\n'
+          + ' lineA\n'
+          + ' lineB\n'
+          + ' lineX\n'
+          + '+lineNEW\n'
+          + ' lineD\n'
+          + ' lineE\n',
+          {fuzzFactor: 10}))
+        .to.equal(false);
     });
 
     it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
