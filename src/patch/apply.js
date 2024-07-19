@@ -205,14 +205,17 @@ export function applyPatch(source, uniDiff, options = {}) {
     let hunkResult;
     let maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos;
-    maxErrorsLoop: for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
-      toPos = hunk.oldStart + prevHunkOffset - 1
+    for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
+      toPos = hunk.oldStart + prevHunkOffset - 1;
       let iterator = distanceIterator(toPos, minLine, maxLine);
       for (; toPos !== undefined; toPos = iterator()) {
         hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
         if (hunkResult) {
-          break maxErrorsLoop;
+          break;
         }
+      }
+      if (hunkResult) {
+        break;
       }
     }
 

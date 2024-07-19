@@ -877,7 +877,7 @@ describe('patch/apply', function() {
         '+There was an old man named Bob\n' +
         ' He had whiskers on his chinnegan\n' +
         ' The wind came along and blew them in again\n' +
-        ' Poor old Michael Finnegan, begin again\n'
+        ' Poor old Michael Finnegan, begin again\n';
 
 
       // First we try applying the text to the original text I used to generate the patch.
