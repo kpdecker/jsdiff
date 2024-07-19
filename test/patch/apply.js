@@ -1522,6 +1522,36 @@ describe('patch/apply', function() {
       expect(applyPatch(oldFile, diffFile)).to.equal(false);
     });
 
+    it('ignores being asked to remove a non-existent trailing newline if fuzzFactor >0', () => {
+      const oldFile = 'foo\nbar\nbaz\nqux';
+      const diffFile =
+        'Index: bla\n'
+        + '===================================================================\n'
+        + '--- bla\tOld Header\n'
+        + '+++ bla\tNew Header\n'
+        + '@@ -4,1 +4,1 @@\n'
+        + '-qux\n'
+        + '+qux\n'
+        + '\\ No newline at end of file\n';
+
+      expect(applyPatch(oldFile, diffFile, {fuzzFactor: 1})).to.equal(oldFile);
+    });
+
+    it('ignores being asked to add an EOF newline when one already exists if fuzzFactor>0', () => {
+      const oldFile = 'foo\nbar\nbaz\nqux\n';
+      const diffFile =
+        'Index: bla\n'
+        + '===================================================================\n'
+        + '--- bla\tOld Header\n'
+        + '+++ bla\tNew Header\n'
+        + '@@ -4,1 +4,1 @@\n'
+        + '-qux\n'
+        + '\\ No newline at end of file\n'
+        + '+qux\n';
+
+      expect(applyPatch(oldFile, diffFile, {fuzzFactor: 1})).to.equal(oldFile);
+    });
+
     it('rejects negative or non-integer fuzz factors', () => {
       expect(() => {
         applyPatch(
