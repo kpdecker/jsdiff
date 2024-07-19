@@ -119,13 +119,21 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
 * `Diff.applyPatch(source, patch[, options])` - attempts to apply a unified diff patch.
 
-    If the patch was applied successfully, returns a string containing the patched text. If the patch could not be applied (because some hunks in the patch couldn't be fitted to the text in `source`), returns false.
+    Hunks are applied first to last. `applyPatch` first tries to apply the first hunk at the line number specified in the hunk header, and with all context lines matching exactly. If that fails, it tries scanning backwards and forwards, one line at a time, to find a place to apply the hunk where the context lines match exactly. If that still fails, and `fuzzFactor` is greater than zero, it increments the maximum number of mismatches (insertions, deletions, substitutions) that there can be between the hunk context and a region where we are trying to apply the patch such that the hunk will still be considered to match. (Regardless of `fuzzFactor`, lines to be deleted in the hunk *must* be present for a hunk to match, and the context lines *immediately* before and after an insertion must match exactly.)
+
+    Once a hunk is successfully fitted, the process begins again with the next hunk. Regardless of `fuzzFactor`, later hunks must be applied later in the file than earlier hunks.
+
+    If any hunk cannot be fitted to any region with fewer than `fuzzFactor` mismatches, `applyPatch` fails and returns `false`.
+
+    If a hunk is successfully fitted but not at the line number specified by the hunk header, all subsequent hunks have their target line number adjusted accordingly. (e.g. if the first hunk is applied 10 lines below where the hunk header said it should fit, `applyPatch` will *start* looking for somewhere to apply the second hunk 10 lines below where its hunk header says it goes.)
+
+    If the patch was applied successfully, returns a string containing the patched text. If the patch could not be applied (because some hunks in the patch couldn't be fitted to the text in `source`), `applyPatch` returns false.
 
     `patch` may be a string diff or the output from the `parsePatch` or `structuredPatch` methods.
 
     The optional `options` object may have the following keys:
 
-    - `fuzzFactor`: Number of lines that are allowed to differ before rejecting a patch. Defaults to 0.
+    - `fuzzFactor`: Maximum Levenshtein distance (in lines deleted, added, or subtituted) between the context shown in a patch hunk and the lines found in the file. Defaults to 0.
     - `autoConvertLineEndings`: If `true`, and if the file to be patched consistently uses different line endings to the patch (i.e. either the file always uses Unix line endings while the patch uses Windows ones, or vice versa), then `applyPatch` will behave as if the line endings in the patch were the same as those in the source file. (If `false`, the patch will usually fail to apply in such circumstances since lines deleted in the patch won't be considered to match those in the source file.) Defaults to `true`.
     - `compareLine(lineNumber, line, operation, patchContent)`: Callback used to compare to given lines to determine if they should be considered equal when patching. Defaults to strict equality but may be overridden to provide fuzzier comparison. Should return false if the lines should be rejected.
 
