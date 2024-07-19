@@ -525,28 +525,6 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
-    // TODO: Delete this test with incoherent description once obsoleted by new ones below
-    it('should succeed when context lines are modified fuzz factor', function() {
-      expect(applyPatch(
-          'line2\n'
-          + 'line3\n'
-          + 'line5\n',
-
-          '--- test\theader1\n'
-          + '+++ test\theader2\n'
-          + '@@ -1,3 +1,4 @@\n'
-          + ' line1\n'
-          + ' line3\n'
-          + '+line4\n'
-          + ' line5\n',
-          {fuzzFactor: 1}))
-        .to.equal(
-          'line2\n'
-          + 'line3\n'
-          + 'line4\n'
-          + 'line5\n');
-    });
-
     it("should fail if a line to delete doesn't match, even with fuzz factor", function() {
       const patch = 'Index: foo.txt\n' +
         '===================================================================\n' +
