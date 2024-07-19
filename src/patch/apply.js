@@ -49,7 +49,8 @@ export function applyPatch(source, uniDiff, options = {}) {
   let prevLine = '',
       removeEOFNL = false,
       addEOFNL = false;
-  for (const line of hunks[hunks.length - 1].lines) {
+  for (let i = 0; i < hunks[hunks.length - 1].lines.length; i++) {
+    const line = hunks[hunks.length - 1].lines[i];
     if (line[0] == '\\') {
       if (prevLine[0] == '+') {
         removeEOFNL = true;
@@ -201,7 +202,8 @@ export function applyPatch(source, uniDiff, options = {}) {
 
   // Search best fit offsets for each hunk based on the previous ones
   let prevHunkOffset = 0;
-  for (const hunk of hunks) {
+  for (let i = 0; i < hunks.length; i++) {
+    const hunk = hunks[i];
     let hunkResult;
     let maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos;
@@ -229,7 +231,8 @@ export function applyPatch(source, uniDiff, options = {}) {
     }
 
     // Add the lines produced by applying the hunk:
-    for (const line of hunkResult.patchedLines) {
+    for (let i = 0; i < hunkResult.patchedLines.length; i++) {
+      const line = hunkResult.patchedLines[i];
       resultLines.push(line);
     }
 
