@@ -608,7 +608,46 @@ describe('patch/apply', function() {
     });
 
     it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
-      // TODO
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'line3\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line8\n'
+        + 'line8.5\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'line3\n'
+        + 'line4\n'
+        + 'line5\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line8\n'
+        + 'line8.5\n'
+        + 'line10\n',
+      );
     });
 
     it('should, given a fuzz factor, allow mismatches due to missing lines', function() {
@@ -620,7 +659,44 @@ describe('patch/apply', function() {
     });
 
     it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
-      // TODO
+      // 3 extra lines of context, but fuzzFactor: 2
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'line3\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line6.5\n'
+        + 'line7\n'
+        + 'line8\n'
+        + 'line8.5\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(
+        false
+      );
+
+      // TODO: missing lines
+
+      // TODO: subbed lines
+
+      // TODO: a mixture
     });
 
     it('should adjust where it starts looking to apply the hunk based on offsets of prior hunks', function() {
