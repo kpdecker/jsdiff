@@ -525,25 +525,650 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
-    it('should succeed within fuzz factor', function() {
+    it("should fail if a line to delete doesn't match, even with fuzz factor", function() {
+      const patch = 'Index: foo.txt\n' +
+        '===================================================================\n' +
+        '--- foo.txt\n' +
+        '+++ foo.txt\n' +
+        '@@ -1,4 +1,3 @@\n' +
+        ' foo\n' +
+        '-bar\n' +
+        ' baz\n' +
+        ' qux\n';
+
+      // Sanity-check - patch should apply fine to this:
+      const result1 = applyPatch('foo\nbar\nbaz\nqux\n', patch, {fuzzFactor: 99});
+      expect(result1).to.equal('foo\nbaz\nqux\n');
+
+      // ... but not to this:
+      const result2 = applyPatch('foo\nSOMETHING ENTIRELY DIFFERENT\nbaz\nqux\n', patch, {fuzzFactor: 99});
+      expect(result2).to.equal(false);
+    });
+
+    it("should fail if either line immediately next to an insertion doesn't match, regardless of fuzz factor", function() {
       expect(applyPatch(
-          'line2\n'
-          + 'line2\n'
-          + 'line5\n',
+          'lineA\n'
+          + 'lineB\n'
+          + 'lineC\n'
+          + 'lineD\n'
+          + 'lineE\n',
 
           '--- test\theader1\n'
           + '+++ test\theader2\n'
-          + '@@ -1,3 +1,4 @@\n'
-          + ' line2\n'
-          + ' line3\n'
-          + '+line4\n'
-          + ' line5\n',
-          {fuzzFactor: 1}))
-        .to.equal(
-          'line2\n'
-          + 'line2\n'
-          + 'line4\n'
-          + 'line5\n');
+          + '@@ -1,5 +1,6 @@\n'
+          + ' lineA\n'
+          + ' lineB\n'
+          + ' lineC\n'
+          + '+lineNEW\n'
+          + ' lineX\n'
+          + ' lineE\n',
+          {fuzzFactor: 10}))
+        .to.equal(false);
+
+      expect(applyPatch(
+          'lineA\n'
+          + 'lineB\n'
+          + 'lineC\n'
+          + 'lineD\n'
+          + 'lineE\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,5 +1,6 @@\n'
+          + ' lineA\n'
+          + ' lineB\n'
+          + ' lineX\n'
+          + '+lineNEW\n'
+          + ' lineD\n'
+          + ' lineE\n',
+          {fuzzFactor: 10}))
+        .to.equal(false);
+    });
+
+    it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'line3\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line8\n'
+        + 'line8.5\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'line3\n'
+        + 'line4\n'
+        + 'line5\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line8\n'
+        + 'line8.5\n'
+        + 'line10\n',
+      );
+    });
+
+    it('should, given a fuzz factor, allow mismatches due to missing lines', function() {
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(
+        'line1\n'
+        + 'line2\n'
+        + 'line4\n'
+        + 'line5\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line10\n',
+      );
+    });
+
+    it('should, given a fuzz factor, allow mismatches caused by lines being changed', function() {
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'lineEIGHT\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(
+        'line1\n'
+        + 'line2\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line5\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'lineEIGHT\n'
+        + 'line10\n',
+      );
+    });
+
+    it('should, given a fuzz factor, allow mismatches caused by a mixture of ins/sub/del', function() {
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 3}
+      )).to.equal(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line5\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line10\n',
+      );
+    });
+
+    it('should fail if number of lines of context mismatch is greater than fuzz factor', function() {
+      // 3 extra lines of context, but fuzzFactor: 2
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'line3\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line6.5\n'
+        + 'line7\n'
+        + 'line8\n'
+        + 'line8.5\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(
+        false
+      );
+
+      // 2 lines of context missing from file to patch, fuzz factor 1
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 1}
+      )).to.equal(false);
+
+      // 3 changed context lines, but fuzzFactor of 2
+      expect(applyPatch(
+        'line1\n'
+        + 'lineTWO\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'lineEIGHT\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(false);
+
+      // 3 total changes, fuzzFactor 2
+      expect(applyPatch(
+        'line1\n'
+        + 'line2\n'
+        + 'line2.5\n'
+        + 'lineTHREE\n'
+        + 'line4\n'
+        + 'line6\n'
+        + 'line7\n'
+        + 'line9\n'
+        + 'line10\n',
+
+        '--- foo.txt\t2024-07-19 09:58:02.489059795 +0100\n'
+        + '+++ bar.txt\t2024-07-19 09:58:24.768153252 +0100\n'
+        + '@@ -2,8 +2,8 @@\n'
+        + ' line2\n'
+        + ' line3\n'
+        + ' line4\n'
+        + '+line5\n'
+        + ' line6\n'
+        + ' line7\n'
+        + ' line8\n'
+        + '-line9\n'
+        + ' line10\n',
+
+        {fuzzFactor: 2}
+      )).to.equal(false);
+    });
+
+    it('should adjust where it starts looking to apply the hunk based on offsets of prior hunks', function() {
+      const patch = '--- foo.txt\t2024-07-19 12:28:25.056182029 +0100\n' +
+        '+++ bar.txt\t2024-07-19 12:28:13.036639136 +0100\n' +
+        '@@ -9,7 +9,6 @@\n' +
+        ' 1 2 3 introductory text\n' +
+        ' Baa oink moo introductory text\n' +
+        ' Probably enough introductory text\n' +
+        '-Incy wincy mincy introductory text\n' +
+        ' \n' +
+        ' Three repeated verses:\n' +
+        ' \n' +
+        '@@ -28,7 +27,7 @@\n' +
+        ' The wind came along and blew them in again\n' +
+        ' Poor old Michael Finnegan, begin again\n' +
+        ' \n' +
+        '-There was an old man named Michael Finnegan\n' +
+        '+There was an old man named Bob\n' +
+        ' He had whiskers on his chinnegan\n' +
+        ' The wind came along and blew them in again\n' +
+        ' Poor old Michael Finnegan, begin again\n';
+
+
+      // First we try applying the text to the original text I used to generate the patch.
+      // The patch was generated by modifying the fourth of the six occurrences of the repeated
+      // verse, and that's what we should see when we apply it...
+      expect(applyPatch(
+        'Bla bla bla introductory text\n' +
+        'Foo bar baz introductory text\n' +
+        'Fworble worble glorble introductory text\n' +
+        'Need to be at least 6 lines of introductory text\n' +
+        'Jingle jangle jungle introductory text\n' +
+        'Horgle worgle borgle introductory text\n' +
+        'Wiggly jiggly piggly introductory text\n' +
+        'A B C introductory text\n' +
+        '1 2 3 introductory text\n' +
+        'Baa oink moo introductory text\n' +
+        'Probably enough introductory text\n' +
+        'Incy wincy mincy introductory text\n' +
+        '\n' +
+        'Three repeated verses:\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n',
+
+        patch
+      )).to.equal(
+        'Bla bla bla introductory text\n' +
+        'Foo bar baz introductory text\n' +
+        'Fworble worble glorble introductory text\n' +
+        'Need to be at least 6 lines of introductory text\n' +
+        'Jingle jangle jungle introductory text\n' +
+        'Horgle worgle borgle introductory text\n' +
+        'Wiggly jiggly piggly introductory text\n' +
+        'A B C introductory text\n' +
+        '1 2 3 introductory text\n' +
+        'Baa oink moo introductory text\n' +
+        'Probably enough introductory text\n' +
+        '\n' +
+        'Three repeated verses:\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Bob\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n'
+      );
+
+      // But what if we apply the patch to a source file where the first 5 lines are deleted?
+      // Then we expect applyPatch to still modify the fourth occurrence of the repeated verse,
+      // NOT the fifth (which is now the one at the line number indicated by the hunk header). This
+      // is because it should be able to tell when it applied the previous hunk that 5 lines at the
+      // beginning of the file had been deleted, and to adjust where it tries to apply the second
+      // hunk accordingly.
+      expect(applyPatch(
+        'Horgle worgle borgle introductory text\n' +
+        'Wiggly jiggly piggly introductory text\n' +
+        'A B C introductory text\n' +
+        '1 2 3 introductory text\n' +
+        'Baa oink moo introductory text\n' +
+        'Probably enough introductory text\n' +
+        'Incy wincy mincy introductory text\n' +
+        '\n' +
+        'Three repeated verses:\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n',
+
+        patch
+      )).to.equal(
+        'Horgle worgle borgle introductory text\n' +
+        'Wiggly jiggly piggly introductory text\n' +
+        'A B C introductory text\n' +
+        '1 2 3 introductory text\n' +
+        'Baa oink moo introductory text\n' +
+        'Probably enough introductory text\n' +
+        '\n' +
+        'Three repeated verses:\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Bob\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n'
+      );
+
+      // What if we instead ADD five lines? Same thing - we still expect verse 4 to be the one
+      // changed
+      expect(applyPatch(
+        'line1\n' +
+        'line2\n' +
+        'line3\n' +
+        'line4\n' +
+        'line5\n' +
+        'Bla bla bla introductory text\n' +
+        'Foo bar baz introductory text\n' +
+        'Fworble worble glorble introductory text\n' +
+        'Need to be at least 6 lines of introductory text\n' +
+        'Jingle jangle jungle introductory text\n' +
+        'Horgle worgle borgle introductory text\n' +
+        'Wiggly jiggly piggly introductory text\n' +
+        'A B C introductory text\n' +
+        '1 2 3 introductory text\n' +
+        'Baa oink moo introductory text\n' +
+        'Probably enough introductory text\n' +
+        'Incy wincy mincy introductory text\n' +
+        '\n' +
+        'Three repeated verses:\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n',
+
+        patch
+      )).to.equal(
+        'line1\n' +
+        'line2\n' +
+        'line3\n' +
+        'line4\n' +
+        'line5\n' +
+        'Bla bla bla introductory text\n' +
+        'Foo bar baz introductory text\n' +
+        'Fworble worble glorble introductory text\n' +
+        'Need to be at least 6 lines of introductory text\n' +
+        'Jingle jangle jungle introductory text\n' +
+        'Horgle worgle borgle introductory text\n' +
+        'Wiggly jiggly piggly introductory text\n' +
+        'A B C introductory text\n' +
+        '1 2 3 introductory text\n' +
+        'Baa oink moo introductory text\n' +
+        'Probably enough introductory text\n' +
+        '\n' +
+        'Three repeated verses:\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Bob\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n' +
+        '\n' +
+        'There was an old man named Michael Finnegan\n' +
+        'He had whiskers on his chinnegan\n' +
+        'The wind came along and blew them in again\n' +
+        'Poor old Michael Finnegan, begin again\n'
+      );
     });
 
     it('should succeed when hunk needs a negative offset', function() {
@@ -559,6 +1184,48 @@ describe('patch/apply', function() {
           + ' line1\n'
           + '+line2\n'
           + ' line3\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('can handle an insertion before the first line', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,2 +1,3 @@\n'
+          + '+line1\n'
+          + ' line2\n'
+          + ' line3\n'))
+        .to.equal(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
+    it('can handle an insertion after the first line', function() {
+      expect(applyPatch(
+          'line1\n'
+          + 'line2\n'
+          + 'line3\n'
+          + 'line4\n',
+
+          '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -3,2 +3,3 @@\n'
+          + ' line3\n'
+          + ' line4\n'
+          + '+line5\n'))
         .to.equal(
           'line1\n'
           + 'line2\n'
@@ -823,6 +1490,108 @@ describe('patch/apply', function() {
         + '+three\n';
 
       expect(applyPatch(oldFile, diffFile, {autoConvertLineEndings: false})).to.equal(false);
+    });
+
+    it('fails if asked to remove a non-existent trailing newline with fuzzFactor 0', () => {
+      const oldFile = 'foo\nbar\nbaz\nqux';
+      const diffFile =
+        'Index: bla\n'
+        + '===================================================================\n'
+        + '--- bla\tOld Header\n'
+        + '+++ bla\tNew Header\n'
+        + '@@ -4,1 +4,1 @@\n'
+        + '-qux\n'
+        + '+qux\n'
+        + '\\ No newline at end of file\n';
+
+      expect(applyPatch(oldFile, diffFile)).to.equal(false);
+    });
+
+    it('fails if asked to add an EOF newline, with fuzzFactor 0, when one already exists', () => {
+      const oldFile = 'foo\nbar\nbaz\nqux\n';
+      const diffFile =
+        'Index: bla\n'
+        + '===================================================================\n'
+        + '--- bla\tOld Header\n'
+        + '+++ bla\tNew Header\n'
+        + '@@ -4,1 +4,1 @@\n'
+        + '-qux\n'
+        + '\\ No newline at end of file\n'
+        + '+qux\n';
+
+      expect(applyPatch(oldFile, diffFile)).to.equal(false);
+    });
+
+    it('ignores being asked to remove a non-existent trailing newline if fuzzFactor >0', () => {
+      const oldFile = 'foo\nbar\nbaz\nqux';
+      const diffFile =
+        'Index: bla\n'
+        + '===================================================================\n'
+        + '--- bla\tOld Header\n'
+        + '+++ bla\tNew Header\n'
+        + '@@ -4,1 +4,1 @@\n'
+        + '-qux\n'
+        + '+qux\n'
+        + '\\ No newline at end of file\n';
+
+      expect(applyPatch(oldFile, diffFile, {fuzzFactor: 1})).to.equal(oldFile);
+    });
+
+    it('ignores being asked to add an EOF newline when one already exists if fuzzFactor>0', () => {
+      const oldFile = 'foo\nbar\nbaz\nqux\n';
+      const diffFile =
+        'Index: bla\n'
+        + '===================================================================\n'
+        + '--- bla\tOld Header\n'
+        + '+++ bla\tNew Header\n'
+        + '@@ -4,1 +4,1 @@\n'
+        + '-qux\n'
+        + '\\ No newline at end of file\n'
+        + '+qux\n';
+
+      expect(applyPatch(oldFile, diffFile, {fuzzFactor: 1})).to.equal(oldFile);
+    });
+
+    it('rejects negative or non-integer fuzz factors', () => {
+      expect(() => {
+        applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          'Index: test\n'
+          + '===================================================================\n'
+          + '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n',
+
+          {fuzzFactor: -1}
+        );
+      }).to['throw']('fuzzFactor must be a non-negative integer');
+
+      expect(() => {
+        applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          'Index: test\n'
+          + '===================================================================\n'
+          + '--- test\theader1\n'
+          + '+++ test\theader2\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n',
+
+          {fuzzFactor: 1.5}
+        );
+      }).to['throw']('fuzzFactor must be a non-negative integer');
     });
   });
 

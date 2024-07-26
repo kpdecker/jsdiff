@@ -28,6 +28,10 @@
 - [#521](https://github.com/kpdecker/jsdiff/pull/521) **the `callback` option is now supported by `structuredPatch`, `createPatch
 - [#529](https://github.com/kpdecker/jsdiff/pull/529) **`parsePatch` can now parse patches where lines starting with `--` or `++` are deleted/inserted**; previously, there were edge cases where the parser would choke on valid patches or give wrong results.
 - [#530](https://github.com/kpdecker/jsdiff/pull/530) **Added `ignoreNewlineAtEof` option` to `diffLines`**
+- [#533](https://github.com/kpdecker/jsdiff/pull/533) **`applyPatch` uses an entirely new algorithm for fuzzy matching.** Differences between the old and new algorithm are as follows:
+  * The `fuzzFactor` now indicates the maximum [*Levenshtein* distance](https://en.wikipedia.org/wiki/Levenshtein_distance) that there can be between the context shown in a hunk and the actual file content at a location where we try to apply the hunk. (Previously, it represented a maximum [*Hamming* distance](https://en.wikipedia.org/wiki/Hamming_distance), meaning that a single insertion or deletion in the source file could stop a hunk from applying even with a high `fuzzFactor`.)
+  * A hunk containing a deletion can now only be applied in a context where the line to be deleted actually appears verbatim. (Previously, as long as enough context lines in the hunk matched, `applyPatch` would apply the hunk anyway and delete a completely different line.)
+  * The context line immediately before and immediately after an insertion must match exactly between the hunk and the file for a hunk to apply. (Previously this was not required.)
 
 ## v5.2.0
 
