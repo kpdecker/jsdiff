@@ -120,7 +120,8 @@ describe('patch/create', function() {
       );
 
       expect(diff).to.equal(
-        '===================================================================\n'
+        'Index: a.txt\n'
+        + '===================================================================\n'
         + '--- a.txt\n'
         + '+++ a.txt\n'
         + '@@ -1,3 +1,7 @@\n'
@@ -134,7 +135,7 @@ describe('patch/create', function() {
         + '+3rd line.\n'
         + '+\n'
         + '+SOMETHING ELSE.\n'
-        + '\\ No newline at end of file'
+        + '\\ No newline at end of file\n'
       );
     });
 
