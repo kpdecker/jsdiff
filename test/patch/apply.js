@@ -1552,6 +1552,41 @@ describe('patch/apply', function() {
       expect(applyPatch(oldFile, diffFile, {fuzzFactor: 1})).to.equal(oldFile);
     });
 
+    describe('when the last line is changed but both old & new version have no trailing newline...', () => {
+      const diffFile = 'Index: file.txt\n' +
+        '===================================================================\n' +
+        '--- file.txt\n' +
+        '+++ file.txt\n' +
+        '@@ -1,4 +1,4 @@\n' +
+        ' foo\n' +
+        ' bar\n' +
+        ' baz\n' +
+        '-banana\n' +
+        '\\ No newline at end of file\n' +
+        '+babaco\n' +
+        '\\ No newline at end of file\n';
+
+      it('correctly applies the patch to the original source file', () => {
+        const oldFile = 'foo\nbar\nbaz\nbanana';
+        expect(applyPatch(oldFile, diffFile)).to.equal('foo\nbar\nbaz\nbabaco');
+      });
+
+      it('fails if fuzzFactor=0 and the source file has an unexpected trailing newline', () => {
+        const oldFile = 'foo\nbar\nbaz\nbanana\n';
+        expect(applyPatch(oldFile, diffFile)).to.equal(false);
+      });
+
+      it('ignores an unexpected trailing newline if fuzzFactor > 0', () => {
+        const oldFile = 'foo\nbar\nbaz\nbanana\n';
+        expect(applyPatch(oldFile, diffFile, {fuzzFactor: 1})).to.equal('foo\nbar\nbaz\nbabaco\n');
+      });
+
+      it("ignores extra lines, even with fuzzFactor = 0, as long as there's no newline at EOF", () => {
+        const oldFile = 'foo\nbar\nbaz\nbanana\nqux';
+        expect(applyPatch(oldFile, diffFile)).to.equal('foo\nbar\nbaz\nbabaco\nqux');
+      });
+    });
+
     it('rejects negative or non-integer fuzz factors', () => {
       expect(() => {
         applyPatch(
