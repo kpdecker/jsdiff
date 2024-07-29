@@ -106,6 +106,39 @@ describe('patch/create', function() {
         + '\\ No newline at end of file\n');
     });
 
+    it('should get the "No newline" position right in the case from https://github.com/kpdecker/jsdiff/issues/531', function() {
+      const oldContent = '1st line.\n2nd line.\n3rd line.';
+      const newContent = 'Z11 thing.\nA New thing.\n2nd line.\nNEW LINE.\n3rd line.\n\nSOMETHING ELSE.';
+
+      const diff = createPatch(
+        'a.txt',
+        oldContent,
+        newContent,
+        undefined,
+        undefined,
+        { context: 3 },
+      );
+
+      expect(diff).to.equal(
+        'Index: a.txt\n'
+        + '===================================================================\n'
+        + '--- a.txt\n'
+        + '+++ a.txt\n'
+        + '@@ -1,3 +1,7 @@\n'
+        + '-1st line.\n'
+        + '+Z11 thing.\n'
+        + '+A New thing.\n'
+        + ' 2nd line.\n'
+        + '-3rd line.\n'
+        + '\\ No newline at end of file\n'
+        + '+NEW LINE.\n'
+        + '+3rd line.\n'
+        + '+\n'
+        + '+SOMETHING ELSE.\n'
+        + '\\ No newline at end of file\n'
+      );
+    });
+
     it('should output "no newline" at end of file message on context missing nl', function() {
       expect(createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2')).to.equal(
         'Index: test\n'
@@ -669,46 +702,13 @@ describe('patch/create', function() {
     });
 
     describe('newlineIsToken', function() {
-      it('newlineIsToken: false', function() {
-        const expectedResult =
-          'Index: testFileName\n'
-          + '===================================================================\n'
-          + '--- testFileName\n'
-          + '+++ testFileName\n'
-          + '@@ -1,2 +1,2 @@\n'
-
-          // Diff is shown as entire row, even though text is unchanged
-          + '-line\n'
-          + '+line\r\n'
-
-          + ' line\n'
-          + '\\ No newline at end of file\n';
-
-        const diffResult = createPatch('testFileName', 'line\nline', 'line\r\nline', undefined, undefined, {newlineIsToken: false});
-        expect(diffResult).to.equal(expectedResult);
-      });
-
-      it('newlineIsToken: true', function() {
-        const expectedResult =
-          'Index: testFileName\n'
-          + '===================================================================\n'
-          + '--- testFileName\n'
-          + '+++ testFileName\n'
-          + '@@ -1,3 +1,3 @@\n'
-          + ' line\n'
-
-          // Newline change is shown as a single diff
-          + '-\n'
-          + '+\r\n'
-
-          + ' line\n'
-          + '\\ No newline at end of file\n';
-
-        const diffResult = createPatch('testFileName', 'line\nline', 'line\r\nline', undefined, undefined, {newlineIsToken: true});
-        expect(diffResult).to.equal(expectedResult);
+      // See https://github.com/kpdecker/jsdiff/pull/345#issuecomment-2255886105
+      it("isn't allowed any more, since the patches produced were nonsense", function() {
+        expect(() => {
+          createPatch('testFileName', 'line\nline', 'line\r\nline', undefined, undefined, {newlineIsToken: true});
+        }).to['throw']('newlineIsToken may not be used with patch-generation functions, only with diffing functions');
       });
     });
-
 
     it('takes an optional callback option', function(done) {
       createPatch(
