@@ -57,12 +57,18 @@ export function applyPatch(source, uniDiff, options = {}) {
       } else if (prevLine[0] == '-') {
         addEOFNL = true;
       }
-      break;
     }
     prevLine = line;
   }
   if (removeEOFNL) {
-    if (lines[lines.length - 1] == '') {
+    if (addEOFNL) {
+      // This means the final line gets changed but doesn't have a trailing newline in either the
+      // original or patched version. In that case, we do nothing if fuzzFactor > 0, and if
+      // fuzzFactor is 0, we simply validate that the source file has no trailing newline.
+      if (!fuzzFactor && lines[lines.length - 1] == '') {
+        return false;
+      }
+    } else if (lines[lines.length - 1] == '') {
       lines.pop();
     } else if (!fuzzFactor) {
       return false;
