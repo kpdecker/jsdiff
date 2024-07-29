@@ -207,9 +207,6 @@ export function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, opti
  * Split `text` into an array of lines, including the trailing newline character (where present)
  */
 function splitLines(text) {
-  if (!text) {
-    return [];
-  }
   const hasTrailingNl = text.endsWith('\n');
   const result = text.split('\n').map(line => line + '\n');
   if (hasTrailingNl) {
