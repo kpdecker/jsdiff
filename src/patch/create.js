@@ -29,6 +29,9 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   }
 
   function diffLinesResultToPatch(diff) {
+    // STEP 1: Build up the patch with no "\ No newline at end of file" lines and with the arrays
+    //         of lines containing trailing newline characters. We'll tidy up later...
+
     if(!diff) {
       return;
     }
@@ -44,7 +47,7 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
         oldLine = 1, newLine = 1;
     for (let i = 0; i < diff.length; i++) {
       const current = diff[i],
-            lines = current.lines || current.value.replace(/\n$/, '').split('\n');
+            lines = current.lines || splitLines(current.value);
       current.lines = lines;
 
       if (current.added || current.removed) {
@@ -91,20 +94,6 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
               newLines: (newLine - newRangeStart + contextSize),
               lines: curRange
             };
-            if (i >= diff.length - 2 && lines.length <= options.context) {
-              // EOF is inside this hunk
-              let oldEOFNewline = ((/\n$/).test(oldStr));
-              let newEOFNewline = ((/\n$/).test(newStr));
-              let noNlBeforeAdds = lines.length == 0 && curRange.length > hunk.oldLines;
-              if (!oldEOFNewline && noNlBeforeAdds && oldStr.length > 0) {
-                // special case: old has no eol and no trailing context; no-nl can end up before adds
-                // however, if the old file is empty, do not output the no-nl line
-                curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file');
-              }
-              if ((!oldEOFNewline && !noNlBeforeAdds) || !newEOFNewline) {
-                curRange.push('\\ No newline at end of file');
-              }
-            }
             hunks.push(hunk);
 
             oldRangeStart = 0;
@@ -114,6 +103,19 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
         }
         oldLine += lines.length;
         newLine += lines.length;
+      }
+    }
+
+    // Step 2: eliminate the trailing `\n` from each line of each hunk, and, where needed, add
+    //         "\ No newline at end of file".
+    for (const hunk of hunks) {
+      for (let i = 0; i < hunk.lines.length; i++) {
+        if (hunk.lines[i].endsWith('\n')) {
+          hunk.lines[i] = hunk.lines[i].slice(0, -1);
+        } else {
+          hunk.lines.splice(i + 1, 0, '\\ No newline at end of file');
+          i++; // Skip the line we just added, then continue iterating
+        }
       }
     }
 
@@ -196,4 +198,21 @@ export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, ol
 
 export function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {
   return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options);
+}
+
+/**
+ * Split `text` into an array of lines, including the trailing newline character (where present)
+ */
+function splitLines(text) {
+  if (!text) {
+    return [];
+  }
+  const hasTrailingNl = text.endsWith('\n');
+  const result = text.split('\n').map(line => line + '\n');
+  if (hasTrailingNl) {
+    result.pop();
+  } else {
+    result.push(result.pop().slice(0, -1));
+  }
+  return result;
 }
