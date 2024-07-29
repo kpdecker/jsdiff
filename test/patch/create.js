@@ -106,6 +106,38 @@ describe('patch/create', function() {
         + '\\ No newline at end of file\n');
     });
 
+    it('should get the "No newline" position right in the case from https://github.com/kpdecker/jsdiff/issues/531', function() {
+      const oldContent = '1st line.\n2nd line.\n3rd line.';
+      const newContent = 'Z11 thing.\nA New thing.\n2nd line.\nNEW LINE.\n3rd line.\n\nSOMETHING ELSE.';
+
+      const diff = createPatch(
+        'a.txt',
+        oldContent,
+        newContent,
+        undefined,
+        undefined,
+        { context: 3 },
+      );
+
+      expect(diff).to.equal(
+        '===================================================================\n'
+        + '--- a.txt\n'
+        + '+++ a.txt\n'
+        + '@@ -1,3 +1,7 @@\n'
+        + '-1st line.\n'
+        + '+Z11 thing.\n'
+        + '+A New thing.\n'
+        + ' 2nd line.\n'
+        + '-3rd line.\n'
+        + '\\ No newline at end of file\n'
+        + '+NEW LINE.\n'
+        + '+3rd line.\n'
+        + '+\n'
+        + '+SOMETHING ELSE.\n'
+        + '\\ No newline at end of file'
+      );
+    });
+
     it('should output "no newline" at end of file message on context missing nl', function() {
       expect(createPatch('test', 'line11\nline2\nline3\nline4', 'line1\nline2\nline3\nline4', 'header1', 'header2')).to.equal(
         'Index: test\n'
