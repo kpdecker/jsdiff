@@ -91,7 +91,6 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
       - `context` describes how many lines of context should be included. You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
       - `ignoreWhitespace`: Same as in `diffLines`. Defaults to `false`.
       - `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
-      - `newlineIsToken`: Same as in `diffLines`. Defaults to `false`.
 
 * `Diff.createPatch(fileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch.
 

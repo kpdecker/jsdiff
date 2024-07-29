@@ -10,6 +10,9 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   if (typeof options.context === 'undefined') {
     options.context = 4;
   }
+  if (options.newlineIsToken) {
+    throw new Error('newlineIsToken may not be used with patch-generation functions, only with diffing functions');
+  }
 
   if (!options.callback) {
     return diffLinesResultToPatch(diffLines(oldStr, newStr, options));
