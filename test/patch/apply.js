@@ -1552,6 +1552,23 @@ describe('patch/apply', function() {
       expect(applyPatch(oldFile, diffFile, {fuzzFactor: 1})).to.equal(oldFile);
     });
 
+    it('correctly handles the case where the last line is changed but both the new and old version are missing a newline', () => {
+      const oldFile = 'foo\nbar\nbaz\nbanana';
+      const diffFile = 'Index: file.txt\n' +
+        '===================================================================\n' +
+        '--- file.txt\n' +
+        '+++ file.txt\n' +
+        '@@ -1,4 +1,4 @@\n' +
+        ' foo\n' +
+        ' bar\n' +
+        ' baz\n' +
+        '-banana\n' +
+        '\\ No newline at end of file\n' +
+        '+babaco\n' +
+        '\\ No newline at end of file\n';
+      expect(applyPatch(oldFile, diffFile)).to.equal('foo\nbar\nbaz\nbabaco');
+    });
+
     it('rejects negative or non-integer fuzz factors', () => {
       expect(() => {
         applyPatch(
