@@ -251,6 +251,13 @@ describe('WordDiff', function() {
         + 'for all that<del>.</del><ins>,</ins> he <del>thought</del><ins>thinks</ins>.<del>..</del>'
       );
     });
+
+    it('rejects attempts to use a non-word Intl.Segmenter', () => {
+      const segmenter = new Intl.Segmenter('en', {granularity: 'grapheme'});
+      expect(() => {
+        diffWords('foo', 'bar', {intlSegmenter: segmenter});
+      }).to['throw']('The segmenter passed must have a granularity of "word"');
+    });
   });
 
   describe('#diffWordsWithSpace', function() {
