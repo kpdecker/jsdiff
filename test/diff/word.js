@@ -209,6 +209,48 @@ describe('WordDiff', function() {
       );
       expect(convertChangesToXML(diffResult)).to.equal('foo<del> </del><ins>\t</ins>bar');
     });
+
+    it('supports tokenizing with an Intl.Segmenter', () => {
+      // Example 1: Diffing Chinese text with no spaces.
+      // I am not a Chinese speaker but I believe these sentences to mean:
+      // 1. "I have (我有) many (很多) tables (桌子)"
+      // 2. "Mei (梅) has (有) many (很多) sons (儿子)"
+      // We want to see that diffWords will get the word counts right and won't try to treat the
+      // trailing 子 as common to both texts (since it's part of a different word each time).
+      // TODO: Check with a Chinese speaker that this example is correct Chinese.
+      const chineseSegmenter = new Intl.Segmenter('zh', {granularity: 'word'});
+      const diffResult = diffWords('我有很多桌子。', '梅有很多儿子。', {intlSegmenter: chineseSegmenter});
+      expect(diffResult).to.deep.equal([
+        { count: 1, added: false, removed: true, value: '我有' },
+        { count: 2, added: true, removed: false, value: '梅有' },
+        { count: 1, added: false, removed: false, value: '很多' },
+        { count: 1, added: false, removed: true, value: '桌子' },
+        { count: 1, added: true, removed: false, value: '儿子' },
+        { count: 1, added: false, removed: false, value: '。' }
+      ]);
+
+      // Example 2: Should understand that a colon in the middle of a word is not a word break in
+      // Finnish (see https://stackoverflow.com/a/76402021/1709587)
+      const finnishSegmenter = new Intl.Segmenter('fi', {granularity: 'word'});
+      expect(convertChangesToXML(diffWords(
+        'USA:n nykyinen presidentti',
+        'USA ja sen presidentti',
+        {intlSegmenter: finnishSegmenter}
+      ))).to.equal('<del>USA:n nykyinen</del><ins>USA ja sen</ins> presidentti');
+
+      // Example 3: Some English text, including contractions, long runs of arbitrary space,
+      // and punctuation, and using case insensitive mode, just to show all normal behaviour of
+      // diffWords still works with a segmenter
+      const englishSegmenter = new Intl.Segmenter('en', {granularity: 'word'});
+      expect(convertChangesToXML(diffWords(
+        "There wasn't time \n \t   for all that. He thought...",
+        "There isn't time \n \t   left for all that, he thinks.",
+        {intlSegmenter: englishSegmenter, ignoreCase: true}
+      ))).to.equal(
+        "There <del>wasn't</del><ins>isn't</ins> time \n \t   <ins>left </ins>"
+        + 'for all that<del>.</del><ins>,</ins> he <del>thought</del><ins>thinks</ins>.<del>..</del>'
+      );
+    });
   });
 
   describe('#diffWordsWithSpace', function() {
