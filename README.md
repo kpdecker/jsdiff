@@ -39,6 +39,7 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
     Options
     * `ignoreCase`: Same as in `diffChars`. Defaults to false.
+    * `intlSegmenter`: An optional [`Intl.Segmenter`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) object (which must have a `granularity` of `'word'`) for `diffWords` to use to split the text into words. The language of the segmenter can be whatever you want, so you can use this to support language-specific nuances like colons in the middle of words in Finnish and Swedish - at least to the extent that the `Intl.Segmenter` implementation you're using supports them. (By default, `diffWords` uses some crude regex logic for splitting text into words instead of an `Intl.Segmenter`, which will tend to give worse results than `Intl.Segmenter` would, but ensures the results are consistent across environments; `Intl.Segmenter` behaviour may one day differ significantly between browsers, since the spec is not at all prescriptive about what the actual segmenting rules in an implementation should be. If you want to use an `Intl.Segmenter` but ensure consistency across browsers, use a polyfill.)
 
 * `Diff.diffWordsWithSpace(oldStr, newStr[, options])` - diffs two blocks of text, treating each word, punctuation mark, newline, or run of (non-newline) whitespace as a token.
 
