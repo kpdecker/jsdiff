@@ -34,6 +34,7 @@
   * The context line immediately before and immediately after an insertion must match exactly between the hunk and the file for a hunk to apply. (Previously this was not required.)
 - [#535](https://github.com/kpdecker/jsdiff/pull/535) **A bug in patch generation functions is now fixed** that would sometimes previously cause `\ No newline at end of file` to appear in the wrong place in the generated patch, resulting in the patch being invalid.
 - [#535](https://github.com/kpdecker/jsdiff/pull/535) **Passing `newlineIsToken: true` to *patch*-generation functions is no longer allowed.** (Passing it to `diffLines` is still supported - it's only functions like `createPatch` where passing `newlineIsToken` is now an error.) Allowing it to be passed never really made sense, since in cases where the option had any effect on the output at all, the effect tended to be causing a garbled patch to be created that couldn't actually be applied to the source file.
+- [#539](https://github.com/kpdecker/jsdiff/pull/539) **`diffWords` now takes an optional `intlSegmenter` option** which should be an `Intl.Segmenter` with word-level granularity. This provides better tokenization of text into words than the default behaviour, even for English but especially for some other languages for which the default behaviour is poor.
 
 ## v5.2.0
 
