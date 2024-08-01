@@ -58,8 +58,16 @@ wordDiff.equals = function(left, right, options) {
   return left.trim() === right.trim();
 };
 
-wordDiff.tokenize = function(value) {
-  let parts = value.match(tokenizeIncludingWhitespace) || [];
+wordDiff.tokenize = function(value, options = {}) {
+  let parts;
+  if (options.intlSegmenter) {
+    if (options.intlSegmenter.resolvedOptions().granularity != 'word') {
+      throw new Error('The segmenter passed must have a granularity of "word"');
+    }
+    parts = Array.from(options.intlSegmenter.segment(value), segment => segment.segment);
+  } else {
+    parts = value.match(tokenizeIncludingWhitespace) || [];
+  }
   const tokens = [];
   let prevPart = null;
   parts.forEach(part => {
