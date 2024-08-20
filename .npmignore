@@ -10,7 +10,7 @@ Gruntfile.js
 images
 index.html
 karma.conf.js
-rollup.config.js
+rollup.config.mjs
 src
 tasks
 test
