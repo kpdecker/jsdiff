@@ -1,6 +1,10 @@
 # Release Notes
 
-## Future breaking 6.0.0 release
+## 6.0.0 (currently in beta)
+
+This is a release containing many, *many* breaking changes. The objective of this release was to carry out a mass fix, in one go, of all the open bugs and design problems that required breaking changes to fix. A substantial, but exhaustive, changelog is below.
+
+I am releasing this in beta for now, in the hope that a few users will upgrade now and submit bug reports if I've broken anything without realising it. I intend to do a final 6.0.0 release before the end of August. -- Mark "ExplodingCabbage" Amery.
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/master...v6.0.0-staging)
 
