@@ -60,7 +60,9 @@ Broadly, jsdiff's diff functions all take an old text and a new text and perform
 
     Returns a list of [change objects](#change-objects).
 
-* `Diff.diffSentences(oldStr, newStr[, options])` - diffs two blocks of text, treating each sentence as a token.
+* `Diff.diffSentences(oldStr, newStr[, options])` - diffs two blocks of text, treating each sentence as a token. The characters `.`, `!`, and `?`, when followed by whitespace, are treated as marking the end of a sentence; nothing else is considered to mark a sentence end.
+
+  (For more sophisticated detection of sentence breaks, including support for non-English punctuation, consider instead tokenizing with an [`Intl.Segmenter`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) with `granularity: 'sentence'` and passing the result to `Diff.diffArrays`.)
 
     Returns a list of [change objects](#change-objects).
 
