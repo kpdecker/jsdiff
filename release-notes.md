@@ -4,8 +4,6 @@
 
 This is a release containing many, *many* breaking changes. The objective of this release was to carry out a mass fix, in one go, of all the open bugs and design problems that required breaking changes to fix. A substantial, but exhaustive, changelog is below.
 
-I am releasing this in beta for now, in the hope that a few users will upgrade now and submit bug reports if I've broken anything without realising it. I intend to do a final 6.0.0 release before the end of August. -- Mark "ExplodingCabbage" Amery.
-
 [Commits](https://github.com/kpdecker/jsdiff/compare/master...v6.0.0-staging)
 
 - [#497](https://github.com/kpdecker/jsdiff/pull/497) **`diffWords` behavior has been radically changed.** Previously, even with `ignoreWhitespace: true`, runs of whitespace were tokens, which led to unhelpful and unintuitive diffing behavior in typical texts. Specifically, even when two texts contained overlapping passages, `diffWords` would sometimes choose to delete all the words from the old text and insert them anew in their new positions in order to avoid having to delete or insert whitespace tokens. Whitespace sequences are no longer tokens as of this release, which affects both the generated diffs and the `count`s.
