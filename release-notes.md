@@ -1,6 +1,6 @@
 # Release Notes
 
-## 6.0.0 (currently in beta)
+## 6.0.0
 
 This is a release containing many, *many* breaking changes. The objective of this release was to carry out a mass fix, in one go, of all the open bugs and design problems that required breaking changes to fix. A substantial, but exhaustive, changelog is below.
 
