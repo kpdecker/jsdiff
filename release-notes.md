@@ -1,5 +1,9 @@
 # Release Notes
 
+## Future 7.0.0 release
+
+- [#554](https://github.com/kpdecker/jsdiff/pull/554) **`diffWords` treats numbers and underscores as word characters again.** This behaviour was broken in v6.0.0.
+
 ## 6.0.0
 
 This is a release containing many, *many* breaking changes. The objective of this release was to carry out a mass fix, in one go, of all the open bugs and design problems that required breaking changes to fix. A substantial, but exhaustive, changelog is below.
