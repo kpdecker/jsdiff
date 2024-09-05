@@ -31,6 +31,34 @@ describe('WordDiff', function() {
         '.'
       ]);
     });
+
+    // Test for bug reported at https://github.com/kpdecker/jsdiff/issues/553
+    it('should treat numbers as part of a word if not separated by whitespace or punctuation', () => {
+      expect(
+        wordDiff.tokenize(
+          'Tea Too, also known as T2, had revenue of 57m AUD in 2012-13.'
+        )
+      ).to.deep.equal([
+        'Tea ',
+        ' Too',
+        ', ',
+        ' also ',
+        ' known ',
+        ' as ',
+        ' T2',
+        ', ',
+        ' had ',
+        ' revenue ',
+        ' of ',
+        ' 57m ',
+        ' AUD ',
+        ' in ',
+        ' 2012',
+        '-',
+        '13',
+        '.'
+      ]);
+    });
   });
 
   describe('#diffWords', function() {
