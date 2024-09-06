@@ -1,6 +1,8 @@
 # Release Notes
 
-## Future 7.0.0 release
+## 7.0.0
+
+Just a single (breaking) bugfix, undoing a behaviour change introduced accidentally in 6.0.0:
 
 - [#554](https://github.com/kpdecker/jsdiff/pull/554) **`diffWords` treats numbers and underscores as word characters again.** This behaviour was broken in v6.0.0.
 
