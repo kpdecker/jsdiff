@@ -42,6 +42,10 @@ ins {
 	color: #406619;
 	text-decoration: none;
 }
+.chunk-header {
+	color: #8a008b;
+	text-decoration: none;
+}
 
 #result {
 	white-space: pre-wrap;

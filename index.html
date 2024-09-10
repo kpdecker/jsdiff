@@ -12,6 +12,7 @@
 	<label><input type="radio" name="diff_type" value="diffChars" checked> Chars</label>
 	<label><input type="radio" name="diff_type" value="diffWords"> Words</label>
 	<label><input type="radio" name="diff_type" value="diffLines"> Lines</label>
+	<label><input type="radio" name="diff_type" value="diffPatch"> Patch</label>
 </div>
 
 <a href="https://github.com/kpdecker/jsdiff" class="source">github.com/kpdecker/jsdiff</a>
@@ -31,8 +32,34 @@ var b = document.getElementById('b');
 var result = document.getElementById('result');
 
 function changed() {
-	var diff = Diff[window.diffType](a.textContent, b.textContent);
 	var fragment = document.createDocumentFragment();
+	var diff;
+	if (window.diffType === 'diffPatch') {
+		// We contort the patch into a similar data structure to that returned by diffChars,
+		// diffWords, etc so that the same rendering code below can work on both.
+		var pastHunkHeader = false;
+		diff = Diff.createTwoFilesPatch('a.txt', 'b.txt', a.textContent, b.textContent)
+			.split('\n')
+			.map(function(entry) {
+				const result = {
+					value: entry + '\n',
+				};
+				if (entry.startsWith('@@')) {
+					result.chunkHeader = true;
+					pastHunkHeader = true;
+				} else if (pastHunkHeader) {
+					if (entry.startsWith('-')) {
+						result.removed = true;
+					} else if (entry.startsWith('+')) {
+						result.added = true;
+					}
+				}
+				return result;
+			});
+	} else {
+		diff = Diff[window.diffType](a.textContent, b.textContent);
+	}
+
 	for (var i=0; i < diff.length; i++) {
 
 		if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
@@ -47,6 +74,10 @@ function changed() {
 			node.appendChild(document.createTextNode(diff[i].value));
 		} else if (diff[i].added) {
 			node = document.createElement('ins');
+			node.appendChild(document.createTextNode(diff[i].value));
+		} else if (diff[i].chunkHeader) {
+			node = document.createElement('span');
+			node.setAttribute('class', 'chunk-header');
 			node.appendChild(document.createTextNode(diff[i].value));
 		} else {
 			node = document.createTextNode(diff[i].value);
