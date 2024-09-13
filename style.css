@@ -47,6 +47,10 @@ ins {
 	text-decoration: none;
 }
 
+#result_wrapper {
+	position: fixed;
+	overflow: scroll;
+}
 #result {
 	white-space: pre-wrap;
 }
