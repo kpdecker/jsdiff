@@ -12,7 +12,7 @@ body {
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
-html, body, table, tbody, tr, td {
+html, body, table, tbody, tr, td, td div {
 	height: 100%
 }
 table {
@@ -20,10 +20,13 @@ table {
 	width: 100%;
 }
 td {
-	width: 33%;
+	box-sizing:border-box;
+	width: 33.3333%;
 	padding: 3px 4px;
 	border: 1px solid transparent;
-	vertical-align: top;
+}
+td div {
+	overflow: auto;
 	font: 1em monospace;
 	text-align: left;
 	white-space: pre-wrap;
@@ -47,10 +50,6 @@ ins {
 	text-decoration: none;
 }
 
-#result_wrapper {
-	position: fixed;
-	overflow: scroll;
-}
 #result {
 	white-space: pre-wrap;
 }
