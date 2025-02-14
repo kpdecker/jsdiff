@@ -1,9 +1,43 @@
-import {diffSentences} from '../../lib/diff/sentence';
+import {diffSentences, sentenceDiff} from '../../lib/diff/sentence';
 import {convertChangesToXML} from '../../lib/convert/xml';
 
 import {expect} from 'chai';
 
 describe('diff/sentence', function() {
+  describe('tokenize', function() {
+    it('should split on whitespace after a punctuation mark, and keep the whitespace as a token', function() {
+      expect(sentenceDiff.removeEmpty(sentenceDiff.tokenize(''))).to.eql([]);
+
+      expect(sentenceDiff.removeEmpty(sentenceDiff.tokenize(
+          'Foo bar baz! Qux wibbly wobbly bla? \n\tYayayaya!Yayayaya!Ya! Yes!!!!! Blub'
+      ))).to.eql([
+        'Foo bar baz!',
+        ' ',
+        'Qux wibbly wobbly bla?',
+        ' \n\t',
+        'Yayayaya!Yayayaya!Ya!',
+        ' ',
+        'Yes!!!!!',
+        ' ',
+        'Blub'
+      ]);
+
+      expect(sentenceDiff.removeEmpty(sentenceDiff.tokenize(
+        '! Hello there.'
+      ))).to.eql([
+        '!',
+        ' ',
+        'Hello there.'
+      ]);
+
+      expect(sentenceDiff.removeEmpty(sentenceDiff.tokenize(
+        '    foo bar baz.'
+      ))).to.eql([
+        '    foo bar baz.'
+      ]);
+    });
+  });
+
   describe('#diffSentences', function() {
     it('Should diff Sentences', function() {
       const diffResult = diffSentences('New Value.', 'New ValueMoreData.');
