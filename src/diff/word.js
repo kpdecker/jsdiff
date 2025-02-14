@@ -1,5 +1,5 @@
 import Diff from './base';
-import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap } from '../util/string';
+import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -193,10 +193,10 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
   // * Just a "delete"
   // We handle the three cases separately.
   if (deletion && insertion) {
-    const oldWsPrefix = deletion.value.match(/^\s*/)[0];
-    const oldWsSuffix = deletion.value.match(/\s*$/)[0];
-    const newWsPrefix = insertion.value.match(/^\s*/)[0];
-    const newWsSuffix = insertion.value.match(/\s*$/)[0];
+    const oldWsPrefix = leadingWs(deletion.value);
+    const oldWsSuffix = trailingWs(deletion.value);
+    const newWsPrefix = leadingWs(insertion.value);
+    const newWsSuffix = trailingWs(insertion.value);
 
     if (startKeep) {
       const commonWsPrefix = longestCommonPrefix(oldWsPrefix, newWsPrefix);
@@ -218,16 +218,18 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
     // whitespace and deleting duplicate leading whitespace where
     // present.
     if (startKeep) {
-      insertion.value = insertion.value.replace(/^\s*/, '');
+      const ws = leadingWs(insertion.value);
+      insertion.value = insertion.value.substring(ws.length);
     }
     if (endKeep) {
-      endKeep.value = endKeep.value.replace(/^\s*/, '');
+      const ws = leadingWs(endKeep.value);
+      endKeep.value = endKeep.value.substring(ws.length);
     }
   // otherwise we've got a deletion and no insertion
   } else if (startKeep && endKeep) {
-    const newWsFull = endKeep.value.match(/^\s*/)[0],
-        delWsStart = deletion.value.match(/^\s*/)[0],
-        delWsEnd = deletion.value.match(/\s*$/)[0];
+    const newWsFull = leadingWs(endKeep.value),
+        delWsStart = leadingWs(deletion.value),
+        delWsEnd = trailingWs(deletion.value);
 
     // Any whitespace that comes straight after startKeep in both the old and
     // new texts, assign to startKeep and remove from the deletion.
@@ -255,16 +257,16 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
     // We are at the start of the text. Preserve all the whitespace on
     // endKeep, and just remove whitespace from the end of deletion to the
     // extent that it overlaps with the start of endKeep.
-    const endKeepWsPrefix = endKeep.value.match(/^\s*/)[0];
-    const deletionWsSuffix = deletion.value.match(/\s*$/)[0];
+    const endKeepWsPrefix = leadingWs(endKeep.value);
+    const deletionWsSuffix = trailingWs(deletion.value);
     const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
     deletion.value = removeSuffix(deletion.value, overlap);
   } else if (startKeep) {
     // We are at the END of the text. Preserve all the whitespace on
     // startKeep, and just remove whitespace from the start of deletion to
     // the extent that it overlaps with the end of startKeep.
-    const startKeepWsSuffix = startKeep.value.match(/\s*$/)[0];
-    const deletionWsPrefix = deletion.value.match(/^\s*/)[0];
+    const startKeepWsSuffix = trailingWs(startKeep.value);
+    const deletionWsPrefix = leadingWs(deletion.value);
     const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
     deletion.value = removePrefix(deletion.value, overlap);
   }
