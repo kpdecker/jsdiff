@@ -101,3 +101,29 @@ export function hasOnlyWinLineEndings(string) {
 export function hasOnlyUnixLineEndings(string) {
   return !string.includes('\r\n') && string.includes('\n');
 }
+
+export function trailingWs(string) {
+  // Yes, this looks overcomplicated and dumb - why not replace the whole function with
+  //     return string match(/\s*$/)[0]
+  // you ask? Because:
+  // 1. the trap described at https://markamery.com/blog/quadratic-time-regexes/ would mean doing
+  //    this would cause this function to take O(n²) time in the worst case (specifically when
+  //    there is a massive run of NON-TRAILING whitespace in `string`), and
+  // 2. the fix proposed in the same blog post, of using a negative lookbehind, is incompatible
+  //    with old Safari versions that we'd like to not break if possible (see
+  //    https://github.com/kpdecker/jsdiff/pull/550)
+  // It feels absurd to do this with an explicit loop instead of a regex, but I really can't see a
+  // better way that doesn't result in broken behaviour.
+  let i;
+  for (i = string.length - 1; i >= 0; i--) {
+    if (!string[i].match(/\s/)) {
+      break;
+    }
+  }
+  return string.substring(i + 1);
+}
+
+export function leadingWs(string) {
+  // Thankfully the annoying considerations described in trailingWs don't apply here:
+  return string.match(/^\s*/)[0];
+}
