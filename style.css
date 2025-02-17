@@ -12,7 +12,7 @@ body {
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
-html, body, table, tbody, tr, td, td>div {
+html, body, table, tbody, tr, td, textarea, div {
 	height: 100%
 }
 table {
@@ -25,11 +25,11 @@ td {
 	padding: 3px 4px;
 	border: 1px solid transparent;
 }
-td div {
+td div, td textarea {
 	overflow: auto;
 	font: 1em monospace;
-	text-align: left;
-	white-space: pre-wrap;
+	width: 100%;
+	resize: none;
 }
 h1 {
 	display: inline;
@@ -72,14 +72,13 @@ ins {
 	top: .2em;
 }
 
-[contentEditable] {
+textarea {
 	background: #F9F9F9;
 	border-color: #BBB #D9D9D9 #DDD;
 	border-radius: 4px;
-	-webkit-user-modify: read-write-plaintext-only;
 	outline: none;
 }
-[contentEditable]:focus {
+textarea:focus {
 	background: #FFF;
 	border-color: #6699cc;
 	box-shadow: 0 0 4px #2175c9;

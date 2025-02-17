@@ -19,8 +19,8 @@
 
 <table>
 	<tr>
-		<td><div contenteditable="true" id="a">restaurant</div></td>
-		<td><div contenteditable="true" id="b">aura</td>
+		<td><textarea id="a">restaurant</textarea></td>
+		<td><textarea id="b">aura</textarea></td>
 		<td><div><pre id="result"></pre></div></td>
 	</tr>
 </table>
@@ -38,7 +38,7 @@ function changed() {
 		// We contort the patch into a similar data structure to that returned by diffChars,
 		// diffWords, etc so that the same rendering code below can work on both.
 		var pastHunkHeader = false;
-		diff = Diff.createTwoFilesPatch('a.txt', 'b.txt', a.textContent, b.textContent)
+		diff = Diff.createTwoFilesPatch('a.txt', 'b.txt', a.value, b.value)
 			.split('\n')
 			.map(function(entry) {
 				const result = {
@@ -57,7 +57,7 @@ function changed() {
 				return result;
 			});
 	} else {
-		diff = Diff[window.diffType](a.textContent, b.textContent);
+		diff = Diff[window.diffType](a.value, b.value);
 	}
 
 	for (var i=0; i < diff.length; i++) {
