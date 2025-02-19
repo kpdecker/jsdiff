@@ -32,10 +32,12 @@
   "module": "./lib/index.es6.js",
   "browser": "./dist/diff.js",
   "unpkg": "./dist/diff.js",
+  "types": "./index.d.ts",
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./index.d.ts"
     },
     "./package.json": "./package.json",
     "./": "./",
