@@ -88,6 +88,12 @@
       "text"
     ],
     "sourceMap": false,
-    "instrument": false
+    "instrument": false,
+
+    "check-coverage": true,
+    "branches": 100,
+    "lines": 100,
+    "functions": 100,
+    "statements": 100
   }
 }
