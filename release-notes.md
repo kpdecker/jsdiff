@@ -1,12 +1,13 @@
 # Release Notes
 
-## 8.0.0
+## 8.0.0 (pending release)
 
 - [#580](https://github.com/kpdecker/jsdiff/pull/580) Multiple tweaks to `diffSentences`:
   * tokenization no longer takes quadratic time on pathological inputs (reported as a ReDOS vulnerability by Snyk); is now linear instead
   * the final sentence in the string is now handled the same by the tokenizer regardless of whether it has a trailing punctuation mark or not. (Previously, "foo. bar." tokenized to `["foo.", " ", "bar."]` but "foo. bar" tokenized to `["foo.", " bar"]` - i.e. whether the space between sentences was treated as a separate token depended upon whether the final sentence had trailing punctuation or not. This was arbitrary and surprising; it is no longer the case.)
   * in a string that starts with a sentence end, like "! hello.", the "!" is now treated as a separate sentence
   * the README now correctly documents the tokenization behaviour (it was wrong before)
+- [#581](https://github.com/kpdecker/jsdiff/pull/581) - fix some regex operations used for tokenization in `diffWords` taking O(n^2) time in pathological cases
 
 ## 7.0.0
 
