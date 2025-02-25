@@ -42,15 +42,14 @@
     "./*": "./*"
   },
   "scripts": {
-    "clean": "rm -rf lib/ dist/",
+    "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/",
     "lint": "yarn eslint 'src/**/*.js' 'test/**/*.js'",
     "build": "yarn lint && yarn run-babel && yarn run-rollup",
-    "test": "yarn run build && yarn run-mocha && yarn coverage",
-    "coverage": "TODO",
-
-    "run-babel": "yarn babel --out-dir lib  --source-maps=inline src",
-    "run-rollup": "yarn rollup -c rollup.config.mjs",
-    "run-mocha": "yarn mocha --require ./runtime 'test/**/*.js'"
+    "test": "cross-env NODE_ENV=test yarn build && yarn run-mocha",
+    "coverage": "nyc yarn test",
+    "run-babel": "babel --out-dir lib  --source-maps=inline src",
+    "run-rollup": "rollup -c rollup.config.mjs",
+    "run-mocha": "mocha --require ./runtime 'test/**/*.js'"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.1",
@@ -61,9 +60,10 @@
     "@colors/colors": "^1.6.0",
     "babel-eslint": "^10.0.1",
     "babel-loader": "^9.1.3",
+    "babel-plugin-istanbul": "^7.0.0",
     "chai": "^4.2.0",
+    "cross-env": "^7.0.3",
     "eslint": "^5.12.0",
-    "istanbul": "github:kpdecker/istanbul",
     "karma": "^6.4.3",
     "karma-chrome-launcher": "^3.2.0",
     "karma-mocha": "^2.0.1",
@@ -71,10 +71,23 @@
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.1",
     "mocha": "^7.0.0",
+    "nyc": "^17.1.0",
     "rollup": "^4.13.0",
     "rollup-plugin-babel": "^4.2.0",
     "webpack": "^5.90.3",
     "webpack-dev-server": "^5.0.3"
   },
-  "optionalDependencies": {}
+  "optionalDependencies": {},
+  "dependencies": {},
+  "nyc": {
+    "require": [
+      "@babel/register"
+    ],
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "sourceMap": false,
+    "instrument": false
+  }
 }
