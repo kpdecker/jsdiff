@@ -43,8 +43,14 @@
   },
   "scripts": {
     "clean": "rm -rf lib/ dist/",
-    "build": "yarn babel --out-dir lib  --source-maps=inline src",
-    "test": "grunt"
+    "lint": "yarn eslint src/**/*.js test/**/*.js",
+    "build": "yarn lint && yarn run-babel && yarn run-rollup",
+    "test": "yarn run build && yarn run-karma && yarn coverage",
+    "coverage": "TODO",
+
+    "run-babel": "yarn babel --out-dir lib  --source-maps=inline src",
+    "run-rollup": "yarn rollup -c rollup.config.mjs",
+    "run-karma": "TODO"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.1",
