@@ -1,9 +1,0 @@
-{
-  "name": "jsdiff",
-  "version": "3.5.0",
-  "main": [
-    "diff.js"
-  ],
-  "dependencies": {},
-  "ignore": []
-}
