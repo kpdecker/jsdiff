@@ -44,11 +44,12 @@
   "scripts": {
     "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/",
     "lint": "yarn eslint 'src/**/*.js' 'test/**/*.js'",
-    "build": "yarn lint && yarn run-babel && yarn run-rollup",
+    "build": "yarn lint && yarn run-babel && yarn run-rollup && yarn run-uglify",
     "test": "cross-env NODE_ENV=test yarn build && yarn run-mocha",
     "coverage": "nyc yarn test",
     "run-babel": "babel --out-dir lib  --source-maps=inline src",
     "run-rollup": "rollup -c rollup.config.mjs",
+    "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
     "run-mocha": "mocha --require ./runtime 'test/**/*.js'"
   },
   "devDependencies": {
@@ -78,7 +79,9 @@
     "webpack-dev-server": "^5.0.3"
   },
   "optionalDependencies": {},
-  "dependencies": {},
+  "dependencies": {
+    "uglify-js": "^3.19.3"
+  },
   "nyc": {
     "require": [
       "@babel/register"
@@ -89,7 +92,6 @@
     ],
     "sourceMap": false,
     "instrument": false,
-
     "check-coverage": true,
     "branches": 100,
     "lines": 100,
