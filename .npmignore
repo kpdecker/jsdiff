@@ -3,10 +3,10 @@
 .gitignore
 .npmignore
 .vscode
+.nyc_output
 components
 coverage
 examples
-Gruntfile.js
 images
 index.html
 karma.conf.js
