@@ -12,19 +12,21 @@ Generally we like to see pull requests that
 - Have tests
 - Don't decrease the current code coverage (see coverage/lcov-report/index.html)
 
-## Building
+## Building and testing
 
 ```
 yarn
 yarn test
 ```
 
-Running `yarn test -- dev` will watch for tests within Node and `karma start` may be used for manual testing in browsers.
+To run tests in a *browser* (for instance to test compatibility with Firefox, with Safari, or with old browser versions), run `yarn karma start`, then open http://localhost:9876/ in the browser you want to test in. Results of the test run will appear in the terminal where `yarn karma start` is running.
 
 If you notice any problems, please report them to the GitHub issue tracker at
 [http://github.com/kpdecker/jsdiff/issues](http://github.com/kpdecker/jsdiff/issues).
 
 ## Releasing
+
+Run a test in Firefox via the procedure above before releasing.
 
 A full release may be completed by first updating the `"version"` property in package.json, then running the following:
 

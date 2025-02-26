@@ -1,13 +1,6 @@
 /* eslint-env node */
 /* eslint-disable no-var, camelcase */
 module.exports = function(config) {
-  var customLaunchers = {
-    HeadlessChrome: {
-      base: 'ChromeHeadless',
-      flags: ['--no-sandbox']
-    }
-  };
-
   config.set({
     basePath: '',
 
@@ -38,13 +31,10 @@ module.exports = function(config) {
 
     reporters: ['mocha'],
 
-    customLaunchers: customLaunchers,
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
     singleRun: false,
-
-    browsers: ['HeadlessChrome']
   });
 };
