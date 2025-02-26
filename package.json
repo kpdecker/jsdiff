@@ -76,12 +76,11 @@
     "rollup": "^4.13.0",
     "rollup-plugin-babel": "^4.2.0",
     "webpack": "^5.90.3",
-    "webpack-dev-server": "^5.0.3"
-  },
-  "optionalDependencies": {},
-  "dependencies": {
+    "webpack-dev-server": "^5.0.3",
     "uglify-js": "^3.19.3"
   },
+  "optionalDependencies": {},
+  "dependencies": {},
   "nyc": {
     "require": [
       "@babel/register"
