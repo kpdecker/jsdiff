@@ -30,7 +30,7 @@ A full release may be completed by first updating the `"version"` property in pa
 
 ```
 yarn clean
-yarn grunt release
+yarn build
 yarn publish
 ```
 
