@@ -55,7 +55,6 @@
   "devDependencies": {
     "@babel/cli": "^7.24.1",
     "@babel/core": "^7.24.1",
-    "@babel/plugin-transform-modules-commonjs": "^7.24.1",
     "@babel/preset-env": "^7.24.1",
     "@babel/register": "^7.23.7",
     "@colors/colors": "^1.6.0",
