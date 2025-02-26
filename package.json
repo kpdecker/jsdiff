@@ -74,9 +74,9 @@
     "nyc": "^17.1.0",
     "rollup": "^4.13.0",
     "rollup-plugin-babel": "^4.2.0",
+    "uglify-js": "^3.19.3",
     "webpack": "^5.90.3",
-    "webpack-dev-server": "^5.0.3",
-    "uglify-js": "^3.19.3"
+    "webpack-dev-server": "^5.0.3"
   },
   "optionalDependencies": {},
   "dependencies": {},
