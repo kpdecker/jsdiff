@@ -44,7 +44,7 @@
   "scripts": {
     "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/",
     "lint": "yarn eslint 'src/**/*.js' 'test/**/*.js'",
-    "build": "yarn lint && yarn run-babel && yarn run-rollup && yarn run-uglify",
+    "build": "yarn tsc src/**/*.ts --module es2015 --moduleResolution bundler && yarn run-babel && yarn run-rollup && yarn run-uglify",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
     "run-babel": "babel --out-dir lib  --source-maps=inline src",
