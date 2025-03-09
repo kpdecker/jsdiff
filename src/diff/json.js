@@ -4,6 +4,7 @@ import {lineDiff} from './line';
 export const jsonDiff = new Diff();
 // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
 // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
+// TODO: Override getter
 jsonDiff.useLongestToken = true;
 
 jsonDiff.tokenize = lineDiff.tokenize;
