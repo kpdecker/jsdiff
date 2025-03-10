@@ -1,4 +1,4 @@
-import Diff from './base';
+import Diff, { DiffOptions } from './base';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
@@ -48,94 +48,98 @@ const extendedWordChars = 'a-zA-Z0-9_\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2
 // tokens.
 const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, 'ug');
 
-export const wordDiff = new Diff();
-wordDiff.equals = function(left, right, options) {
-  if (options.ignoreCase) {
-    left = left.toLowerCase();
-    right = right.toLowerCase();
-  }
 
-  return left.trim() === right.trim();
-};
-
-wordDiff.tokenize = function(value, options = {}) {
-  let parts;
-  if (options.intlSegmenter) {
-    if (options.intlSegmenter.resolvedOptions().granularity != 'word') {
-      throw new Error('The segmenter passed must have a granularity of "word"');
+class WordDiff extends Diff<string, string> {
+  protected equals(left: string, right: string, options: DiffOptions<string>) {
+    if (options.ignoreCase) {
+      left = left.toLowerCase();
+      right = right.toLowerCase();
     }
-    parts = Array.from(options.intlSegmenter.segment(value), segment => segment.segment);
-  } else {
-    parts = value.match(tokenizeIncludingWhitespace) || [];
+
+    return left.trim() === right.trim();
   }
-  const tokens = [];
-  let prevPart = null;
-  parts.forEach(part => {
-    if ((/\s/).test(part)) {
-      if (prevPart == null) {
+
+  protected tokenize(value: string, options: DiffOptions<string> = {}) {
+    let parts;
+    if (options.intlSegmenter) {
+      if (options.intlSegmenter.resolvedOptions().granularity != 'word') {
+        throw new Error('The segmenter passed must have a granularity of "word"');
+      }
+      parts = Array.from(options.intlSegmenter.segment(value), segment => segment.segment);
+    } else {
+      parts = value.match(tokenizeIncludingWhitespace) || [];
+    }
+    const tokens: string[] = [];
+    let prevPart = null;
+    parts.forEach(part => {
+      if ((/\s/).test(part)) {
+        if (prevPart == null) {
+          tokens.push(part);
+        } else {
+          tokens.push(tokens.pop() + part);
+        }
+      } else if (prevPart != null && (/\s/).test(prevPart)) {
+        if (tokens[tokens.length - 1] == prevPart) {
+          tokens.push(tokens.pop() + part);
+        } else {
+          tokens.push(prevPart + part);
+        }
+      } else {
         tokens.push(part);
-      } else {
-        tokens.push(tokens.pop() + part);
       }
-    } else if ((/\s/).test(prevPart)) {
-      if (tokens[tokens.length - 1] == prevPart) {
-        tokens.push(tokens.pop() + part);
+
+      prevPart = part;
+    });
+    return tokens;
+  }
+
+  protected join(tokens) {
+    // Tokens being joined here will always have appeared consecutively in the
+    // same text, so we can simply strip off the leading whitespace from all the
+    // tokens except the first (and except any whitespace-only tokens - but such
+    // a token will always be the first and only token anyway) and then join them
+    // and the whitespace around words and punctuation will end up correct.
+    return tokens.map((token, i) => {
+      if (i == 0) {
+        return token;
       } else {
-        tokens.push(prevPart + part);
+        return token.replace((/^\s+/), '');
       }
-    } else {
-      tokens.push(part);
+    }).join('');
+  }
+
+  protected postProcess(changes, options) {
+    if (!changes || options.oneChangePerToken) {
+      return changes;
     }
 
-    prevPart = part;
-  });
-  return tokens;
-};
-
-wordDiff.join = function(tokens) {
-  // Tokens being joined here will always have appeared consecutively in the
-  // same text, so we can simply strip off the leading whitespace from all the
-  // tokens except the first (and except any whitespace-only tokens - but such
-  // a token will always be the first and only token anyway) and then join them
-  // and the whitespace around words and punctuation will end up correct.
-  return tokens.map((token, i) => {
-    if (i == 0) {
-      return token;
-    } else {
-      return token.replace((/^\s+/), '');
+    let lastKeep = null;
+    // Change objects representing any insertion or deletion since the last
+    // "keep" change object. There can be at most one of each.
+    let insertion = null;
+    let deletion = null;
+    changes.forEach(change => {
+      if (change.added) {
+        insertion = change;
+      } else if (change.removed) {
+        deletion = change;
+      } else {
+        if (insertion || deletion) { // May be false at start of text
+          dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change);
+        }
+        lastKeep = change;
+        insertion = null;
+        deletion = null;
+      }
+    });
+    if (insertion || deletion) {
+      dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
     }
-  }).join('');
-};
-
-wordDiff.postProcess = function(changes, options) {
-  if (!changes || options.oneChangePerToken) {
     return changes;
   }
+}
 
-  let lastKeep = null;
-  // Change objects representing any insertion or deletion since the last
-  // "keep" change object. There can be at most one of each.
-  let insertion = null;
-  let deletion = null;
-  changes.forEach(change => {
-    if (change.added) {
-      insertion = change;
-    } else if (change.removed) {
-      deletion = change;
-    } else {
-      if (insertion || deletion) { // May be false at start of text
-        dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change);
-      }
-      lastKeep = change;
-      insertion = null;
-      deletion = null;
-    }
-  });
-  if (insertion || deletion) {
-    dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
-  }
-  return changes;
-};
+export const wordDiff = new WordDiff();
 
 export function diffWords(oldStr, newStr, options) {
   // This option has never been documented and never will be (it's clearer to
@@ -273,16 +277,19 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
 }
 
 
-export const wordWithSpaceDiff = new Diff();
-wordWithSpaceDiff.tokenize = function(value) {
-  // Slightly different to the tokenizeIncludingWhitespace regex used above in
-  // that this one treats each individual newline as a distinct tokens, rather
-  // than merging them into other surrounding whitespace. This was requested
-  // in https://github.com/kpdecker/jsdiff/issues/180 &
-  //    https://github.com/kpdecker/jsdiff/issues/211
-  const regex = new RegExp(`(\\r?\\n)|[${extendedWordChars}]+|[^\\S\\n\\r]+|[^${extendedWordChars}]`, 'ug');
-  return value.match(regex) || [];
-};
+class WordsWithSpaceDiff extends Diff<string, string> {
+  protected tokenize(value: string) {
+    // Slightly different to the tokenizeIncludingWhitespace regex used above in
+    // that this one treats each individual newline as a distinct tokens, rather
+    // than merging them into other surrounding whitespace. This was requested
+    // in https://github.com/kpdecker/jsdiff/issues/180 &
+    //    https://github.com/kpdecker/jsdiff/issues/211
+    const regex = new RegExp(`(\\r?\\n)|[${extendedWordChars}]+|[^\\S\\n\\r]+|[^${extendedWordChars}]`, 'ug');
+    return value.match(regex) || [];
+  }
+}
+
+export const wordsWithSpaceDiff = new WordsWithSpaceDiff();
 export function diffWordsWithSpace(oldStr, newStr, options) {
-  return wordWithSpaceDiff.diff(oldStr, newStr, options);
+  return wordsWithSpaceDiff.diff(oldStr, newStr, options);
 }

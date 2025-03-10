@@ -23,6 +23,9 @@ export interface DiffOptions<ValueT> {
   // diffJson only:
   undefinedReplacement?: any,
   stringifyReplacer?: (k: string, v: any) => any,
+
+  // diffWords only:
+  intlSegmenter?: Intl.Segmenter,
 }
 
 /**
