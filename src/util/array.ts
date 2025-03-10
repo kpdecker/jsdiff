@@ -1,4 +1,4 @@
-export function arrayEqual(a, b) {
+export function arrayEqual(a: any[], b: any[]): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -6,7 +6,7 @@ export function arrayEqual(a, b) {
   return arrayStartsWith(a, b);
 }
 
-export function arrayStartsWith(array, start) {
+export function arrayStartsWith(array: any[], start: any[]): boolean {
   if (start.length > array.length) {
     return false;
   }
