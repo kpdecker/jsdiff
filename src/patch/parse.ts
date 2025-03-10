@@ -1,10 +1,12 @@
-export function parsePatch(uniDiff) {
+import { StructuredPatch } from '../types';
+
+export function parsePatch(uniDiff: string): StructuredPatch[] {
   let diffstr = uniDiff.split(/\n/),
-      list = [],
+      list: Partial<StructuredPatch>[] = [],
       i = 0;
 
   function parseIndex() {
-    let index = {};
+    let index: Partial<StructuredPatch> = {};
     list.push(index);
 
     // Parse diff metadata
@@ -137,5 +139,5 @@ export function parsePatch(uniDiff) {
     parseIndex();
   }
 
-  return list;
+  return list as StructuredPatch[];
 }

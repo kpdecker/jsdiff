@@ -38,3 +38,20 @@ export interface DiffOptions<ValueT> {
 }
 
 export type DiffCallback<ValueT> = (result?: ChangeObject<ValueT>[]) => void;
+
+export interface StructuredPatch {
+  oldFileName: string,
+  newFileName: string,
+  oldHeader: string,
+  newHeader: string,
+  hunks: StructuredPatchHunk[],
+  index?: string,
+}
+
+export interface StructuredPatchHunk {
+  oldStart: number,
+  oldLines: number,
+  newStart: number,
+  newLines: number,
+  lines: string[],
+}

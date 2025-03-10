@@ -2,31 +2,51 @@ import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string';
 import {isWin, isUnix, unixToWin, winToUnix} from './line-endings';
 import {parsePatch} from './parse';
 import distanceIterator from '../util/distance-iterator';
+import { StructuredPatch } from '../types';
 
-export function applyPatch(source, uniDiff, options = {}) {
+export interface ApplyPatchOptions {
+  fuzzFactor?: number,
+  autoConvertLineEndings?: boolean,
+  compareLine?: (lineNumber: number, line: string, operation: string, patchContent: string) => boolean,
+}
+
+export function applyPatch(
+  source: string,
+  uniDiff: string | StructuredPatch | [StructuredPatch],
+  options: ApplyPatchOptions = {}
+): string | boolean {
+  let patches: StructuredPatch[];
   if (typeof uniDiff === 'string') {
-    uniDiff = parsePatch(uniDiff);
+    patches = parsePatch(uniDiff);
+  } else if (Array.isArray(uniDiff)) {
+    patches = uniDiff;
+  } else {
+    patches = [uniDiff];
   }
 
-  if (Array.isArray(uniDiff)) {
-    if (uniDiff.length > 1) {
-      throw new Error('applyPatch only works with a single input.');
-    }
-
-    uniDiff = uniDiff[0];
+  if (patches.length > 1) {
+    throw new Error('applyPatch only works with a single input.');
   }
 
+  return applyStructuredPatch(source, patches[0], options);
+}
+
+function applyStructuredPatch(
+  source: string,
+  patch: StructuredPatch,
+  options: ApplyPatchOptions = {}
+): string | boolean {
   if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
-    if (hasOnlyWinLineEndings(source) && isUnix(uniDiff)) {
-      uniDiff = unixToWin(uniDiff);
-    } else if (hasOnlyUnixLineEndings(source) && isWin(uniDiff)) {
-      uniDiff = winToUnix(uniDiff);
+    if (hasOnlyWinLineEndings(source) && isUnix(patch)) {
+      patch = unixToWin(patch);
+    } else if (hasOnlyUnixLineEndings(source) && isWin(patch)) {
+      patch = winToUnix(patch);
     }
   }
 
   // Apply the diff to the input
   let lines = source.split('\n'),
-      hunks = uniDiff.hunks,
+      hunks = patch.hunks,
 
       compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
       fuzzFactor = options.fuzzFactor || 0,
