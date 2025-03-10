@@ -1,4 +1,4 @@
-export function longestCommonPrefix(str1, str2) {
+export function longestCommonPrefix(str1: string, str2: string): string {
   let i;
   for (i = 0; i < str1.length && i < str2.length; i++) {
     if (str1[i] != str2[i]) {
@@ -8,7 +8,7 @@ export function longestCommonPrefix(str1, str2) {
   return str1.slice(0, i);
 }
 
-export function longestCommonSuffix(str1, str2) {
+export function longestCommonSuffix(str1: string, str2: string): string {
   let i;
 
   // Unlike longestCommonPrefix, we need a special case to handle all scenarios
@@ -26,14 +26,14 @@ export function longestCommonSuffix(str1, str2) {
   return str1.slice(-i);
 }
 
-export function replacePrefix(string, oldPrefix, newPrefix) {
+export function replacePrefix(string: string, oldPrefix: string, newPrefix: string): string {
   if (string.slice(0, oldPrefix.length) != oldPrefix) {
     throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
   }
   return newPrefix + string.slice(oldPrefix.length);
 }
 
-export function replaceSuffix(string, oldSuffix, newSuffix) {
+export function replaceSuffix(string: string, oldSuffix: string, newSuffix: string): string {
   if (!oldSuffix) {
     return string + newSuffix;
   }
@@ -44,20 +44,20 @@ export function replaceSuffix(string, oldSuffix, newSuffix) {
   return string.slice(0, -oldSuffix.length) + newSuffix;
 }
 
-export function removePrefix(string, oldPrefix) {
+export function removePrefix(string: string, oldPrefix: string): string {
   return replacePrefix(string, oldPrefix, '');
 }
 
-export function removeSuffix(string, oldSuffix) {
+export function removeSuffix(string: string, oldSuffix: string): string {
   return replaceSuffix(string, oldSuffix, '');
 }
 
-export function maximumOverlap(string1, string2) {
+export function maximumOverlap(string1: string, string2: string): string {
   return string2.slice(0, overlapCount(string1, string2));
 }
 
 // Nicked from https://stackoverflow.com/a/60422853/1709587
-function overlapCount(a, b) {
+function overlapCount(a: string, b: string): number {
   // Deal with cases where the strings differ in length
   let startA = 0;
   if (a.length > b.length) { startA = a.length - b.length; }
@@ -91,18 +91,18 @@ function overlapCount(a, b) {
 /**
  * Returns true if the string consistently uses Windows line endings.
  */
-export function hasOnlyWinLineEndings(string) {
+export function hasOnlyWinLineEndings(string: string): boolean {
   return string.includes('\r\n') && !string.startsWith('\n') && !string.match(/[^\r]\n/);
 }
 
 /**
  * Returns true if the string consistently uses Unix line endings.
  */
-export function hasOnlyUnixLineEndings(string) {
+export function hasOnlyUnixLineEndings(string: string): boolean {
   return !string.includes('\r\n') && string.includes('\n');
 }
 
-export function trailingWs(string) {
+export function trailingWs(string: string): string {
   // Yes, this looks overcomplicated and dumb - why not replace the whole function with
   //     return string match(/\s*$/)[0]
   // you ask? Because:
@@ -123,7 +123,8 @@ export function trailingWs(string) {
   return string.substring(i + 1);
 }
 
-export function leadingWs(string) {
+export function leadingWs(string: string): string {
   // Thankfully the annoying considerations described in trailingWs don't apply here:
-  return string.match(/^\s*/)[0];
+  const match = string.match(/^\s*/);
+  return match ? match[0] : '';
 }
