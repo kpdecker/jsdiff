@@ -141,7 +141,7 @@ class WordDiff extends Diff<string, string> {
 
 export const wordDiff = new WordDiff();
 
-export function diffWords(oldStr, newStr, options) {
+export function diffWords(oldStr: string, newStr: string, options) {
   // This option has never been documented and never will be (it's clearer to
   // just call `diffWordsWithSpace` directly if you need that behavior), but
   // has existed in jsdiff for a long time, so we retain support for it here

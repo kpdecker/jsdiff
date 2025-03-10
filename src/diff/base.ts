@@ -26,6 +26,12 @@ export interface DiffOptions<ValueT> {
 
   // diffWords only:
   intlSegmenter?: Intl.Segmenter,
+
+  // diffLines only:
+  stripTrailingCr?: boolean,
+  newlineIsToken?: boolean,
+  ignoreNewlineAtEof?: boolean,
+  ignoreWhitespace?: boolean, // TODO: This is SORT OF supported by diffWords. What to do?
 }
 
 /**

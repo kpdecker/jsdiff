@@ -17,7 +17,7 @@ class JsonDiff extends Diff<string, string> {
   };
 
   protected equals(left: string, right: string, options: DiffOptions<string>) {
-    return super.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
+    return super.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
   };
 }
 
