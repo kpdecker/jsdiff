@@ -1,4 +1,5 @@
-import Diff, { DiffOptions } from './base';
+import Diff from './base'
+import { DiffOptions } from '../types';
 
 class CharacterDiff extends Diff<string, string> {}
 

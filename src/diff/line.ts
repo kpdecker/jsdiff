@@ -1,4 +1,5 @@
-import Diff, { DiffOptions } from './base';
+import Diff from './base'
+import { DiffCallback, DiffOptions } from '../types';
 import {generateOptions} from '../util/params';
 
 
@@ -71,7 +72,7 @@ export function diffLines(oldStr: string, newStr: string, options: DiffOptions<s
 // document this one (library users should explicitly use `diffLines` with
 // `ignoreWhitespace: true` instead) but we keep it around to maintain
 // compatibility with code that used old versions.
-export function diffTrimmedLines(oldStr, newStr, callback) {
+export function diffTrimmedLines(oldStr: string, newStr: string, callback: DiffCallback<string>) {
   let options = generateOptions(callback, {ignoreWhitespace: true});
   return lineDiff.diff(oldStr, newStr, options);
 }

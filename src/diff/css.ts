@@ -1,4 +1,5 @@
-import Diff, { DiffOptions } from './base';
+import Diff from './base'
+import { DiffOptions } from '../types';
 
 class CssDiff extends Diff<string, string> {
   protected tokenize(value: string) {

@@ -1,4 +1,6 @@
-export function generateOptions(options, defaults) {
+import {DiffOptions, DiffCallback} from '../types';
+
+export function generateOptions<T>(options: DiffOptions<T> | DiffCallback<T> | null, defaults: DiffOptions<T>): DiffOptions<T> {
   if (typeof options === 'function') {
     defaults.callback = options;
   } else if (options) {

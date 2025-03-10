@@ -1,4 +1,5 @@
-import Diff, { DiffOptions } from './base';
+import Diff from './base'
+import { DiffOptions } from '../types';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
