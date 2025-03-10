@@ -19,6 +19,10 @@ export interface DiffOptions<ValueT> {
 
   // diffChars or diffWords only:
   ignoreCase?: boolean,
+
+  // diffJson only:
+  undefinedReplacement?: any,
+  stringifyReplacer?: (k: string, v: any) => any,
 }
 
 /**
@@ -66,7 +70,7 @@ export default class Diff<
   }
 
   private diffWithOptionsObj(oldTokens: TokenT[], newTokens: TokenT[], options: DiffOptions<TokenT>, callback: DiffCallback<TokenT>) {
-    let self = this;
+    const self = this;
     function done(value) {
       value = self.postProcess(value, options);
       if (callback) {
@@ -156,7 +160,7 @@ export default class Diff<
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
-          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens));
+          return done(self.buildValues(basePath.lastComponent, newTokens, oldTokens));
         } else {
           bestPath[diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {

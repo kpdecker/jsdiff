@@ -1,27 +1,34 @@
-import Diff from './base';
+import Diff, {DiffOptions} from './base';
 import {lineDiff} from './line';
 
-export const jsonDiff = new Diff();
-// Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
-// dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
-// TODO: Override getter
-jsonDiff.useLongestToken = true;
+class JsonDiff extends Diff<string, string> {
+  protected get useLongestToken() {
+    // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
+    // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
+    return true;
+  }
 
-jsonDiff.tokenize = lineDiff.tokenize;
-jsonDiff.castInput = function(value, options) {
-  const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
+  protected tokenize = lineDiff.tokenize
 
-  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
-};
-jsonDiff.equals = function(left, right, options) {
-  return Diff.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
-};
+  protected castInput(value: string, options: DiffOptions<string>) {
+    const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
-export function diffJson(oldObj, newObj, options) { return jsonDiff.diff(oldObj, newObj, options); }
+    return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
+  };
+
+  protected equals(left: string, right: string, options: DiffOptions<string>) {
+    return super.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
+  };
+}
+
+const jsonDiff = new JsonDiff();
+
+
+export function diffJson(oldObj: any, newObj: any, options: DiffOptions<string>) { return jsonDiff.diff(oldObj, newObj, options); }
 
 // This function handles the presence of circular references by bailing out when encountering an
 // object that is already on the "stack" of items being processed. Accepts an optional replacer
-export function canonicalize(obj, stack, replacementStack, replacer, key) {
+export function canonicalize(obj: any, stack: Array<any> | null, replacementStack: Array<any> | null, replacer: (string, any) => any, key?: string) {
   stack = stack || [];
   replacementStack = replacementStack || [];
 
