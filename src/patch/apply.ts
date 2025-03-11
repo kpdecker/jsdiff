@@ -114,13 +114,13 @@ function applyStructuredPatch(
    * `replacementLines`. Otherwise, returns null.
    */
   function applyHunk(
-    hunkLines,
-    toPos,
-    maxErrors,
-    hunkLinesI = 0,
-    lastContextLineMatched = true,
-    patchedLines = [],
-    patchedLinesLength = 0,
+    hunkLines: string[],
+    toPos: number,
+    maxErrors: number,
+    hunkLinesI: number = 0,
+    lastContextLineMatched: boolean = true,
+    patchedLines: string[] = [],
+    patchedLinesLength: number = 0,
   ) {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
@@ -224,7 +224,7 @@ function applyStructuredPatch(
     };
   }
 
-  const resultLines = [];
+  const resultLines: string[] = [];
 
   // Search best fit offsets for each hunk based on the previous ones
   let prevHunkOffset = 0;
@@ -279,14 +279,20 @@ function applyStructuredPatch(
   return resultLines.join('\n');
 }
 
+export interface ApplyPatchesOptions extends ApplyPatchOptions {
+  loadFile: (index: StructuredPatch, callback: (err: any, data: string) => void) => void,
+  patched: (index: StructuredPatch, content: string, callback: (err: any) => void) => void,
+  complete: (err?: any) => void,
+}
+
 // Wrapper that supports multiple file patches via callbacks.
-export function applyPatches(uniDiff, options) {
+export function applyPatches(uniDiff: string | StructuredPatch[], options): void {
   if (typeof uniDiff === 'string') {
     uniDiff = parsePatch(uniDiff);
   }
 
   let currentIndex = 0;
-  function processIndex() {
+  function processIndex(): void {
     let index = uniDiff[currentIndex++];
     if (!index) {
       return options.complete();
