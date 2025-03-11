@@ -1,6 +1,15 @@
-export function unixToWin(patch) {
+import { StructuredPatch } from "../types";
+
+export function unixToWin(patch: StructuredPatch): StructuredPatch;
+export function unixToWin(patches: StructuredPatch[]): StructuredPatch[];
+export function unixToWin(patch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[] {
   if (Array.isArray(patch)) {
-    return patch.map(unixToWin);
+    // It would be cleaner if instead of the line below we could just write
+    //     return patch.map(unixToWin)
+    // but mysteriously TypeScript (v5.7.3 at the time of writing) does not like this and it will
+    // refuse to compile, thinking that unixToWin could then return StructuredPatch[][] and the
+    // result would be incompatible with the overload signatures.
+    return patch.map(function (p) { return unixToWin(p) });
   }
 
   return {
