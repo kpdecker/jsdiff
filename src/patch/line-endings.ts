@@ -9,6 +9,7 @@ export function unixToWin(patch: StructuredPatch | StructuredPatch[]): Structure
     // but mysteriously TypeScript (v5.7.3 at the time of writing) does not like this and it will
     // refuse to compile, thinking that unixToWin could then return StructuredPatch[][] and the
     // result would be incompatible with the overload signatures.
+    // See bug report at https://github.com/microsoft/TypeScript/issues/61398.
     return patch.map(function (p) { return unixToWin(p) });
   }
 
