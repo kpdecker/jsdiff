@@ -1,6 +1,12 @@
-export function reversePatch(structuredPatch) {
+import { StructuredPatch } from "../types";
+
+export function reversePatch(structuredPatch: StructuredPatch): StructuredPatch;
+export function reversePatch(structuredPatch: StructuredPatch[]): StructuredPatch[];
+export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[];
+export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[] {
   if (Array.isArray(structuredPatch)) {
-    return structuredPatch.map(reversePatch).reverse();
+    // (See comment in unixToWin for why we need the pointless-looking anonymous function here)
+    return structuredPatch.map(function (patch) { return reversePatch(patch); }).reverse();
   }
 
   return {
