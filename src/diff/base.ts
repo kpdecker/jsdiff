@@ -18,6 +18,8 @@ interface Path {
   lastComponent: DraftChangeObject
 }
 
+// TODO: Types are wrong for case with a callback
+
 export default class Diff<
   TokenT,
   ValueT extends Iterable<TokenT> = Iterable<TokenT>
