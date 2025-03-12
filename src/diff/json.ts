@@ -1,5 +1,5 @@
 import Diff from './base'
-import {DiffOptions} from '../types';
+import { CallbackOption, ChangeObject, DiffCallback, DiffJsonOptions } from '../types';
 import {lineDiff} from './line';
 
 class JsonDiff extends Diff<string, string> {
@@ -11,13 +11,13 @@ class JsonDiff extends Diff<string, string> {
 
   protected tokenize = lineDiff.tokenize
 
-  protected castInput(value: string, options: DiffOptions<string>) {
+  protected castInput(value: string, options: DiffJsonOptions) {
     const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
     return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
   };
 
-  protected equals(left: string, right: string, options: DiffOptions<string>) {
+  protected equals(left: string, right: string, options: DiffJsonOptions) {
     return super.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
   };
 }
@@ -25,7 +25,16 @@ class JsonDiff extends Diff<string, string> {
 const jsonDiff = new JsonDiff();
 
 
-export function diffJson(oldObj: any, newObj: any, options: DiffOptions<string>) { return jsonDiff.diff(oldObj, newObj, options); }
+export function diffJson(
+  oldStr: string,
+  newStr: string,
+  options: (DiffJsonOptions & CallbackOption<string>) | DiffCallback<string>
+): undefined
+export function diffJson(oldStr: string, newStr: string, options: DiffJsonOptions): ChangeObject<string>[];
+export function diffJson(oldStr: string, newStr: string, options): undefined | ChangeObject<string>[] {
+  return jsonDiff.diff(oldStr, newStr, options);
+}
+
 
 // This function handles the presence of circular references by bailing out when encountering an
 // object that is already on the "stack" of items being processed. Accepts an optional replacer

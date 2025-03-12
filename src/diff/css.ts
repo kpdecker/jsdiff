@@ -1,5 +1,5 @@
 import Diff from './base'
-import { DiffOptions } from '../types';
+import { CallbackOption, ChangeObject, DiffCallback, DiffCssOptions } from '../types';
 
 class CssDiff extends Diff<string, string> {
   protected tokenize(value: string) {
@@ -9,6 +9,12 @@ class CssDiff extends Diff<string, string> {
 
 export const cssDiff = new CssDiff();
 
-export function diffCss(oldStr: string, newStr: string, options: DiffOptions<string>) {
+export function diffCss(
+  oldStr: string,
+  newStr: string,
+  options: (DiffCssOptions & CallbackOption<string>) | DiffCallback<string>
+): undefined
+export function diffCss(oldStr: string, newStr: string, options: DiffCssOptions): ChangeObject<string>[];
+export function diffCss(oldStr: string, newStr: string, options): undefined | ChangeObject<string>[] {
   return cssDiff.diff(oldStr, newStr, options);
 }

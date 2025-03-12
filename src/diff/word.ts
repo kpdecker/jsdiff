@@ -1,5 +1,5 @@
 import Diff from './base'
-import { DiffOptions } from '../types';
+import { CallbackOption, ChangeObject, DiffCallback, DiffWordsOptions } from '../types';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
@@ -51,7 +51,7 @@ const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^$
 
 
 class WordDiff extends Diff<string, string> {
-  protected equals(left: string, right: string, options: DiffOptions<string>) {
+  protected equals(left: string, right: string, options: DiffWordsOptions) {
     if (options.ignoreCase) {
       left = left.toLowerCase();
       right = right.toLowerCase();
@@ -60,7 +60,7 @@ class WordDiff extends Diff<string, string> {
     return left.trim() === right.trim();
   }
 
-  protected tokenize(value: string, options: DiffOptions<string> = {}) {
+  protected tokenize(value: string, options: DiffWordsOptions = {}) {
     let parts;
     if (options.intlSegmenter) {
       if (options.intlSegmenter.resolvedOptions().granularity != 'word') {
@@ -142,7 +142,13 @@ class WordDiff extends Diff<string, string> {
 
 export const wordDiff = new WordDiff();
 
-export function diffWords(oldStr: string, newStr: string, options) {
+export function diffWords(
+  oldStr: string,
+  newStr: string,
+  options: (DiffWordsOptions & CallbackOption<string>) | DiffCallback<string>
+): undefined
+export function diffWords(oldStr: string, newStr: string, options: DiffWordsOptions): ChangeObject<string>[];
+export function diffWords(oldStr: string, newStr: string, options): undefined | ChangeObject<string>[] {
   // This option has never been documented and never will be (it's clearer to
   // just call `diffWordsWithSpace` directly if you need that behavior), but
   // has existed in jsdiff for a long time, so we retain support for it here
@@ -291,6 +297,12 @@ class WordsWithSpaceDiff extends Diff<string, string> {
 }
 
 export const wordsWithSpaceDiff = new WordsWithSpaceDiff();
-export function diffWordsWithSpace(oldStr, newStr, options) {
+export function diffWordsWithSpace(
+  oldStr: string,
+  newStr: string,
+  options: (DiffWordsOptions & CallbackOption<string>) | DiffCallback<string>
+): undefined
+export function diffWordsWithSpace(oldStr: string, newStr: string, options: DiffWordsOptions): ChangeObject<string>[];
+export function diffWordsWithSpace(oldStr: string, newStr: string, options): undefined | ChangeObject<string>[] {
   return wordsWithSpaceDiff.diff(oldStr, newStr, options);
 }
