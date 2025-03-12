@@ -2,6 +2,7 @@ import { StructuredPatch } from "../types";
 
 export function unixToWin(patch: StructuredPatch): StructuredPatch;
 export function unixToWin(patches: StructuredPatch[]): StructuredPatch[];
+export function unixToWin(patch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[];
 export function unixToWin(patch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[] {
   if (Array.isArray(patch)) {
     // It would be cleaner if instead of the line below we could just write
@@ -29,6 +30,7 @@ export function unixToWin(patch: StructuredPatch | StructuredPatch[]): Structure
 
 export function winToUnix(patch: StructuredPatch): StructuredPatch;
 export function winToUnix(patches: StructuredPatch[]): StructuredPatch[];
+export function winToUnix(patch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[];
 export function winToUnix(patch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[] {
   if (Array.isArray(patch)) {
     // (See comment above equivalent line in unixToWin)
