@@ -27,9 +27,12 @@ export function unixToWin(patch: StructuredPatch | StructuredPatch[]): Structure
   };
 }
 
-export function winToUnix(patch) {
+export function winToUnix(patch: StructuredPatch): StructuredPatch;
+export function winToUnix(patches: StructuredPatch[]): StructuredPatch[];
+export function winToUnix(patch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[] {
   if (Array.isArray(patch)) {
-    return patch.map(winToUnix);
+    // (See comment above equivalent line in unixToWin)
+    return patch.map(function (p) { return winToUnix(p) });
   }
 
   return {
@@ -45,7 +48,7 @@ export function winToUnix(patch) {
  * Returns true if the patch consistently uses Unix line endings (or only involves one line and has
  * no line endings).
  */
-export function isUnix(patch) {
+export function isUnix(patch: StructuredPatch | StructuredPatch[]): boolean {
   if (!Array.isArray(patch)) { patch = [patch]; }
   return !patch.some(
     index => index.hunks.some(
@@ -59,7 +62,7 @@ export function isUnix(patch) {
 /**
  * Returns true if the patch uses Windows line endings and only Windows line endings.
  */
-export function isWin(patch) {
+export function isWin(patch: StructuredPatch | StructuredPatch[]): boolean {
   if (!Array.isArray(patch)) { patch = [patch]; }
   return patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))))
     && patch.every(
