@@ -1,4 +1,4 @@
-import {ChangeObject, DiffOptions, DiffCallback} from '../types';
+import {ChangeObject, DiffOptionsWithoutCallback, DiffOptionsWithCallback, DiffCallback} from '../types';
 
 /**
  * Like a ChangeObject, but with no value and an extra `previousComponent` property.
@@ -10,12 +10,15 @@ interface DraftChangeObject {
     added: boolean;
     removed: boolean;
     count: number;
-    previousComponent: DraftChangeObject;
+    previousComponent?: DraftChangeObject;
+
+    // Only added in buildValues:
+    value?: any;
 }
 
 interface Path {
   oldPos: number;
-  lastComponent: DraftChangeObject
+  lastComponent?: DraftChangeObject
 }
 
 // TODO: Types are wrong for case with a callback
@@ -27,13 +30,23 @@ export default class Diff<
   diff(
     oldString: ValueT,
     newString: ValueT,
-    options: DiffCallback<TokenT> | DiffOptions<TokenT> = {}
-  ): ChangeObject<ValueT>[] {
-    let callback;
+    options: DiffCallback<TokenT> | DiffOptionsWithCallback<TokenT>
+  ): undefined
+  diff(
+    oldString: ValueT,
+    newString: ValueT,
+    options: DiffOptionsWithoutCallback
+  ): ChangeObject<ValueT>[] 
+  diff(
+    oldString: ValueT,
+    newString: ValueT,
+    options: DiffCallback<TokenT> | DiffOptionsWithCallback<TokenT> | DiffOptionsWithoutCallback = {}
+  ): ChangeObject<ValueT>[] | undefined {
+    let callback: DiffCallback<TokenT> | undefined = undefined;
     if (typeof options === 'function') {
       callback = options;
       options = {};
-    } else {
+    } else if ("callback" in options) {
       callback = options.callback;
     }
     // Allow subclasses to massage the input prior to running
@@ -46,7 +59,12 @@ export default class Diff<
     return this.diffWithOptionsObj(oldTokens, newTokens, options, callback);
   }
 
-  private diffWithOptionsObj(oldTokens: TokenT[], newTokens: TokenT[], options: DiffOptions<TokenT>, callback: DiffCallback<TokenT>) {
+  private diffWithOptionsObj(
+    oldTokens: TokenT[],
+    newTokens: TokenT[],
+    options: DiffOptionsWithoutCallback | DiffOptionsWithCallback<TokenT>,
+    callback: DiffCallback<TokenT> | undefined
+  ): ChangeObject<ValueT>[] | undefined {
     const self = this;
     function done(value) {
       value = self.postProcess(value, options);
@@ -107,6 +125,7 @@ export default class Diff<
             addPath = bestPath[diagonalPath + 1];
         if (removePath) {
           // No one else is going to attempt to use this value, clear it
+          // @ts-ignore
           bestPath[diagonalPath - 1] = undefined;
         }
 
@@ -120,6 +139,7 @@ export default class Diff<
         let canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
+          // @ts-ignore
           bestPath[diagonalPath] = undefined;
           continue;
         }
@@ -183,7 +203,7 @@ export default class Diff<
     added: boolean,
     removed: boolean,
     oldPosInc: number,
-    options: DiffOptions<TokenT>
+    options: DiffOptionsWithoutCallback
   ): Path {
     let last = path.lastComponent;
     if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
@@ -204,7 +224,7 @@ export default class Diff<
     newTokens: TokenT[],
     oldTokens: TokenT[],
     diagonalPath: number,
-    options: DiffOptions<TokenT>
+    options: DiffOptionsWithoutCallback
   ): number {
     let newLen = newTokens.length,
         oldLen = oldTokens.length,
@@ -229,17 +249,17 @@ export default class Diff<
     return newPos;
   }
 
-  protected equals(left: TokenT, right: TokenT, options: DiffOptions<TokenT>): boolean {
+  protected equals(left: TokenT, right: TokenT, options: DiffOptionsWithoutCallback): boolean {
     if (options.comparator) {
       return options.comparator(left, right);
     } else {
       return left === right
-        || (options.ignoreCase && (left as string).toLowerCase() === (right as string).toLowerCase());
+        || (!!options.ignoreCase && (left as string).toLowerCase() === (right as string).toLowerCase());
     }
   }
 
   protected removeEmpty(array: TokenT[]): TokenT[] {
-    let ret = [];
+    let ret: TokenT[] = [];
     for (let i = 0; i < array.length; i++) {
       if (array[i]) {
         ret.push(array[i]);
@@ -248,11 +268,11 @@ export default class Diff<
     return ret;
   }
 
-  protected castInput(value: ValueT, options: DiffOptions<TokenT>): ValueT {
+  protected castInput(value: ValueT, options: DiffOptionsWithoutCallback): ValueT {
     return value;
   }
 
-  protected tokenize(value: ValueT, options: DiffOptions<TokenT>): TokenT[] {
+  protected tokenize(value: ValueT, options: DiffOptionsWithoutCallback): TokenT[] {
     return Array.from(value);
   }
 
@@ -264,18 +284,25 @@ export default class Diff<
     return (chars as string[]).join('') as unknown as ValueT;
   }
 
-  protected postProcess(changeObjects: ChangeObject<ValueT>[], options: DiffOptions<TokenT>): ChangeObject<ValueT>[] {
+  protected postProcess(
+    changeObjects: ChangeObject<ValueT>[],
+    options: DiffOptionsWithoutCallback,
+  ): ChangeObject<ValueT>[] {
     return changeObjects;
   }
 
-  protected get useLongestToken() {
+  protected get useLongestToken(): boolean {
     return false;
   }
   
-  private buildValues(lastComponent, newTokens: TokenT[], oldTokens: TokenT[]) {
+  private buildValues(
+    lastComponent: DraftChangeObject | undefined,
+    newTokens: TokenT[],
+    oldTokens: TokenT[]
+  ): ChangeObject<ValueT>[] {
     // First we convert our linked list of components in reverse order to an
     // array in the right order:
-    const components = [];
+    const components: DraftChangeObject[] = [];
     let nextComponent;
     while (lastComponent) {
       components.push(lastComponent);
@@ -316,7 +343,7 @@ export default class Diff<
       }
     }
 
-    return components;
+    return components as ChangeObject<ValueT>[];
   }
 };
 
