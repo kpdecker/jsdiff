@@ -73,7 +73,7 @@ export default class Diff<
       } else {
         return value;
       }
-    }
+    };
 
     const newLen = newTokens.length, oldLen = oldTokens.length;
     let editLength = 1;
@@ -123,8 +123,7 @@ export default class Diff<
         const removePath = bestPath[diagonalPath - 1],
               addPath = bestPath[diagonalPath + 1];
         if (removePath) {
-          // No one else is going to attempt to use this value, clear it
-          // @ts-ignore
+          // @ts-expect-error (Nothing will ever read this element; we're doing this to free memory)
           bestPath[diagonalPath - 1] = undefined;
         }
 
@@ -137,8 +136,7 @@ export default class Diff<
 
         const canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
-          // If this path is a terminal then prune
-          // @ts-ignore
+          // @ts-expect-error (Nothing will ever read this element; we're doing this to free memory)
           bestPath[diagonalPath] = undefined;
           continue;
         }
@@ -169,7 +167,7 @@ export default class Diff<
       }
 
       editLength++;
-    }
+    };
 
     // Performs the length of edit iteration. Is a bit fugly as this has to support the
     // sync and async mode which is never fun. Loops over execEditLength until a value
@@ -225,12 +223,12 @@ export default class Diff<
     diagonalPath: number,
     options: DiffOptionsWithoutCallback
   ): number {
-    let newLen = newTokens.length,
-        oldLen = oldTokens.length,
-        oldPos = basePath.oldPos,
+    const newLen = newTokens.length,
+          oldLen = oldTokens.length;
+    let oldPos = basePath.oldPos,
         newPos = oldPos - diagonalPath,
-
         commonCount = 0;
+
     while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldTokens[oldPos + 1], newTokens[newPos + 1], options)) {
       newPos++;
       oldPos++;
@@ -267,10 +265,12 @@ export default class Diff<
     return ret;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected castInput(value: ValueT, options: DiffOptionsWithoutCallback): ValueT {
     return value;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected tokenize(value: ValueT, options: DiffOptionsWithoutCallback): TokenT[] {
     return Array.from(value);
   }
@@ -285,6 +285,7 @@ export default class Diff<
 
   protected postProcess(
     changeObjects: ChangeObject<ValueT>[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options: DiffOptionsWithoutCallback
   ): ChangeObject<ValueT>[] {
     return changeObjects;
@@ -311,8 +312,8 @@ export default class Diff<
     }
     components.reverse();
 
+    const componentLen = components.length;
     let componentPos = 0,
-        componentLen = components.length,
         newPos = 0,
         oldPos = 0;
 

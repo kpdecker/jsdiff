@@ -76,8 +76,8 @@ export function canonicalize(obj: any, stack: Array<any> | null, replacementStac
     stack.push(obj);
     canonicalizedObj = {};
     replacementStack.push(canonicalizedObj);
-    let sortedKeys = [],
-        key;
+    const sortedKeys = [];
+    let key;
     for (key in obj) {
       /* istanbul ignore else */
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
