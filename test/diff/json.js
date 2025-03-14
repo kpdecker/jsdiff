@@ -117,25 +117,25 @@ describe('diff/json', function() {
 
   describe('#canonicalize', function() {
     it('should put the keys in canonical order', function() {
-      expect(getKeys(canonicalize({b: 456, a: 123}))).to.eql(['a', 'b']);
+      expect(Object.keys(canonicalize({b: 456, a: 123}))).to.eql(['a', 'b']);
     });
 
     it('should dive into nested objects', function() {
       const canonicalObj = canonicalize({b: 456, a: {d: 123, c: 456}});
-      expect(getKeys(canonicalObj.a)).to.eql(['c', 'd']);
+      expect(Object.keys(canonicalObj.a)).to.eql(['c', 'd']);
     });
 
     it('should dive into nested arrays', function() {
       const canonicalObj = canonicalize({b: 456, a: [789, {d: 123, c: 456}]});
-      expect(getKeys(canonicalObj.a[1])).to.eql(['c', 'd']);
+      expect(Object.keys(canonicalObj.a[1])).to.eql(['c', 'd']);
     });
 
     it('should handle circular references correctly', function() {
       const obj = {b: 456};
       obj.a = obj;
       const canonicalObj = canonicalize(obj);
-      expect(getKeys(canonicalObj)).to.eql(['a', 'b']);
-      expect(getKeys(canonicalObj.a)).to.eql(['a', 'b']);
+      expect(Object.keys(canonicalObj)).to.eql(['a', 'b']);
+      expect(Object.keys(canonicalObj.a)).to.eql(['a', 'b']);
     });
 
     it('should accept a custom JSON.stringify() replacer function', function() {
@@ -200,13 +200,3 @@ describe('diff/json', function() {
     });
   });
 });
-
-function getKeys(obj) {
-  const keys = [];
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      keys.push(key);
-    }
-  }
-  return keys;
-}
