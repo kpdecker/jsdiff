@@ -169,6 +169,9 @@ export default tseslint.config(
       "spaced-comment": [2, "always"],
       "wrap-regex": 1,
       "no-var": 2,
+
+      // Typescript
+      "@typescript-eslint/no-explicit-any": 0,
     },
   },
   {
