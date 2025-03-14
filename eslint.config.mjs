@@ -12,12 +12,14 @@ export default [
         },
 
         rules: {
+            // Possible Errors //
+            //-----------------//
             "comma-dangle": [2, "never"],
             "no-cond-assign": [2, "except-parens"],
-            "no-console": 1,
+            "no-console": 1, // Allow for debugging
             "no-constant-condition": 2,
             "no-control-regex": 2,
-            "no-debugger": 1,
+            "no-debugger": 1, // Allow for debugging
             "no-dupe-args": 2,
             "no-dupe-keys": 2,
             "no-duplicate-case": 2,
@@ -28,17 +30,20 @@ export default [
             "no-extra-parens": [2, "functions"],
             "no-extra-semi": 2,
             "no-func-assign": 2,
-            "no-inner-declarations": 0,
+            "no-inner-declarations": 0, // Stylistic... might consider disallowing in the future
             "no-invalid-regexp": 2,
             "no-irregular-whitespace": 2,
             "no-negated-in-lhs": 2,
             "no-obj-calls": 2,
             "no-regex-spaces": 2,
             "no-sparse-arrays": 0,
-            "no-unreachable": 1,
+            "no-unreachable": 1, // Optimizer and coverage will handle/highlight this and can be useful for debugging
             "use-isnan": 2,
             "valid-jsdoc": 0,
             "valid-typeof": 2,
+
+            // Best Practices //
+            //----------------//
             "block-scoped-var": 0,
             complexity: 0,
             "consistent-return": 0,
@@ -91,7 +96,13 @@ export default [
             "vars-on-top": 0,
             "wrap-iife": 2,
             yoda: 0,
+
+            // Strict //
+            //--------//
             strict: 0,
+
+            // Variables //
+            //-----------//
             "no-catch-shadow": 2,
             "no-delete-var": 2,
             "no-label-var": 2,
@@ -107,9 +118,14 @@ export default [
             }],
 
             "no-use-before-define": [2, "nofunc"],
-            "no-mixed-requires": 0,
-            indent: 0,
 
+            // Node.js //
+            //---------//
+            "no-mixed-requires": 0, // Others left to environment defaults
+
+            // Stylistic //
+            //-----------//
+            indent: 0,
             "brace-style": [2, "1tbs", {
                 allowSingleLine: true,
             }],
@@ -190,7 +206,7 @@ export default [
             },
         },
         rules: {
-            "no-unused-expressions": 0,
+            "no-unused-expressions": 0, // Disabling for tests, for now.
             "no-path-concat": 0,
             "no-console": 0,
         },
