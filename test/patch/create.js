@@ -6,6 +6,7 @@ import {expect} from 'chai';
 
 const VERBOSE = false;
 function log() {
+  // eslint-disable-next-line no-console
   VERBOSE && console.log.apply(console, arguments);
 }
 
