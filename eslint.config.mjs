@@ -30,7 +30,6 @@ export default [
             "no-extra-parens": [2, "functions"],
             "no-extra-semi": 2,
             "no-func-assign": 2,
-            "no-inner-declarations": 0, // Stylistic... might consider disallowing in the future
             "no-invalid-regexp": 2,
             "no-irregular-whitespace": 2,
             "no-negated-in-lhs": 2,
