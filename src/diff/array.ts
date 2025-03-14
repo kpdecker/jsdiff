@@ -1,5 +1,5 @@
 import Diff from './base';
-import {CallbackOption, DiffOptionsWithoutCallback, DiffCallback, ChangeObject, DiffArraysOptions} from '../types';
+import {CallbackOption, DiffCallback, ChangeObject, DiffArraysOptions} from '../types';
 
 class ArrayDiff extends Diff<any, Array<any>> {
   protected tokenize(value: Array<any>) {
