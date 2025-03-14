@@ -686,7 +686,7 @@ describe('patch/create', function() {
           + '+line\n'
           + '\\ No newline at end of file\n';
 
-        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: false});
+        const diffResult = createPatch('testFileName', 'line   \n line', 'line\nline', undefined, undefined, {ignoreWhitespace: false});
         expect(diffResult).to.equal(expectedResult);
       });
 
@@ -697,7 +697,7 @@ describe('patch/create', function() {
           + '--- testFileName\n'
           + '+++ testFileName\n';
 
-        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: true});
+        const diffResult = createPatch('testFileName', 'line   \n line', 'line\nline', undefined, undefined, {ignoreWhitespace: true});
         expect(diffResult).to.equal(expectedResult);
       });
     });
@@ -778,9 +778,9 @@ describe('patch/create', function() {
       + '--- foo\n'
       + '+++ bar\n'
       + '@@ -1,2 +1,2 @@\n'
-      + '\-line\n'
-      + '\+line\r\n'
-      + '\ line\n'
+      + '-line\n'
+      + '+line\r\n'
+      + ' line\n'
       + '\\ No newline at end of file\n';
       expect(createTwoFilesPatch(
         'foo',

@@ -1,7 +1,9 @@
-export function convertChangesToXML(changes) {
-  let ret = [];
+import {ChangeObject} from '../types';
+
+export function convertChangesToXML(changes: ChangeObject<string>[]): string {
+  const ret = [];
   for (let i = 0; i < changes.length; i++) {
-    let change = changes[i];
+    const change = changes[i];
     if (change.added) {
       ret.push('<ins>');
     } else if (change.removed) {
@@ -19,7 +21,7 @@ export function convertChangesToXML(changes) {
   return ret.join('');
 }
 
-function escapeHTML(s) {
+function escapeHTML(s: string): string {
   let n = s;
   n = n.replace(/&/g, '&amp;');
   n = n.replace(/</g, '&lt;');
