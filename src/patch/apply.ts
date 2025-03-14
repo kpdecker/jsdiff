@@ -45,12 +45,11 @@ function applyStructuredPatch(
   }
 
   // Apply the diff to the input
-  let lines = source.split('\n'),
-      hunks = patch.hunks,
-
-      compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
-      fuzzFactor = options.fuzzFactor || 0,
-      minLine = 0;
+  const lines = source.split('\n'),
+        hunks = patch.hunks,
+        compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
+        fuzzFactor = options.fuzzFactor || 0;
+  let minLine = 0;
 
   if (fuzzFactor < 0 || !Number.isInteger(fuzzFactor)) {
     throw new Error('fuzzFactor must be a non-negative integer');
