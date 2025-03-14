@@ -100,7 +100,7 @@ export function applyPatch(source, uniDiff, options = {}) {
     hunkLinesI = 0,
     lastContextLineMatched = true,
     patchedLines = [],
-    patchedLinesLength = 0,
+    patchedLinesLength = 0
   ) {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
@@ -125,7 +125,7 @@ export function applyPatch(source, uniDiff, options = {}) {
             hunkLinesI,
             false,
             patchedLines,
-            patchedLinesLength + 1,
+            patchedLinesLength + 1
           );
         }
       }
