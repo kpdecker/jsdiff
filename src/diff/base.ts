@@ -65,9 +65,8 @@ export default class Diff<
     options: DiffOptionsWithoutCallback | DiffOptionsWithCallback<TokenT>,
     callback: DiffCallback<TokenT> | undefined
   ): ChangeObject<ValueT>[] | undefined {
-    const self = this;
-    function done(value) {
-      value = self.postProcess(value, options);
+    const done = (value) => {
+      value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() { callback(value); }, 0);
         return true;
@@ -114,7 +113,7 @@ export default class Diff<
     let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
 
     // Main worker method. checks all permutations of a given edit length for acceptance.
-    function execEditLength() {
+    const execEditLength = () => {
       for (
         let diagonalPath = Math.max(minDiagonalToConsider, -editLength);
         diagonalPath <= Math.min(maxDiagonalToConsider, editLength);
@@ -148,16 +147,16 @@ export default class Diff<
         // path whose position in the old string is the farthest from the origin
         // and does not pass the bounds of the diff graph
         if (!canRemove || (canAdd && removePath.oldPos < addPath.oldPos)) {
-          basePath = self.addToPath(addPath, true, false, 0, options);
+          basePath = this.addToPath(addPath, true, false, 0, options);
         } else {
-          basePath = self.addToPath(removePath, false, true, 1, options);
+          basePath = this.addToPath(removePath, false, true, 1, options);
         }
 
-        newPos = self.extractCommon(basePath, newTokens, oldTokens, diagonalPath, options);
+        newPos = this.extractCommon(basePath, newTokens, oldTokens, diagonalPath, options);
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
-          return done(self.buildValues(basePath.lastComponent, newTokens, oldTokens));
+          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens));
         } else {
           bestPath[diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {

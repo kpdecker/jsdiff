@@ -11,7 +11,7 @@ export function unixToWin(patch: StructuredPatch | StructuredPatch[]): Structure
     // refuse to compile, thinking that unixToWin could then return StructuredPatch[][] and the
     // result would be incompatible with the overload signatures.
     // See bug report at https://github.com/microsoft/TypeScript/issues/61398.
-    return patch.map(function(p) { return unixToWin(p); });
+    return patch.map(p => unixToWin(p));
   }
 
   return {
@@ -34,7 +34,7 @@ export function winToUnix(patch: StructuredPatch | StructuredPatch[]): Structure
 export function winToUnix(patch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[] {
   if (Array.isArray(patch)) {
     // (See comment above equivalent line in unixToWin)
-    return patch.map(function(p) { return winToUnix(p); });
+    return patch.map(p => winToUnix(p));
   }
 
   return {

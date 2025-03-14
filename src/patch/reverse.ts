@@ -6,7 +6,7 @@ export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[
 export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[] {
   if (Array.isArray(structuredPatch)) {
     // (See comment in unixToWin for why we need the pointless-looking anonymous function here)
-    return structuredPatch.map(function(patch) { return reversePatch(patch); }).reverse();
+    return structuredPatch.map(patch => reversePatch(patch)).reverse();
   }
 
   return {
