@@ -80,7 +80,10 @@
     "webpack-dev-server": "^5.2.0"
   },
   "optionalDependencies": {},
-  "dependencies": {},
+  "dependencies": {
+    "@eslint/js": "^9.22.0",
+    "typescript-eslint": "^8.26.1"
+  },
   "nyc": {
     "require": [
       "@babel/register"
