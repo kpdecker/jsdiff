@@ -1,4 +1,4 @@
-import Diff from './base'
+import Diff from './base';
 import {CallbackOption, DiffOptionsWithoutCallback, DiffCallback, ChangeObject, DiffArraysOptions} from '../types';
 
 class ArrayDiff extends Diff<any, Array<any>> {

@@ -1,4 +1,4 @@
-import Diff from './base'
+import Diff from './base';
 import { CallbackOption, ChangeObject, DiffCallback, DiffCssOptions } from '../types';
 
 class CssDiff extends Diff<string, string> {

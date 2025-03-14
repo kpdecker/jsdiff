@@ -1,4 +1,4 @@
-import Diff from './base'
+import Diff from './base';
 import { CallbackOption, ChangeObject, DiffCallback, DiffSentencesOptions } from '../types';
 
 class SentenceDiff extends Diff<string, string> {

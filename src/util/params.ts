@@ -8,7 +8,7 @@ export function generateOptions(
   if (typeof options === 'function') {
     (defaults as DiffOptionsWithCallback<any>).callback = options;
   } else if (options) {
-    for (let name in options) {
+    for (const name in options) {
       /* istanbul ignore else */
       if (options.hasOwnProperty(name)) {
         defaults[name] = options[name];

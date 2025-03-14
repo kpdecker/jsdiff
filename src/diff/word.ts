@@ -1,4 +1,4 @@
-import Diff from './base'
+import Diff from './base';
 import { CallbackOption, ChangeObject, DiffCallback, DiffWordsOptions } from '../types';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string';
 

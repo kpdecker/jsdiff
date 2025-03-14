@@ -36,17 +36,17 @@ export default class Diff<
     oldString: ValueT,
     newString: ValueT,
     options: DiffOptionsWithoutCallback
-  ): ChangeObject<ValueT>[] 
+  ): ChangeObject<ValueT>[]
   diff(
     oldString: ValueT,
     newString: ValueT,
     options: DiffCallback<TokenT> | DiffOptionsWithCallback<TokenT> | DiffOptionsWithoutCallback = {}
   ): ChangeObject<ValueT>[] | undefined {
-    let callback: DiffCallback<TokenT> | undefined = undefined;
+    let callback: DiffCallback<TokenT> | undefined;
     if (typeof options === 'function') {
       callback = options;
       options = {};
-    } else if ("callback" in options) {
+    } else if ('callback' in options) {
       callback = options.callback;
     }
     // Allow subclasses to massage the input prior to running
@@ -76,7 +76,7 @@ export default class Diff<
       }
     }
 
-    let newLen = newTokens.length, oldLen = oldTokens.length;
+    const newLen = newTokens.length, oldLen = oldTokens.length;
     let editLength = 1;
     let maxEditLength = newLen + oldLen;
     if(options.maxEditLength != null) {
@@ -85,7 +85,7 @@ export default class Diff<
     const maxExecutionTime = options.timeout ?? Infinity;
     const abortAfterTimestamp = Date.now() + maxExecutionTime;
 
-    let bestPath = [{ oldPos: -1, lastComponent: undefined }];
+    const bestPath = [{ oldPos: -1, lastComponent: undefined }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
     let newPos = this.extractCommon(bestPath[0], newTokens, oldTokens, 0, options);
@@ -121,7 +121,7 @@ export default class Diff<
         diagonalPath += 2
       ) {
         let basePath;
-        let removePath = bestPath[diagonalPath - 1],
+        const removePath = bestPath[diagonalPath - 1],
             addPath = bestPath[diagonalPath + 1];
         if (removePath) {
           // No one else is going to attempt to use this value, clear it
@@ -136,7 +136,7 @@ export default class Diff<
           canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
         }
 
-        let canRemove = removePath && removePath.oldPos + 1 < oldLen;
+        const canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
           // @ts-ignore
@@ -190,7 +190,7 @@ export default class Diff<
       }());
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
-        let ret = execEditLength();
+        const ret = execEditLength();
         if (ret) {
           return ret;
         }
@@ -205,7 +205,7 @@ export default class Diff<
     oldPosInc: number,
     options: DiffOptionsWithoutCallback
   ): Path {
-    let last = path.lastComponent;
+    const last = path.lastComponent;
     if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
       return {
         oldPos: path.oldPos + oldPosInc,
@@ -259,7 +259,7 @@ export default class Diff<
   }
 
   protected removeEmpty(array: TokenT[]): TokenT[] {
-    let ret: TokenT[] = [];
+    const ret: TokenT[] = [];
     for (let i = 0; i < array.length; i++) {
       if (array[i]) {
         ret.push(array[i]);
@@ -286,7 +286,7 @@ export default class Diff<
 
   protected postProcess(
     changeObjects: ChangeObject<ValueT>[],
-    options: DiffOptionsWithoutCallback,
+    options: DiffOptionsWithoutCallback
   ): ChangeObject<ValueT>[] {
     return changeObjects;
   }
@@ -294,7 +294,7 @@ export default class Diff<
   protected get useLongestToken(): boolean {
     return false;
   }
-  
+
   private buildValues(
     lastComponent: DraftChangeObject | undefined,
     newTokens: TokenT[],
@@ -318,12 +318,12 @@ export default class Diff<
         oldPos = 0;
 
     for (; componentPos < componentLen; componentPos++) {
-      let component = components[componentPos];
+      const component = components[componentPos];
       if (!component.removed) {
         if (!component.added && this.useLongestToken) {
           let value = newTokens.slice(newPos, newPos + component.count);
           value = value.map(function(value, i) {
-            let oldValue = oldTokens[oldPos + i];
+            const oldValue = oldTokens[oldPos + i];
             return (oldValue as string).length > (value as string).length ? oldValue : value;
           });
 
@@ -345,5 +345,5 @@ export default class Diff<
 
     return components as ChangeObject<ValueT>[];
   }
-};
+}
 

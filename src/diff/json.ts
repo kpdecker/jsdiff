@@ -1,4 +1,4 @@
-import Diff from './base'
+import Diff from './base';
 import { CallbackOption, ChangeObject, DiffCallback, DiffJsonOptions } from '../types';
 import {lineDiff} from './line';
 
@@ -9,17 +9,17 @@ class JsonDiff extends Diff<string, string> {
     return true;
   }
 
-  protected tokenize = lineDiff.tokenize
+  protected tokenize = lineDiff.tokenize;
 
   protected castInput(value: string, options: DiffJsonOptions) {
     const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
     return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
-  };
+  }
 
   protected equals(left: string, right: string, options: DiffJsonOptions) {
     return super.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
-  };
+  }
 }
 
 const jsonDiff = new JsonDiff();

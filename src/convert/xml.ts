@@ -1,9 +1,9 @@
 import {ChangeObject} from '../types';
 
 export function convertChangesToXML(changes: ChangeObject<string>[]): string {
-  let ret = [];
+  const ret = [];
   for (let i = 0; i < changes.length; i++) {
-    let change = changes[i];
+    const change = changes[i];
     if (change.added) {
       ret.push('<ins>');
     } else if (change.removed) {

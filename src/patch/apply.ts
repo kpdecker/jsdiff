@@ -125,7 +125,7 @@ function applyStructuredPatch(
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
     for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
-      let hunkLine = hunkLines[hunkLinesI],
+      const hunkLine = hunkLines[hunkLinesI],
           operation = (hunkLine.length > 0 ? hunkLine[0] : ' '),
           content = (hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine);
 
@@ -231,11 +231,11 @@ function applyStructuredPatch(
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
     let hunkResult;
-    let maxLine = lines.length - hunk.oldLines + fuzzFactor;
+    const maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
       toPos = hunk.oldStart + prevHunkOffset - 1;
-      let iterator = distanceIterator(toPos, minLine, maxLine);
+      const iterator = distanceIterator(toPos, minLine, maxLine);
       for (; toPos !== undefined; toPos = iterator()) {
         hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
         if (hunkResult) {
@@ -293,7 +293,7 @@ export function applyPatches(uniDiff: string | StructuredPatch[], options): void
 
   let currentIndex = 0;
   function processIndex(): void {
-    let index = uniDiff[currentIndex++];
+    const index = uniDiff[currentIndex++];
     if (!index) {
       return options.complete();
     }
@@ -303,7 +303,7 @@ export function applyPatches(uniDiff: string | StructuredPatch[], options): void
         return options.complete(err);
       }
 
-      let updatedContent = applyPatch(data, index, options);
+      const updatedContent = applyPatch(data, index, options);
       options.patched(index, updatedContent, function(err) {
         if (err) {
           return options.complete(err);

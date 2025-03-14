@@ -1,4 +1,4 @@
-import Diff from './base'
+import Diff from './base';
 import { CallbackOption, ChangeObject, DiffCallback, DiffLinesOptions } from '../types';
 import {generateOptions} from '../util/params';
 
@@ -11,7 +11,7 @@ class LineDiff extends Diff<string, string> {
       value = value.replace(/\r\n/g, '\n');
     }
 
-    let retLines = [],
+    const retLines = [],
         linesAndNewlines = value.split(/(\n|\r\n)/);
 
     // Ignore the final empty token that occurs if the string ends with a new line
@@ -21,7 +21,7 @@ class LineDiff extends Diff<string, string> {
 
     // Merge the content and line separators into single tokens
     for (let i = 0; i < linesAndNewlines.length; i++) {
-      let line = linesAndNewlines[i];
+      const line = linesAndNewlines[i];
 
       if (i % 2 && !options.newlineIsToken) {
         retLines[retLines.length - 1] += line;
@@ -31,7 +31,7 @@ class LineDiff extends Diff<string, string> {
     }
 
     return retLines;
-  };
+  }
 
   protected equals(left: string, right: string, options: DiffLinesOptions) {
     // If we're ignoring whitespace, we need to normalise lines by stripping
@@ -57,7 +57,7 @@ class LineDiff extends Diff<string, string> {
       }
     }
     return super.equals(left, right, options);
-  };
+  }
 }
 
 export const lineDiff = new LineDiff();

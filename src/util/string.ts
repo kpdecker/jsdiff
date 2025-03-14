@@ -66,7 +66,7 @@ function overlapCount(a: string, b: string): number {
   // Create a back-reference for each index
   //   that should be followed in case of a mismatch.
   //   We only need B to make these references:
-  let map = Array(endB);
+  const map = Array(endB);
   let k = 0; // Index that lags behind j
   map[0] = 0;
   for (let j = 1; j < endB; j++) {

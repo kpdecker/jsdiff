@@ -6,12 +6,12 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       i = 0;
 
   function parseIndex() {
-    let index: Partial<StructuredPatch> = {};
+    const index: Partial<StructuredPatch> = {};
     list.push(index);
 
     // Parse diff metadata
     while (i < diffstr.length) {
-      let line = diffstr[i];
+      const line = diffstr[i];
 
       // File header found, end parsing diff metadata
       if ((/^(\-\-\-|\+\+\+|@@)\s/).test(line)) {
@@ -19,7 +19,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       }
 
       // Diff index
-      let header = (/^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/).exec(line);
+      const header = (/^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/).exec(line);
       if (header) {
         index.index = header[1];
       }
@@ -36,7 +36,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     index.hunks = [];
 
     while (i < diffstr.length) {
-      let line = diffstr[i];
+      const line = diffstr[i];
       if ((/^(Index:\s|diff\s|\-\-\-\s|\+\+\+\s|===================================================================)/).test(line)) {
         break;
       } else if ((/^@@/).test(line)) {
@@ -54,7 +54,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
   function parseFileHeader(index) {
     const fileHeader = (/^(---|\+\+\+)\s+(.*)\r?$/).exec(diffstr[i]);
     if (fileHeader) {
-      let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
+      const keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
       const data = fileHeader[2].split('\t', 2);
       let fileName = data[0].replace(/\\\\/g, '\\');
       if ((/^".*"$/).test(fileName)) {
@@ -70,11 +70,11 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
   // Parses a hunk
   // This assumes that we are at the start of a hunk.
   function parseHunk() {
-    let chunkHeaderIndex = i,
+    const chunkHeaderIndex = i,
         chunkHeaderLine = diffstr[i++],
         chunkHeader = chunkHeaderLine.split(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
 
-    let hunk = {
+    const hunk = {
       oldStart: +chunkHeader[1],
       oldLines: typeof chunkHeader[2] === 'undefined' ? 1 : +chunkHeader[2],
       newStart: +chunkHeader[3],
@@ -99,7 +99,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       i < diffstr.length && (removeCount < hunk.oldLines || addCount < hunk.newLines || diffstr[i]?.startsWith('\\'));
       i++
     ) {
-      let operation = (diffstr[i].length == 0 && i != (diffstr.length - 1)) ? ' ' : diffstr[i][0];
+      const operation = (diffstr[i].length == 0 && i != (diffstr.length - 1)) ? ' ' : diffstr[i][0];
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
         hunk.lines.push(diffstr[i]);
 
