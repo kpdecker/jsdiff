@@ -144,8 +144,8 @@ describe('diff/json', function() {
         {a: /foo/}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 1, value: '  \"a\": {}\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 1, value: '  "a": {}\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
 
@@ -155,8 +155,8 @@ describe('diff/json', function() {
         {stringifyReplacer: (k, v) => v instanceof RegExp ? v.toString() : v}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 1, value: '  \"a\": "/foo/gi"\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 1, value: '  "a": "/foo/gi"\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
 
@@ -166,8 +166,8 @@ describe('diff/json', function() {
         {stringifyReplacer: (k, v) => v instanceof Error ? `${v.name}: ${v.message}` : v}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 1, value: '  \"a\": "Error: ohaider"\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 1, value: '  "a": "Error: ohaider"\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
 
@@ -177,8 +177,8 @@ describe('diff/json', function() {
         {stringifyReplacer: (k, v) => v instanceof Error ? `${v.name}: ${v.message}` : v}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 3, value: '  \"a\": [\n    "Error: ohaider"\n  ]\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 3, value: '  "a": [\n    "Error: ohaider"\n  ]\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
     });
@@ -193,8 +193,8 @@ describe('diff/json', function() {
       }).not.to['throw']();
       expect(diff).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', removed: true, added: false },
-        { count: 1, value: '  \"b\": 456\n', removed: false, added: true },
+        { count: 1, value: '  "a": 123\n', removed: true, added: false },
+        { count: 1, value: '  "b": 456\n', removed: false, added: true },
         { count: 1, value: '}', removed: false, added: false }
       ]);
     });
