@@ -205,7 +205,7 @@ export default [
             },
         },
         rules: {
-            "no-unused-expressions": 0, // Disabling for tests, for now.
+            "no-unused-expressions": 0, // Needs disabling to support Chai `.to.be.undefined` etc syntax
             "no-path-concat": 0,
             "no-console": 0,
         },
