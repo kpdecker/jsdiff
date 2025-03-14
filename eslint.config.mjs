@@ -75,7 +75,6 @@ export default tseslint.config(
       "no-catch-shadow": 2,
       "no-label-var": 2,
       "no-undef-init": 2,
-      "no-use-before-define": [2, "nofunc"],
 
       // Node.js //
       //---------//
@@ -143,6 +142,7 @@ export default tseslint.config(
     rules: {
       "no-unused-expressions": 0, // Needs disabling to support Chai `.to.be.undefined` etc syntax
       "@typescript-eslint/no-unused-expressions": 0, // (as above)
+      "no-use-before-define": [2, "nofunc"], // Useful rule but broken for TypeScript code
     },
   }
 );
