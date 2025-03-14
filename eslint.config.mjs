@@ -1,5 +1,5 @@
 import globals from "globals";
-import babelParser from "babel-eslint";
+import babelParser from "@babel/eslint-parser";
 
 export default [{
     languageOptions: {
