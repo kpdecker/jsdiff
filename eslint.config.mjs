@@ -3,9 +3,15 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import globals from "globals";
-import babelParser from "@babel/eslint-parser";
 
 export default tseslint.config(
+  {
+    ignores: [
+      "**/*", // ignore everything...
+      "!src/**/", "!src/**/*.ts", // ... except our TypeScript source files...
+      "!test/**/", "!test/**/*.js", // ... and our tests
+    ],
+  },
   eslint.configs.recommended,
   tseslint.configs.recommended,
   {
@@ -13,8 +19,6 @@ export default tseslint.config(
       globals: {
         ...globals.browser,
       },
-
-      parser: babelParser,
     },
 
     rules: {
