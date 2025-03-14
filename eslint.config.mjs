@@ -127,8 +127,17 @@ export default tseslint.config(
       "wrap-regex": 1,
       "no-var": 2,
 
-      // Typescript
-      "@typescript-eslint/no-explicit-any": 0,
+      // Typescript //
+      //------------//
+      "@typescript-eslint/no-explicit-any": 0, // Very strict rule, incompatible with our code
+
+      // We use these intentionally - e.g.
+      //     export interface DiffCssOptions extends CommonDiffOptions {}
+      // for the options argument to diffCss which currently takes no options beyond the ones
+      // common to all diffFoo functions. Doing this allows consistency (one options interface per
+      // diffFoo function) and future-proofs against the API having to change in future if we add a
+      // non-common option to one of these functions.
+      "@typescript-eslint/no-empty-object-type": [2, {allowInterfaces: 'with-single-extends'}],
     },
   },
   {
