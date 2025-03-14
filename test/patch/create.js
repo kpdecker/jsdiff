@@ -116,7 +116,7 @@ describe('patch/create', function() {
         newContent,
         undefined,
         undefined,
-        { context: 3 },
+        { context: 3 }
       );
 
       expect(diff).to.equal(
