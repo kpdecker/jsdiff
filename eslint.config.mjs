@@ -142,6 +142,7 @@ export default tseslint.config(
     },
     rules: {
       "no-unused-expressions": 0, // Needs disabling to support Chai `.to.be.undefined` etc syntax
+      "@typescript-eslint/no-unused-expressions": 0, // (as above)
     },
   }
 );
