@@ -7,7 +7,6 @@ describe('diff/array', function() {
     it('Should diff arrays', function() {
       const a = {a: 0}, b = {b: 1}, c = {c: 2};
       const diffResult = diffArrays([a, b, c], [a, c, b]);
-      console.log(diffResult);
       expect(diffResult).to.deep.equals([
           {count: 1, value: [a], removed: false, added: false},
           {count: 1, value: [b], removed: true, added: false},
@@ -68,7 +67,6 @@ describe('diff/array', function() {
         return left.a === right.a;
       }
       const diffResult = diffArrays([a, b, c], [a, b, d], { comparator: comparator });
-      console.log(diffResult);
       expect(diffResult).to.deep.equals([
           {count: 2, value: [a, b], removed: false, added: false},
           {count: 1, value: [c], removed: true, added: false},
