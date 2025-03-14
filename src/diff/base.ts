@@ -122,7 +122,7 @@ export default class Diff<
       ) {
         let basePath;
         const removePath = bestPath[diagonalPath - 1],
-            addPath = bestPath[diagonalPath + 1];
+              addPath = bestPath[diagonalPath + 1];
         if (removePath) {
           // No one else is going to attempt to use this value, clear it
           // @ts-ignore
