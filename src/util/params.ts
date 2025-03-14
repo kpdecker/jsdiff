@@ -1,8 +1,12 @@
-import {DiffOptions, DiffCallback} from '../types';
+import {DiffCallback, DiffOptionsWithCallback, DiffOptionsWithoutCallback} from '../types';
 
-export function generateOptions<T>(options: DiffOptions<T> | DiffCallback<T> | null, defaults: DiffOptions<T>): DiffOptions<T> {
+
+export function generateOptions(
+  options: DiffOptionsWithoutCallback | DiffCallback<any>,
+  defaults: DiffOptionsWithoutCallback
+): DiffOptionsWithoutCallback | DiffOptionsWithCallback<any> {
   if (typeof options === 'function') {
-    defaults.callback = options;
+    (defaults as DiffOptionsWithCallback<any>).callback = options;
   } else if (options) {
     for (let name in options) {
       /* istanbul ignore else */
