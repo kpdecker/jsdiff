@@ -1,9 +1,9 @@
 import { StructuredPatch } from '../types';
 
 export function parsePatch(uniDiff: string): StructuredPatch[] {
-  let diffstr = uniDiff.split(/\n/),
-      list: Partial<StructuredPatch>[] = [],
-      i = 0;
+  const diffstr = uniDiff.split(/\n/),
+        list: Partial<StructuredPatch>[] = [];
+  let i = 0;
 
   function parseIndex() {
     const index: Partial<StructuredPatch> = {};
@@ -14,7 +14,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       const line = diffstr[i];
 
       // File header found, end parsing diff metadata
-      if ((/^(\-\-\-|\+\+\+|@@)\s/).test(line)) {
+      if ((/^(---|\+\+\+|@@)\s/).test(line)) {
         break;
       }
 
@@ -37,7 +37,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
     while (i < diffstr.length) {
       const line = diffstr[i];
-      if ((/^(Index:\s|diff\s|\-\-\-\s|\+\+\+\s|===================================================================)/).test(line)) {
+      if ((/^(Index:\s|diff\s|---\s|\+\+\+\s|===================================================================)/).test(line)) {
         break;
       } else if ((/^@@/).test(line)) {
         index.hunks.push(parseHunk());
