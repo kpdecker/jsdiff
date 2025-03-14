@@ -120,7 +120,7 @@ function applyStructuredPatch(
     hunkLinesI: number = 0,
     lastContextLineMatched: boolean = true,
     patchedLines: string[] = [],
-    patchedLinesLength: number = 0,
+    patchedLinesLength: number = 0
   ) {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
@@ -145,7 +145,7 @@ function applyStructuredPatch(
             hunkLinesI,
             false,
             patchedLines,
-            patchedLinesLength + 1,
+            patchedLinesLength + 1
           );
         }
       }

@@ -6,6 +6,7 @@ import {expect} from 'chai';
 
 const VERBOSE = false;
 function log() {
+  // eslint-disable-next-line no-console
   VERBOSE && console.log.apply(console, arguments);
 }
 
@@ -116,7 +117,7 @@ describe('patch/create', function() {
         newContent,
         undefined,
         undefined,
-        { context: 3 },
+        { context: 3 }
       );
 
       expect(diff).to.equal(

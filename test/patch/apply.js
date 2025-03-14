@@ -624,7 +624,7 @@ describe('patch/apply', function() {
         + 'line7\n'
         + 'line8\n'
         + 'line8.5\n'
-        + 'line10\n',
+        + 'line10\n'
       );
     });
 
@@ -659,7 +659,7 @@ describe('patch/apply', function() {
         + 'line5\n'
         + 'line6\n'
         + 'line7\n'
-        + 'line10\n',
+        + 'line10\n'
       );
     });
 
@@ -698,7 +698,7 @@ describe('patch/apply', function() {
         + 'line6\n'
         + 'line7\n'
         + 'lineEIGHT\n'
-        + 'line10\n',
+        + 'line10\n'
       );
     });
 
@@ -737,7 +737,7 @@ describe('patch/apply', function() {
         + 'line5\n'
         + 'line6\n'
         + 'line7\n'
-        + 'line10\n',
+        + 'line10\n'
       );
     });
 
