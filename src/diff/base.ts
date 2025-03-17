@@ -123,7 +123,7 @@ export default class Diff<
         const removePath = bestPath[diagonalPath - 1],
               addPath = bestPath[diagonalPath + 1];
         if (removePath) {
-          // @ts-expect-error (Nothing will ever read this element; we're doing this to free memory)
+          // No one else is going to attempt to use this value, clear it
           bestPath[diagonalPath - 1] = undefined;
         }
 
@@ -136,7 +136,7 @@ export default class Diff<
 
         const canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
-          // @ts-expect-error (Nothing will ever read this element; we're doing this to free memory)
+          // If this path is a terminal then prune
           bestPath[diagonalPath] = undefined;
           continue;
         }
