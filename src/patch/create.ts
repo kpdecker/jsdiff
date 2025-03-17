@@ -35,7 +35,7 @@ export function structuredPatch(
   newStr: string,
   oldHeader: string,
   newHeader: string,
-  options?: PatchCreationOptions & Partial<StructuredPatchCallbackOption> | StructuredPatchCallback,
+  options?: PatchCreationOptions & Partial<StructuredPatchCallbackOption> | StructuredPatchCallback
 ): StructuredPatch | undefined {
   let optionsObj: PatchCreationOptions & Partial<StructuredPatchCallbackOption>;
   if (!options) {
@@ -87,7 +87,7 @@ export function structuredPatch(
       return lines.map(function(entry) { return ' ' + entry; });
     }
 
-    let hunks = [];
+    const hunks = [];
     let oldRangeStart = 0, newRangeStart = 0, curRange = [],
         oldLine = 1, newLine = 1;
     for (let i = 0; i < diff.length; i++) {
@@ -129,10 +129,10 @@ export function structuredPatch(
             curRange.push(... contextLines(lines));
           } else {
             // end the range and output
-            let contextSize = Math.min(lines.length, optionsObj.context);
+            const contextSize = Math.min(lines.length, optionsObj.context);
             curRange.push(... contextLines(lines.slice(0, contextSize)));
 
-            let hunk = {
+            const hunk = {
               oldStart: oldRangeStart,
               oldLines: (oldLine - oldRangeStart + contextSize),
               newStart: newRangeStart,
