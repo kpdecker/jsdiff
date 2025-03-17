@@ -1,28 +1,70 @@
 import {diffLines} from '../diff/line';
+import { StructuredPatch, DiffLinesOptions } from '../types';
 
-export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+interface PatchCreationOptions extends Pick<DiffLinesOptions, 'ignoreWhitespace' | 'stripTrailingCr'> {
+  context?: number,
+}
+
+type StructuredPatchCallback = (StructuredPatch) => void;
+interface StructuredPatchCallbackOption {
+  callback: StructuredPatchCallback;
+}
+
+export function structuredPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: (PatchCreationOptions & StructuredPatchCallbackOption) | StructuredPatchCallback
+): undefined
+export function structuredPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options?: PatchCreationOptions
+): StructuredPatch
+export function structuredPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options?: PatchCreationOptions & Partial<StructuredPatchCallbackOption> | StructuredPatchCallback,
+): StructuredPatch | undefined {
+  let optionsObj: PatchCreationOptions & Partial<StructuredPatchCallbackOption>;
   if (!options) {
-    options = {};
+    optionsObj = {};
+  } else if (typeof options === 'function') {
+    optionsObj = {callback: options};
+  } else {
+    optionsObj = options;
   }
-  if (typeof options === 'function') {
-    options = {callback: options};
+
+
+  if (typeof optionsObj.context === 'undefined') {
+    optionsObj.context = 4;
   }
-  if (typeof options.context === 'undefined') {
-    options.context = 4;
-  }
-  if (options.newlineIsToken) {
+
+  // @ts-expect-error (runtime check for something that is correctly a static type error)
+  if (optionsObj.newlineIsToken) {
     throw new Error('newlineIsToken may not be used with patch-generation functions, only with diffing functions');
   }
 
-  if (!options.callback) {
-    return diffLinesResultToPatch(diffLines(oldStr, newStr, options));
+  if (!optionsObj.callback) {
+    return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj));
   } else {
-    const {callback} = options;
+    const {callback} = optionsObj;
     diffLines(
       oldStr,
       newStr,
       {
-        ...options,
+        ...optionsObj,
         callback: (diff) => {
           const patch = diffLinesResultToPatch(diff);
           callback(patch);
@@ -61,7 +103,7 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
           newRangeStart = newLine;
 
           if (prev) {
-            curRange = options.context > 0 ? contextLines(prev.lines.slice(-options.context)) : [];
+            curRange = optionsObj.context > 0 ? contextLines(prev.lines.slice(-optionsObj.context)) : [];
             oldRangeStart -= curRange.length;
             newRangeStart -= curRange.length;
           }
@@ -82,12 +124,12 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
         // Identical context lines. Track line changes
         if (oldRangeStart) {
           // Close out any changes that have been output (or join overlapping)
-          if (lines.length <= options.context * 2 && i < diff.length - 2) {
+          if (lines.length <= optionsObj.context * 2 && i < diff.length - 2) {
             // Overlapping
             curRange.push(... contextLines(lines));
           } else {
             // end the range and output
-            let contextSize = Math.min(lines.length, options.context);
+            let contextSize = Math.min(lines.length, optionsObj.context);
             curRange.push(... contextLines(lines.slice(0, contextSize)));
 
             let hunk = {
@@ -130,7 +172,7 @@ export function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHea
   }
 }
 
-export function formatPatch(diff) {
+export function formatPatch(diff: StructuredPatch | StructuredPatch[]): string {
   if (Array.isArray(diff)) {
     return diff.map(formatPatch).join('\n');
   }
@@ -165,7 +207,38 @@ export function formatPatch(diff) {
   return ret.join('\n') + '\n';
 }
 
-export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+type CreatePatchCallback = (string) => void;
+interface CreatePatchCallbackOption {
+  callback: CreatePatchCallback
+}
+
+export function createTwoFilesPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: (PatchCreationOptions & CreatePatchCallbackOption) | CreatePatchCallback
+): undefined
+export function createTwoFilesPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options?: PatchCreationOptions
+): string
+export function createTwoFilesPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options?: (PatchCreationOptions & Partial<CreatePatchCallbackOption>) | CreatePatchCallback
+): string | undefined {
   if (typeof options === 'function') {
     options = {callback: options};
   }
@@ -189,7 +262,7 @@ export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, ol
         ...options,
         callback: patchObj => {
           if (!patchObj) {
-            callback();
+            callback(undefined);
           } else {
             callback(formatPatch(patchObj));
           }
@@ -199,14 +272,37 @@ export function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, ol
   }
 }
 
-export function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {
+export function createPatch(
+  fileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: (PatchCreationOptions & CreatePatchCallbackOption) | CreatePatchCallback
+): undefined
+export function createPatch(
+  fileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options?: PatchCreationOptions
+): string
+export function createPatch(
+  fileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options?: any
+): undefined | string {
   return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options);
 }
 
 /**
  * Split `text` into an array of lines, including the trailing newline character (where present)
  */
-function splitLines(text) {
+function splitLines(text: string): string[] {
   const hasTrailingNl = text.endsWith('\n');
   const result = text.split('\n').map(line => line + '\n');
   if (hasTrailingNl) {
