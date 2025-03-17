@@ -671,6 +671,22 @@ describe('patch/create', function() {
       expect(createPatch('test', 'line1\nline2\nline3\n', 'lineX\nlineY\nlineZ\nline42\n', 'header1', 'header2', {maxEditLength: 1})).to.be.undefined;
     });
 
+    it('should not crash when encountering an enormous hunk', function() {
+      // Regression test; we used to crash here due to lines like
+      //   ret.push.apply(ret, hunk.lines);
+      // and
+      //   curRange.push(... contextLines(lines.slice(0, contextSize)));
+      // in the patch creation code that fail in practice due to JS implementations having a
+      // maximum argument count.
+      expect(createTwoFilesPatch('foo', 'bar', '', 'foo\n'.repeat(1000000))).to.equal(
+        '===================================================================\n'
+        + '--- foo\n'
+        + '+++ bar\n'
+        + '@@ -0,0 +1,1000000 @@\n'
+        + '+foo\n'.repeat(1000000)
+      );
+    });
+
     describe('ignoreWhitespace', function() {
       it('ignoreWhitespace: false', function() {
         const expectedResult =
