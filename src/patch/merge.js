@@ -136,6 +136,8 @@ function cloneHunk(hunk, offset) {
   };
 }
 
+// TODO: Fix use of push(... ) pattern here which probably trigger an error for really big changes
+//       due to the maximum argument limit
 function mergeLines(hunk, mineOffset, mineLines, theirOffset, theirLines) {
   // This will generally result in a conflicted hunk, but there are cases where the context
   // is the only overlap where we can successfully merge the content here.

@@ -110,9 +110,9 @@ export function structuredPatch(
         }
 
         // Output our changes
-        curRange.push(... lines.map(function(entry) {
-          return (current.added ? '+' : '-') + entry;
-        }));
+        for (const line of lines) {
+          curRange.push((current.added ? '+' : '-') + line);
+        }
 
         // Track the updated file position
         if (current.added) {
@@ -126,11 +126,15 @@ export function structuredPatch(
           // Close out any changes that have been output (or join overlapping)
           if (lines.length <= optionsObj.context * 2 && i < diff.length - 2) {
             // Overlapping
-            curRange.push(... contextLines(lines));
+            for (const line of contextLines(lines)) {
+              curRange.push(line);
+            }
           } else {
             // end the range and output
             const contextSize = Math.min(lines.length, optionsObj.context);
-            curRange.push(... contextLines(lines.slice(0, contextSize)));
+            for (const line of contextLines(lines.slice(0, contextSize))) {
+              curRange.push(line);
+            }
 
             const hunk = {
               oldStart: oldRangeStart,
@@ -201,7 +205,9 @@ export function formatPatch(diff: StructuredPatch | StructuredPatch[]): string {
       + ' +' + hunk.newStart + ',' + hunk.newLines
       + ' @@'
     );
-    ret.push.apply(ret, hunk.lines);
+    for (const line of hunk.lines) {
+      ret.push(line);
+    }
   }
 
   return ret.join('\n') + '\n';
