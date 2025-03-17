@@ -672,7 +672,19 @@ describe('patch/create', function() {
     });
 
     it('should not crash when encountering an enormous hunk', function() {
-      createTwoFilesPatch('foo', 'bar', '', 'foo\n'.repeat(1000000));
+      // Regression test; we used to crash here due to lines like
+      //   ret.push.apply(ret, hunk.lines);
+      // and
+      //   curRange.push(... contextLines(lines.slice(0, contextSize)));
+      // in the patch creation code that fail in practice due to JS implementations having a
+      // maximum argument count.
+      expect(createTwoFilesPatch('foo', 'bar', '', 'foo\n'.repeat(1000000))).to.equal(
+        '===================================================================\n'
+        + '--- foo\n'
+        + '+++ bar\n'
+        + '@@ -0,0 +1,1000000 @@\n'
+        + '+foo\n'.repeat(1000000)
+      );
     });
 
     describe('ignoreWhitespace', function() {
