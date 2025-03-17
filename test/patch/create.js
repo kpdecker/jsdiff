@@ -671,6 +671,10 @@ describe('patch/create', function() {
       expect(createPatch('test', 'line1\nline2\nline3\n', 'lineX\nlineY\nlineZ\nline42\n', 'header1', 'header2', {maxEditLength: 1})).to.be.undefined;
     });
 
+    it('should not crash when encountering an enormous hunk', function() {
+      createTwoFilesPatch('foo', 'bar', '', 'foo\n'.repeat(1000000));
+    });
+
     describe('ignoreWhitespace', function() {
       it('ignoreWhitespace: false', function() {
         const expectedResult =
