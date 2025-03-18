@@ -42,9 +42,10 @@
     "./*": "./*"
   },
   "scripts": {
-    "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/",
+    "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/ types/",
     "lint": "yarn eslint",
-    "build": "yarn lint && yarn tsc src/*.ts src/**/*.ts --module es2015 --moduleResolution bundler --target es2022 && yarn run-babel && yarn run-rollup && yarn run-uglify",
+    "compile-ts": "yarn tsc src/*.ts src/**/*.ts --module es2015 --moduleResolution bundler --target es2022 --declaration --declarationDir types",
+    "build": "yarn lint && yarn compile-ts && yarn run-babel && yarn run-rollup && yarn run-uglify",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
     "run-babel": "babel --out-dir lib  --source-maps=inline src",
