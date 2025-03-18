@@ -1,6 +1,5 @@
 coverage
 node_modules
-npm-debug.log
 lib
 dist
 yarn-error.log
