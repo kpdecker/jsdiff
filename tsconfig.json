@@ -3,6 +3,9 @@
     "compilerOptions": {
         "rootDir": "src/",
         "target": "es2022",
+        "lib": [
+          "es2022"
+        ],
         "module": "es2015",
         "moduleResolution": "bundler",
         "declaration": true,

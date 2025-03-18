@@ -75,6 +75,7 @@
     "nyc": "^17.1.0",
     "rollup": "^4.34.8",
     "rollup-plugin-babel": "^4.4.0",
+    "tsd": "^0.31.2",
     "typescript": "^5.7.3",
     "uglify-js": "^3.19.3",
     "webpack": "^5.98.0",
@@ -83,6 +84,7 @@
   "optionalDependencies": {},
   "dependencies": {
     "@eslint/js": "^9.22.0",
+    "marktestydiff": "^0.0.0-testing",
     "typescript-eslint": "^8.26.1"
   },
   "nyc": {
