@@ -24,8 +24,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader?: string,
+  newHeader?: string,
   options?: PatchCreationOptions
 ): StructuredPatch
 export function structuredPatch(
@@ -33,8 +33,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader?: string,
+  newHeader?: string,
   options?: PatchCreationOptions & Partial<StructuredPatchCallbackOption> | StructuredPatchCallback
 ): StructuredPatch | undefined {
   let optionsObj: PatchCreationOptions & Partial<StructuredPatchCallbackOption>;
@@ -232,8 +232,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader?: string,
+  newHeader?: string,
   options?: PatchCreationOptions
 ): string
 export function createTwoFilesPatch(
@@ -241,8 +241,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader?: string,
+  newHeader?: string,
   options?: (PatchCreationOptions & Partial<CreatePatchCallbackOption>) | CreatePatchCallback
 ): string | undefined {
   if (typeof options === 'function') {
@@ -290,8 +290,8 @@ export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader?: string,
+  newHeader?: string,
   options?: PatchCreationOptions
 ): string
 export function createPatch(

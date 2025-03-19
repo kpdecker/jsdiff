@@ -35,7 +35,7 @@ export default class Diff<
   diff(
     oldString: ValueT,
     newString: ValueT,
-    options: DiffOptionsWithoutCallback
+    options?: DiffOptionsWithoutCallback
   ): ChangeObject<ValueT>[]
   diff(
     oldString: ValueT,

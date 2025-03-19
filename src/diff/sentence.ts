@@ -14,7 +14,7 @@ export function diffSentences(
   newStr: string,
   options: (DiffSentencesOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
-export function diffSentences(oldStr: string, newStr: string, options: DiffSentencesOptions): ChangeObject<string>[];
-export function diffSentences(oldStr: string, newStr: string, options): undefined | ChangeObject<string>[] {
+export function diffSentences(oldStr: string, newStr: string, options?: DiffSentencesOptions): ChangeObject<string>[];
+export function diffSentences(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return sentenceDiff.diff(oldStr, newStr, options);
 }

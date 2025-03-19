@@ -25,12 +25,12 @@ export function diffArrays(
 export function diffArrays(
   oldArr: any[],
   newArr: any[],
-  options: DiffArraysOptions
+  options?: DiffArraysOptions
 ): ChangeObject<any[]>[];
 export function diffArrays(
   oldArr: any[],
   newArr: any[],
-  options
+  options?
 ): undefined | ChangeObject<any[]>[] {
   return arrayDiff.diff(oldArr, newArr, options);
 }

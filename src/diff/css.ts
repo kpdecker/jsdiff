@@ -14,7 +14,7 @@ export function diffCss(
   newStr: string,
   options: (DiffCssOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
-export function diffCss(oldStr: string, newStr: string, options: DiffCssOptions): ChangeObject<string>[];
-export function diffCss(oldStr: string, newStr: string, options): undefined | ChangeObject<string>[] {
+export function diffCss(oldStr: string, newStr: string, options?: DiffCssOptions): ChangeObject<string>[];
+export function diffCss(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return cssDiff.diff(oldStr, newStr, options);
 }

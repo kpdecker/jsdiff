@@ -30,15 +30,20 @@ export function diffJson(
   newStr: string,
   options: (DiffJsonOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
-export function diffJson(oldStr: string, newStr: string, options: DiffJsonOptions): ChangeObject<string>[];
-export function diffJson(oldStr: string, newStr: string, options): undefined | ChangeObject<string>[] {
+export function diffJson(oldStr: string, newStr: string, options?: DiffJsonOptions): ChangeObject<string>[];
+export function diffJson(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return jsonDiff.diff(oldStr, newStr, options);
 }
 
 
 // This function handles the presence of circular references by bailing out when encountering an
 // object that is already on the "stack" of items being processed. Accepts an optional replacer
-export function canonicalize(obj: any, stack: Array<any> | null, replacementStack: Array<any> | null, replacer: (string, any) => any, key?: string) {
+export function canonicalize(
+  obj: any,
+  stack: Array<any> | null, replacementStack: Array<any> | null,
+  replacer: (string, any) => any,
+  key?: string
+) {
   stack = stack || [];
   replacementStack = replacementStack || [];
 
