@@ -32,6 +32,18 @@ import {structuredPatch, createTwoFilesPatch, createPatch, formatPatch} from './
 
 import {convertChangesToDMP} from './convert/dmp';
 import {convertChangesToXML} from './convert/xml';
+import {
+  ChangeObject,
+  DiffArraysOptions,
+  DiffCharsOptions,
+  DiffLinesOptions,
+  DiffWordsOptions,
+  DiffSentencesOptions,
+  DiffJsonOptions,
+  DiffCssOptions,
+  StructuredPatch,
+  StructuredPatchHunk
+} from './types';
 
 export {
   Diff,
@@ -58,5 +70,16 @@ export {
   reversePatch,
   convertChangesToDMP,
   convertChangesToXML,
-  canonicalize
+  canonicalize,
+
+  ChangeObject,
+  DiffArraysOptions,
+  DiffCharsOptions,
+  DiffLinesOptions,
+  DiffWordsOptions,
+  DiffSentencesOptions,
+  DiffJsonOptions,
+  DiffCssOptions,
+  StructuredPatch,
+  StructuredPatchHunk
 };
