@@ -5,7 +5,7 @@
  */
 
 import {expectType} from 'tsd';
-import Diff from "marktestydiff";
+import Diff from "..";
 
 const one = "beep boop";
 const other = "beep boob blah";
@@ -13,43 +13,43 @@ const other = "beep boob blah";
 let changes = Diff.diffChars(one, other);
 examineChanges(changes);
 
-// $ExpectType void
-Diff.diffChars(one, other, {
+expectType<void>(Diff.diffChars(one, other, {
     callback: (value) => {
         value; // $ExpectType Change[]
     },
-});
-// $ExpectType void
-Diff.diffChars(one, other, (value) => {
+}));
+expectType<void>(Diff.diffChars(one, other, (value) => {
     value; // $ExpectType Change[]
-});
+}));
 Diff.diffWords("吾輩は猫である。名前はまだ無い。", "吾輩は猫である。名前はたぬき。", {
     intlSegmenter: new Intl.Segmenter("ja-JP", { granularity: "word" }),
 });
-// $ExpectType Change[]
-Diff.diffLines(
-    "line\nold value\nline",
-    "line\nnew value\nline",
-    {
-        stripTrailingCr: true,
-        ignoreNewlineAtEof: true,
-        maxEditLength: 1,
-        oneChangePerToken: true,
-    },
+expectType<Change[]>(
+    Diff.diffLines(
+        "line\nold value\nline",
+        "line\nnew value\nline",
+        {
+            stripTrailingCr: true,
+            ignoreNewlineAtEof: true,
+            maxEditLength: 1,
+            oneChangePerToken: true,
+        },
+    )
 );
-// $ExpectType void
-Diff.createPatch("filename", "A", "a", undefined, undefined, {
-    callback: (value) => {
-        value; // $ExpectType string
-    },
-});
+expectType<void>(
+    Diff.createPatch("filename", "A", "a", undefined, undefined, {
+        callback: (value) => {
+            value; // $ExpectType string
+        },
+    })
+);
 
 const diffArraysResult = Diff.diffArrays(["a", "b", "c"], ["a", "c", "d"]);
 diffArraysResult.forEach(result => {
-    result.added; // $ExpectType boolean | undefined
-    result.removed; // $ExpectType boolean | undefined
-    result.value; // $ExpectType string[]
-    result.count; // $ExpectType number | undefined
+    expectType<boolean | undefined>(result.added);
+    expectType<boolean | undefined>(result.removed);
+    expectType<string[]>(result.value);
+    expectType<number | undefined>(result.count);
 });
 
 interface DiffObj {
@@ -66,10 +66,10 @@ const arrayOptions: Diff.ArrayOptions<DiffObj, DiffObj> = {
 };
 const arrayChanges = Diff.diffArrays([a, b, c], [a, b, d], arrayOptions);
 arrayChanges.forEach(result => {
-    result.added; // $ExpectType boolean | undefined
-    result.removed; // $ExpectType boolean | undefined
-    result.value; // $ExpectType DiffObj[]
-    result.count; // $ExpectType number | undefined
+    expectType<boolean | undefined>(result.added)
+    expectType<boolean | undefined>(result.removed)
+    expectType<DiffObj[]>(result.value)
+    expectType<number | undefined>(result.count)
 });
 
 // --------------------------
@@ -90,10 +90,10 @@ examineChanges(changes);
 
 function examineChanges(diff: Diff.Change[]) {
     diff.forEach(part => {
-        part.added; // $ExpectType boolean
-        part.removed; // $ExpectType boolean
-        part.value; // $ExpectType string
-        part.count; // $ExpectType number | undefined
+        expectType<boolean>(part.added);
+        expectType<boolean>(part.removed);
+        expectType<string>(part.value);
+        expectType<number | undefined>(part.count);
     });
 }
 
@@ -117,11 +117,11 @@ function verifyApplyMethods(oldStr: string, newStr: string, uniDiffStr: string) 
     const verifyApply = [Diff.applyPatch(oldStr, uniDiff), Diff.applyPatch(oldStr, [uniDiff])];
     const options: Diff.ApplyPatchesOptions = {
         loadFile(index, callback) {
-            index; // $ExpectType ParsedDiff
+            expectType<ParsedDiff>(index);
             callback(undefined, one);
         },
         patched(index, content) {
-            index; // $ExpectType ParsedDiff
+            expectType<ParsedDiff>(index); 
             verifyApply.push(content);
         },
         complete(err) {
@@ -160,14 +160,15 @@ verifyApplyMethods(one, other, uniDiffStr);
 const file1 = "line1\nline2\nline3\nline4\n";
 const file2 = "line1\nline2\nline5\nline4\n";
 const patch = Diff.structuredPatch("file1", "file2", file1, file2);
-// $ExpectType ParsedDiff
+expectType<ParsedDiff>(patch);
 const reversedPatch = Diff.reversePatch(patch);
-// $ExpectType ParsedDiff[]
+expectType<ParsedDiff>(reversedPatch)
 const verifyPatch = Diff.parsePatch(
     Diff.createTwoFilesPatch("oldFile.ts", "newFile.ts", "old content", "new content", "old", "new", {
         context: 1,
     }),
 );
+expectType<ParsedDiff[]>(verifyPatch)
 
 const wordDiff = new Diff.Diff();
 wordDiff.equals = function(left, right, options) {
