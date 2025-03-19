@@ -3774,14 +3774,6 @@ map-obj@^4.0.0:
   resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-4.3.0.tgz#9304f906e93faae70880da102a9f1df0ea8bb05a"
   integrity sha512-hdN1wVrZbb29eBGiGjJbeP8JbKjq1urkHJ/LIP/NY48MZ1QVXUsQBV1G1zvYFHn1XE06cwjBsOI2K3Ulnj1YXQ==
 
-marktestydiff@^0.0.0-testing:
-  version "0.0.0-testing"
-  resolved "https://registry.yarnpkg.com/marktestydiff/-/marktestydiff-0.0.0-testing.tgz#f77a39fc949b6e2a4b056960d094f846a719445c"
-  integrity sha512-1TpH2k8XuNpiJPYkDf8zjeLEm3Dh4JO1v8BYa+zxsTrr1n7GPXSKsaw5k6dtm9yMMxQOIs2MToS5dTFegKXe1g==
-  dependencies:
-    "@eslint/js" "^9.22.0"
-    typescript-eslint "^8.26.1"
-
 math-intrinsics@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/math-intrinsics/-/math-intrinsics-1.1.0.tgz#a0dd74be81e2aa5c2f27e65ce283605ee4e2b7f9"
