@@ -41,10 +41,11 @@
     "./": "./",
     "./*": "./*"
   },
+  "types": "./types/",
   "scripts": {
-    "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/",
-    "lint": "yarn eslint 'src/**/*.js' 'test/**/*.js'",
-    "build": "yarn lint && yarn run-babel && yarn run-rollup && yarn run-uglify",
+    "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/ types/",
+    "lint": "yarn eslint",
+    "build": "yarn lint && yarn tsc && yarn run-babel && yarn run-rollup && yarn run-uglify",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
     "run-babel": "babel --out-dir lib  --source-maps=inline src",
@@ -74,12 +75,17 @@
     "nyc": "^17.1.0",
     "rollup": "^4.34.8",
     "rollup-plugin-babel": "^4.4.0",
+    "tsd": "^0.31.2",
+    "typescript": "^5.7.3",
     "uglify-js": "^3.19.3",
     "webpack": "^5.98.0",
     "webpack-dev-server": "^5.2.0"
   },
   "optionalDependencies": {},
-  "dependencies": {},
+  "dependencies": {
+    "@eslint/js": "^9.22.0",
+    "typescript-eslint": "^8.26.1"
+  },
   "nyc": {
     "require": [
       "@babel/register"

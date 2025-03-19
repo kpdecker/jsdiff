@@ -2,35 +2,54 @@ import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string';
 import {isWin, isUnix, unixToWin, winToUnix} from './line-endings';
 import {parsePatch} from './parse';
 import distanceIterator from '../util/distance-iterator';
+import { StructuredPatch } from '../types';
 
-export function applyPatch(source, uniDiff, options = {}) {
+export interface ApplyPatchOptions {
+  fuzzFactor?: number,
+  autoConvertLineEndings?: boolean,
+  compareLine?: (lineNumber: number, line: string, operation: string, patchContent: string) => boolean,
+}
+
+export function applyPatch(
+  source: string,
+  uniDiff: string | StructuredPatch | [StructuredPatch],
+  options: ApplyPatchOptions = {}
+): string | boolean {
+  let patches: StructuredPatch[];
   if (typeof uniDiff === 'string') {
-    uniDiff = parsePatch(uniDiff);
+    patches = parsePatch(uniDiff);
+  } else if (Array.isArray(uniDiff)) {
+    patches = uniDiff;
+  } else {
+    patches = [uniDiff];
   }
 
-  if (Array.isArray(uniDiff)) {
-    if (uniDiff.length > 1) {
-      throw new Error('applyPatch only works with a single input.');
-    }
-
-    uniDiff = uniDiff[0];
+  if (patches.length > 1) {
+    throw new Error('applyPatch only works with a single input.');
   }
 
+  return applyStructuredPatch(source, patches[0], options);
+}
+
+function applyStructuredPatch(
+  source: string,
+  patch: StructuredPatch,
+  options: ApplyPatchOptions = {}
+): string | boolean {
   if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
-    if (hasOnlyWinLineEndings(source) && isUnix(uniDiff)) {
-      uniDiff = unixToWin(uniDiff);
-    } else if (hasOnlyUnixLineEndings(source) && isWin(uniDiff)) {
-      uniDiff = winToUnix(uniDiff);
+    if (hasOnlyWinLineEndings(source) && isUnix(patch)) {
+      patch = unixToWin(patch);
+    } else if (hasOnlyUnixLineEndings(source) && isWin(patch)) {
+      patch = winToUnix(patch);
     }
   }
 
   // Apply the diff to the input
-  let lines = source.split('\n'),
-      hunks = uniDiff.hunks,
-
-      compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
-      fuzzFactor = options.fuzzFactor || 0,
-      minLine = 0;
+  const lines = source.split('\n'),
+        hunks = patch.hunks,
+        compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
+        fuzzFactor = options.fuzzFactor || 0;
+  let minLine = 0;
 
   if (fuzzFactor < 0 || !Number.isInteger(fuzzFactor)) {
     throw new Error('fuzzFactor must be a non-negative integer');
@@ -94,18 +113,18 @@ export function applyPatch(source, uniDiff, options = {}) {
    * `replacementLines`. Otherwise, returns null.
    */
   function applyHunk(
-    hunkLines,
-    toPos,
-    maxErrors,
-    hunkLinesI = 0,
-    lastContextLineMatched = true,
-    patchedLines = [],
-    patchedLinesLength = 0
+    hunkLines: string[],
+    toPos: number,
+    maxErrors: number,
+    hunkLinesI: number = 0,
+    lastContextLineMatched: boolean = true,
+    patchedLines: string[] = [],
+    patchedLinesLength: number = 0
   ) {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
     for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
-      let hunkLine = hunkLines[hunkLinesI],
+      const hunkLine = hunkLines[hunkLinesI],
           operation = (hunkLine.length > 0 ? hunkLine[0] : ' '),
           content = (hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine);
 
@@ -204,18 +223,18 @@ export function applyPatch(source, uniDiff, options = {}) {
     };
   }
 
-  const resultLines = [];
+  const resultLines: string[] = [];
 
   // Search best fit offsets for each hunk based on the previous ones
   let prevHunkOffset = 0;
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
     let hunkResult;
-    let maxLine = lines.length - hunk.oldLines + fuzzFactor;
+    const maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
       toPos = hunk.oldStart + prevHunkOffset - 1;
-      let iterator = distanceIterator(toPos, minLine, maxLine);
+      const iterator = distanceIterator(toPos, minLine, maxLine);
       for (; toPos !== undefined; toPos = iterator()) {
         hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
         if (hunkResult) {
@@ -259,15 +278,21 @@ export function applyPatch(source, uniDiff, options = {}) {
   return resultLines.join('\n');
 }
 
+export interface ApplyPatchesOptions extends ApplyPatchOptions {
+  loadFile: (index: StructuredPatch, callback: (err: any, data: string) => void) => void,
+  patched: (index: StructuredPatch, content: string, callback: (err: any) => void) => void,
+  complete: (err?: any) => void,
+}
+
 // Wrapper that supports multiple file patches via callbacks.
-export function applyPatches(uniDiff, options) {
+export function applyPatches(uniDiff: string | StructuredPatch[], options): void {
   if (typeof uniDiff === 'string') {
     uniDiff = parsePatch(uniDiff);
   }
 
   let currentIndex = 0;
-  function processIndex() {
-    let index = uniDiff[currentIndex++];
+  function processIndex(): void {
+    const index = uniDiff[currentIndex++];
     if (!index) {
       return options.complete();
     }
@@ -277,7 +302,7 @@ export function applyPatches(uniDiff, options) {
         return options.complete(err);
       }
 
-      let updatedContent = applyPatch(data, index, options);
+      const updatedContent = applyPatch(data, index, options);
       options.patched(index, updatedContent, function(err) {
         if (err) {
           return options.complete(err);

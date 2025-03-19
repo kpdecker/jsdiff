@@ -5,3 +5,5 @@ dist
 yarn-error.log
 .vscode
 .nyc_output
+/src/**/*.js
+/types
