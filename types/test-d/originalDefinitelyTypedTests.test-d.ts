@@ -13,12 +13,12 @@ const other = "beep boob blah";
 let changes = Diff.diffChars(one, other);
 examineChanges(changes);
 
-expectType<void>(Diff.diffChars(one, other, {
+expectType<undefined>(Diff.diffChars(one, other, {
     callback: (value) => {
         value; // $ExpectType Change[]
     },
 }));
-expectType<void>(Diff.diffChars(one, other, (value) => {
+expectType<undefined>(Diff.diffChars(one, other, (value) => {
     value; // $ExpectType Change[]
 }));
 Diff.diffWords("吾輩は猫である。名前はまだ無い。", "吾輩は猫である。名前はたぬき。", {
@@ -36,7 +36,7 @@ expectType<Change[]>(
         },
     )
 );
-expectType<void>(
+expectType<undefined>(
     Diff.createPatch("filename", "A", "a", undefined, undefined, {
         callback: (value) => {
             value; // $ExpectType string
