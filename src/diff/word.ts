@@ -1,5 +1,5 @@
 import Diff from './base';
-import { CallbackOption, ChangeObject, DiffCallback, DiffWordsOptions } from '../types';
+import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffWordsOptions } from '../types';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
@@ -147,6 +147,7 @@ export function diffWords(
   newStr: string,
   options: (DiffWordsOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
+export function diffWords(oldStr: string, newStr: string, options: DiffWordsOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
 export function diffWords(oldStr: string, newStr: string, options?: DiffWordsOptions): ChangeObject<string>[];
 export function diffWords(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   // This option has never been documented and never will be (it's clearer to
@@ -302,6 +303,7 @@ export function diffWordsWithSpace(
   newStr: string,
   options: (DiffWordsOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
+export function diffWordsWithSpace(oldStr: string, newStr: string, options: DiffWordsOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
 export function diffWordsWithSpace(oldStr: string, newStr: string, options?: DiffWordsOptions): ChangeObject<string>[];
 export function diffWordsWithSpace(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return wordsWithSpaceDiff.diff(oldStr, newStr, options);

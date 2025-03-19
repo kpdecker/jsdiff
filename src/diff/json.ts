@@ -1,5 +1,5 @@
 import Diff from './base';
-import { CallbackOption, ChangeObject, DiffCallback, DiffJsonOptions } from '../types';
+import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffJsonOptions } from '../types';
 import {lineDiff} from './line';
 
 class JsonDiff extends Diff<string, string> {
@@ -30,6 +30,7 @@ export function diffJson(
   newStr: string,
   options: (DiffJsonOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
+export function diffJson(oldStr: string, newStr: string, options: DiffJsonOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
 export function diffJson(oldStr: string, newStr: string, options?: DiffJsonOptions): ChangeObject<string>[];
 export function diffJson(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return jsonDiff.diff(oldStr, newStr, options);

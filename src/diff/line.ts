@@ -1,5 +1,5 @@
 import Diff from './base';
-import { CallbackOption, ChangeObject, DiffCallback, DiffLinesOptions } from '../types';
+import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffLinesOptions } from '../types';
 import {generateOptions} from '../util/params';
 
 
@@ -67,6 +67,7 @@ export function diffLines(
   newStr: string,
   options: (DiffLinesOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
+export function diffLines(oldStr: string, newStr: string, options: DiffLinesOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
 export function diffLines(oldStr: string, newStr: string, options?: DiffLinesOptions): ChangeObject<string>[];
 export function diffLines(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return lineDiff.diff(oldStr, newStr, options);
@@ -83,6 +84,7 @@ export function diffTrimmedLines(
   newStr: string,
   options: (DiffLinesOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
+export function diffTrimmedLines(oldStr: string, newStr: string, options: DiffLinesOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
 export function diffTrimmedLines(oldStr: string, newStr: string, options?: DiffLinesOptions): ChangeObject<string>[];
 export function diffTrimmedLines(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   options = generateOptions(options, {ignoreWhitespace: true});

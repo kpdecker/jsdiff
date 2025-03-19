@@ -1,4 +1,4 @@
-import {ChangeObject, DiffOptionsWithoutCallback, DiffOptionsWithCallback, DiffCallback} from '../types';
+import {ChangeObject, AllDiffOptions, DiffOptionsWithCallback, DiffCallback, AbortableDiffOptions, AbortableDiffCallback} from '../types';
 
 /**
  * Like a ChangeObject, but with no value and an extra `previousComponent` property.
@@ -35,14 +35,19 @@ export default class Diff<
   diff(
     oldString: ValueT,
     newString: ValueT,
-    options?: DiffOptionsWithoutCallback
+    options: AllDiffOptions<TokenT> & AbortableDiffOptions
+  ): ChangeObject<ValueT>[] | undefined
+  diff(
+    oldString: ValueT,
+    newString: ValueT,
+    options?: AllDiffOptions<TokenT>
   ): ChangeObject<ValueT>[]
   diff(
     oldString: ValueT,
     newString: ValueT,
-    options: DiffCallback<TokenT> | DiffOptionsWithCallback<TokenT> | DiffOptionsWithoutCallback = {}
+    options: DiffCallback<TokenT> | DiffOptionsWithCallback<TokenT> | AllDiffOptions<TokenT> = {}
   ): ChangeObject<ValueT>[] | undefined {
-    let callback: DiffCallback<TokenT> | undefined;
+    let callback: AbortableDiffCallback<TokenT> | undefined;
     if (typeof options === 'function') {
       callback = options;
       options = {};
@@ -62,8 +67,8 @@ export default class Diff<
   private diffWithOptionsObj(
     oldTokens: TokenT[],
     newTokens: TokenT[],
-    options: DiffOptionsWithoutCallback | DiffOptionsWithCallback<TokenT>,
-    callback: DiffCallback<TokenT> | undefined
+    options: AllDiffOptions<TokenT> | DiffOptionsWithCallback<TokenT>,
+    callback: AbortableDiffCallback<TokenT> | undefined
   ): ChangeObject<ValueT>[] | undefined {
     const done = (value) => {
       value = this.postProcess(value, options);
@@ -200,7 +205,7 @@ export default class Diff<
     added: boolean,
     removed: boolean,
     oldPosInc: number,
-    options: DiffOptionsWithoutCallback
+    options: AllDiffOptions<TokenT>
   ): Path {
     const last = path.lastComponent;
     if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
@@ -221,7 +226,7 @@ export default class Diff<
     newTokens: TokenT[],
     oldTokens: TokenT[],
     diagonalPath: number,
-    options: DiffOptionsWithoutCallback
+    options: AllDiffOptions<TokenT>
   ): number {
     const newLen = newTokens.length,
           oldLen = oldTokens.length;
@@ -246,7 +251,7 @@ export default class Diff<
     return newPos;
   }
 
-  protected equals(left: TokenT, right: TokenT, options: DiffOptionsWithoutCallback): boolean {
+  protected equals(left: TokenT, right: TokenT, options: AllDiffOptions<TokenT>): boolean {
     if (options.comparator) {
       return options.comparator(left, right);
     } else {
@@ -266,12 +271,12 @@ export default class Diff<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected castInput(value: ValueT, options: DiffOptionsWithoutCallback): ValueT {
+  protected castInput(value: ValueT, options: AllDiffOptions<TokenT>): ValueT {
     return value;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected tokenize(value: ValueT, options: DiffOptionsWithoutCallback): TokenT[] {
+  protected tokenize(value: ValueT, options: AllDiffOptions<TokenT>): TokenT[] {
     return Array.from(value);
   }
 
@@ -286,7 +291,7 @@ export default class Diff<
   protected postProcess(
     changeObjects: ChangeObject<ValueT>[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: DiffOptionsWithoutCallback
+    options: AllDiffOptions<TokenT>
   ): ChangeObject<ValueT>[] {
     return changeObjects;
   }

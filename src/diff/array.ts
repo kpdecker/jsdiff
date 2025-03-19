@@ -1,5 +1,5 @@
 import Diff from './base';
-import {CallbackOption, DiffCallback, ChangeObject, DiffArraysOptions} from '../types';
+import {CallbackOption, DiffCallback, ChangeObject, DiffArraysOptions, AbortableDiffOptions} from '../types';
 
 class ArrayDiff extends Diff<any, Array<any>> {
   protected tokenize(value: Array<any>) {
@@ -22,6 +22,11 @@ export function diffArrays(
   newArr: any[],
   options: (DiffArraysOptions & CallbackOption<any[]>) | DiffCallback<any[]>
 ): undefined;
+export function diffArrays(
+  oldArr: any[],
+  newArr: any[],
+  options: DiffArraysOptions & AbortableDiffOptions
+): ChangeObject<any[]>[] | undefined;
 export function diffArrays(
   oldArr: any[],
   newArr: any[],

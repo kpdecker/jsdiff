@@ -1,5 +1,5 @@
 import Diff from './base';
-import { CallbackOption, ChangeObject, DiffCallback, DiffSentencesOptions } from '../types';
+import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffSentencesOptions } from '../types';
 
 class SentenceDiff extends Diff<string, string> {
   protected tokenize(value: string) {
@@ -14,6 +14,7 @@ export function diffSentences(
   newStr: string,
   options: (DiffSentencesOptions & CallbackOption<string>) | DiffCallback<string>
 ): undefined
+export function diffSentences(oldStr: string, newStr: string, options: DiffSentencesOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
 export function diffSentences(oldStr: string, newStr: string, options?: DiffSentencesOptions): ChangeObject<string>[];
 export function diffSentences(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return sentenceDiff.diff(oldStr, newStr, options);
