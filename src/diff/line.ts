@@ -1,11 +1,11 @@
 import Diff from './base';
-import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffLinesOptions } from '../types';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable} from '../types';
 import {generateOptions} from '../util/params';
 
 
 class LineDiff extends Diff<string, string> {
   // public so it can be copied by jsonDiff
-  public tokenize(value: string, options: DiffLinesOptions) {
+  public tokenize(value: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
     if(options.stripTrailingCr) {
       // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
       value = value.replace(/\r\n/g, '\n');
@@ -33,7 +33,7 @@ class LineDiff extends Diff<string, string> {
     return retLines;
   }
 
-  protected equals(left: string, right: string, options: DiffLinesOptions) {
+  protected equals(left: string, right: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
     // If we're ignoring whitespace, we need to normalise lines by stripping
     // whitespace before checking equality. (This has an annoying interaction
     // with newlineIsToken that requires special handling: if newlines get their
@@ -65,10 +65,28 @@ export const lineDiff = new LineDiff();
 export function diffLines(
   oldStr: string,
   newStr: string,
-  options: (DiffLinesOptions & CallbackOption<string>) | DiffCallback<string>
+  options: DiffCallbackNonabortable<string>
+): undefined;
+export function diffLines(
+  oldStr: string,
+  newStr: string,
+  options: DiffLinesOptionsAbortable & CallbackOptionAbortable<string>
 ): undefined
-export function diffLines(oldStr: string, newStr: string, options: DiffLinesOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
-export function diffLines(oldStr: string, newStr: string, options?: DiffLinesOptions): ChangeObject<string>[];
+export function diffLines(
+  oldStr: string,
+  newStr: string,
+  options: DiffLinesOptionsNonabortable & CallbackOptionNonabortable<string>
+): undefined
+export function diffLines(
+  oldStr: string,
+  newStr: string,
+  options: DiffLinesOptionsAbortable
+): ChangeObject<string>[] | undefined
+export function diffLines(
+  oldStr: string,
+  newStr: string,
+  options?: DiffLinesOptionsNonabortable
+): ChangeObject<string>[]
 export function diffLines(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return lineDiff.diff(oldStr, newStr, options);
 }
@@ -82,10 +100,28 @@ export function diffLines(oldStr: string, newStr: string, options?): undefined |
 export function diffTrimmedLines(
   oldStr: string,
   newStr: string,
-  options: (DiffLinesOptions & CallbackOption<string>) | DiffCallback<string>
+  options: DiffCallbackNonabortable<string>
+): undefined;
+export function diffTrimmedLines(
+  oldStr: string,
+  newStr: string,
+  options: DiffLinesOptionsAbortable & CallbackOptionAbortable<string>
 ): undefined
-export function diffTrimmedLines(oldStr: string, newStr: string, options: DiffLinesOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
-export function diffTrimmedLines(oldStr: string, newStr: string, options?: DiffLinesOptions): ChangeObject<string>[];
+export function diffTrimmedLines(
+  oldStr: string,
+  newStr: string,
+  options: DiffLinesOptionsNonabortable & CallbackOptionNonabortable<string>
+): undefined
+export function diffTrimmedLines(
+  oldStr: string,
+  newStr: string,
+  options: DiffLinesOptionsAbortable
+): ChangeObject<string>[] | undefined
+export function diffTrimmedLines(
+  oldStr: string,
+  newStr: string,
+  options?: DiffLinesOptionsNonabortable
+): ChangeObject<string>[]
 export function diffTrimmedLines(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   options = generateOptions(options, {ignoreWhitespace: true});
   return lineDiff.diff(oldStr, newStr, options);

@@ -5,88 +5,105 @@ export interface ChangeObject<ValueT> {
     count: number;
 }
 
-export interface CommonDiffOptions<T> {
-  maxEditLength?: number,
-  timeout?: number,
+export interface CommonDiffOptions {
   oneChangePerToken?: boolean,
-  callback?: DiffCallback<T>
 }
 
-export interface DiffArraysOptions extends CommonDiffOptions<any[]> {
+export interface TimeoutOption {
+  timeout: number;
+}
+
+export interface MaxEditLengthOption {
+  maxEditLength: number;
+}
+
+export type AbortableDiffOptions = TimeoutOption | MaxEditLengthOption;
+
+export type DiffCallbackNonabortable<T> = (result: ChangeObject<T>[]) => void;
+export type DiffCallbackAbortable<T> = (result: ChangeObject<T>[] | undefined) => void;
+
+export interface CallbackOptionNonabortable<T> {
+  callback: DiffCallbackNonabortable<T>
+}
+export interface CallbackOptionAbortable<T> {
+  callback: DiffCallbackAbortable<T>
+}
+
+interface DiffArraysOptions extends CommonDiffOptions {
   comparator?: (a: any, b: any) => boolean,
 }
-
-export interface DiffCharsOptions extends CommonDiffOptions<string> {
-  ignoreCase?: boolean,
+export interface DiffArraysOptionsNonabortable extends DiffArraysOptions {
+  callback?: DiffCallbackNonabortable<any[]>
 }
+export type DiffArraysOptionsAbortable = DiffArraysOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<any[]>>
 
-export interface DiffLinesOptions extends CommonDiffOptions<string> {
+
+interface DiffCharsOptions extends CommonDiffOptions {
+  ignoreCase?: boolean;
+}
+export interface DiffCharsOptionsNonabortable extends DiffCharsOptions {
+  callback?: DiffCallbackNonabortable<string>
+}
+export type DiffCharsOptionsAbortable = DiffCharsOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
+
+interface DiffLinesOptions extends CommonDiffOptions {
   stripTrailingCr?: boolean,
   newlineIsToken?: boolean,
   ignoreNewlineAtEof?: boolean,
   ignoreWhitespace?: boolean, // TODO: This is SORT OF supported by diffWords. What to do?
 }
+export interface DiffLinesOptionsNonabortable extends DiffLinesOptions {
+  callback?: DiffCallbackNonabortable<string>
+}
+export type DiffLinesOptionsAbortable = DiffLinesOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
 
-export interface DiffWordsOptions extends CommonDiffOptions<string> {
+
+interface DiffWordsOptions extends CommonDiffOptions {
   ignoreCase?: boolean
   intlSegmenter?: Intl.Segmenter,
 }
+export interface DiffWordsOptionsNonabortable extends DiffWordsOptions {
+  callback?: DiffCallbackNonabortable<string>
+}
+export type DiffWordsOptionsAbortable = DiffWordsOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
 
-export interface DiffSentencesOptions extends CommonDiffOptions<string> {}
 
-export interface DiffJsonOptions extends CommonDiffOptions<string> {
+interface DiffSentencesOptions extends CommonDiffOptions {}
+export interface DiffSentencesOptionsNonabortable extends DiffSentencesOptions {
+  callback?: DiffCallbackNonabortable<string>
+}
+export type DiffSentencesOptionsAbortable = DiffSentencesOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
+
+
+interface DiffJsonOptions extends CommonDiffOptions {
   undefinedReplacement?: any,
   stringifyReplacer?: (k: string, v: any) => any,
 }
-
-export interface DiffCssOptions extends CommonDiffOptions<string> {}
-
-
-interface NoAbortCallbackOption<ValueT> {
-  callback: DiffCallback<ValueT>,
+export interface DiffJsonOptionsNonabortable extends DiffJsonOptions {
+  callback?: DiffCallbackNonabortable<string>
 }
+export type DiffJsonOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
 
-interface TimeoutOption {
-  timeout: number,
+
+interface DiffCssOptions extends CommonDiffOptions {}
+export interface DiffCssOptionsNonabortable extends DiffCssOptions {
+  callback?: DiffCallbackNonabortable<string>
 }
+export type DiffCssOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
 
-interface MaxEditLengthOption {
-  maxEditLength: number,
-}
 
-interface OptionalCallbackOption<ValueT> {
-  callback: AbortableDiffCallback<ValueT>
-}
-
-export type AbortableDiffOptions = TimeoutOption | MaxEditLengthOption;
-
-type AbortableCallbackOption<ValueT> = (OptionalCallbackOption<ValueT> & AbortableDiffOptions);
-
-export type CallbackOption<ValueT> = NoAbortCallbackOption<ValueT> | AbortableCallbackOption<ValueT>;
-
+// TODO: Move this somewhere else?
 /**
  * Note that this contains the union of ALL options accepted by any of the built-in diffing
  * functions. The README notes which options are usable which functions. Using an option with a
  * diffing function that doesn't support it might yield unreasonable results.
  */
-export type AllDiffOptions<TokenT> =
-  Omit<DiffArraysOptions, 'callback'> &
-  Omit<DiffCharsOptions, 'callback'> &
-  Omit<DiffWordsOptions, 'callback'> &
-  Omit<DiffLinesOptions, 'callback'> &
-  Omit<DiffJsonOptions, 'callback'> &
-  Partial<CallbackOption<TokenT>>;
-
-/**
- * This is a distinct type from AllDiffOptions so that we can have different overloads
- * with different return types depending upon whether a callback option is given (and thus whether
- * we are running in async or sync mode).
- */
-export type DiffOptionsWithCallback<ValueT> = (AllDiffOptions<ValueT> & NoAbortCallbackOption<ValueT>) |
-                                              (AllDiffOptions<ValueT> & AbortableCallbackOption<ValueT>);
-
-export type DiffCallback<ValueT> = (result: ChangeObject<ValueT>[]) => void;
-export type AbortableDiffCallback<ValueT> = (result?: ChangeObject<ValueT>[]) => void;
+export type AllDiffOptions =
+  DiffArraysOptions &
+  DiffCharsOptions &
+  DiffWordsOptions &
+  DiffLinesOptions &
+  DiffJsonOptions;
 
 export interface StructuredPatch {
   oldFileName: string,

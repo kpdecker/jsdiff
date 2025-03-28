@@ -1,5 +1,5 @@
 import Diff from './base';
-import {CallbackOption, DiffCallback, ChangeObject, DiffArraysOptions, AbortableDiffOptions} from '../types';
+import {ChangeObject, DiffArraysOptionsNonabortable, CallbackOptionNonabortable, DiffArraysOptionsAbortable, DiffCallbackNonabortable, CallbackOptionAbortable} from '../types';
 
 class ArrayDiff extends Diff<any, Array<any>> {
   protected tokenize(value: Array<any>) {
@@ -20,18 +20,28 @@ export const arrayDiff = new ArrayDiff();
 export function diffArrays(
   oldArr: any[],
   newArr: any[],
-  options: (DiffArraysOptions & CallbackOption<any[]>) | DiffCallback<any[]>
+  options: DiffCallbackNonabortable<any[]>
 ): undefined;
 export function diffArrays(
   oldArr: any[],
   newArr: any[],
-  options: DiffArraysOptions & AbortableDiffOptions
-): ChangeObject<any[]>[] | undefined;
+  options: DiffArraysOptionsAbortable & CallbackOptionAbortable<any[]>
+): undefined
 export function diffArrays(
   oldArr: any[],
   newArr: any[],
-  options?: DiffArraysOptions
-): ChangeObject<any[]>[];
+  options: DiffArraysOptionsNonabortable & CallbackOptionNonabortable<any[]>
+): undefined
+export function diffArrays(
+  oldArr: any[],
+  newArr: any[],
+  options: DiffArraysOptionsAbortable
+): ChangeObject<any[]>[] | undefined
+export function diffArrays(
+  oldArr: any[],
+  newArr: any[],
+  options?: DiffArraysOptionsNonabortable
+): ChangeObject<any[]>[]
 export function diffArrays(
   oldArr: any[],
   newArr: any[],

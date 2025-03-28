@@ -1,4 +1,4 @@
-import {ChangeObject, AllDiffOptions, DiffOptionsWithCallback, DiffCallback, AbortableDiffOptions, AbortableDiffCallback} from '../types';
+import {ChangeObject, AllDiffOptions, AbortableDiffOptions, DiffCallbackNonabortable, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackAbortable, TimeoutOption, MaxEditLengthOption} from '../types';
 
 /**
  * Like a ChangeObject, but with no value and an extra `previousComponent` property.
@@ -21,33 +21,42 @@ interface Path {
   lastComponent?: DraftChangeObject
 }
 
-// TODO: Types are wrong for case with a callback
-
 export default class Diff<
   TokenT,
   ValueT extends Iterable<TokenT> = Iterable<TokenT>
 > {
   diff(
-    oldString: ValueT,
-    newString: ValueT,
-    options: DiffCallback<TokenT> | DiffOptionsWithCallback<TokenT>
+    oldStr: ValueT,
+    newStr: ValueT,
+    options: DiffCallbackNonabortable<ValueT>
+  ): undefined;
+  diff(
+    oldStr: ValueT,
+    newStr: ValueT,
+    options: AllDiffOptions & AbortableDiffOptions & CallbackOptionAbortable<ValueT>
   ): undefined
   diff(
-    oldString: ValueT,
-    newString: ValueT,
-    options: AllDiffOptions<TokenT> & AbortableDiffOptions
+    oldStr: ValueT,
+    newStr: ValueT,
+    options: AllDiffOptions & CallbackOptionNonabortable<ValueT>
+  ): undefined
+  diff(
+    oldStr: ValueT,
+    newStr: ValueT,
+    options: AllDiffOptions & AbortableDiffOptions
   ): ChangeObject<ValueT>[] | undefined
   diff(
-    oldString: ValueT,
-    newString: ValueT,
-    options?: AllDiffOptions<TokenT>
+    oldStr: ValueT,
+    newStr: ValueT,
+    options?: AllDiffOptions
   ): ChangeObject<ValueT>[]
   diff(
     oldString: ValueT,
     newString: ValueT,
-    options: DiffCallback<TokenT> | DiffOptionsWithCallback<TokenT> | AllDiffOptions<TokenT> = {}
+    // Type below is not accurate/complete - see above for full possibilities - but it compiles
+    options: DiffCallbackNonabortable<ValueT> | AllDiffOptions & Partial<CallbackOptionNonabortable<ValueT>> = {}
   ): ChangeObject<ValueT>[] | undefined {
-    let callback: AbortableDiffCallback<TokenT> | undefined;
+    let callback: DiffCallbackAbortable<ValueT> | DiffCallbackNonabortable<ValueT> | undefined;
     if (typeof options === 'function') {
       callback = options;
       options = {};
@@ -67,8 +76,8 @@ export default class Diff<
   private diffWithOptionsObj(
     oldTokens: TokenT[],
     newTokens: TokenT[],
-    options: AllDiffOptions<TokenT> | DiffOptionsWithCallback<TokenT>,
-    callback: AbortableDiffCallback<TokenT> | undefined
+    options: AllDiffOptions & Partial<TimeoutOption> & Partial<MaxEditLengthOption>,
+    callback: DiffCallbackAbortable<ValueT> | DiffCallbackNonabortable<ValueT> | undefined
   ): ChangeObject<ValueT>[] | undefined {
     const done = (value) => {
       value = this.postProcess(value, options);
@@ -182,7 +191,7 @@ export default class Diff<
       (function exec() {
         setTimeout(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
-            return callback();
+            return callback(undefined);
           }
 
           if (!execEditLength()) {
@@ -205,7 +214,7 @@ export default class Diff<
     added: boolean,
     removed: boolean,
     oldPosInc: number,
-    options: AllDiffOptions<TokenT>
+    options: AllDiffOptions
   ): Path {
     const last = path.lastComponent;
     if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
@@ -226,7 +235,7 @@ export default class Diff<
     newTokens: TokenT[],
     oldTokens: TokenT[],
     diagonalPath: number,
-    options: AllDiffOptions<TokenT>
+    options: AllDiffOptions
   ): number {
     const newLen = newTokens.length,
           oldLen = oldTokens.length;
@@ -251,7 +260,7 @@ export default class Diff<
     return newPos;
   }
 
-  protected equals(left: TokenT, right: TokenT, options: AllDiffOptions<TokenT>): boolean {
+  protected equals(left: TokenT, right: TokenT, options: AllDiffOptions): boolean {
     if (options.comparator) {
       return options.comparator(left, right);
     } else {
@@ -271,12 +280,12 @@ export default class Diff<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected castInput(value: ValueT, options: AllDiffOptions<TokenT>): ValueT {
+  protected castInput(value: ValueT, options: AllDiffOptions): ValueT {
     return value;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected tokenize(value: ValueT, options: AllDiffOptions<TokenT>): TokenT[] {
+  protected tokenize(value: ValueT, options: AllDiffOptions): TokenT[] {
     return Array.from(value);
   }
 
@@ -291,7 +300,7 @@ export default class Diff<
   protected postProcess(
     changeObjects: ChangeObject<ValueT>[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: AllDiffOptions<TokenT>
+    options: AllDiffOptions
   ): ChangeObject<ValueT>[] {
     return changeObjects;
   }

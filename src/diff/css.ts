@@ -1,5 +1,5 @@
 import Diff from './base';
-import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffCssOptions } from '../types';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffCssOptionsAbortable, DiffCssOptionsNonabortable} from '../types';
 
 class CssDiff extends Diff<string, string> {
   protected tokenize(value: string) {
@@ -12,10 +12,28 @@ export const cssDiff = new CssDiff();
 export function diffCss(
   oldStr: string,
   newStr: string,
-  options: (DiffCssOptions & CallbackOption<string>) | DiffCallback<string>
+  options: DiffCallbackNonabortable<string>
+): undefined;
+export function diffCss(
+  oldStr: string,
+  newStr: string,
+  options: DiffCssOptionsAbortable & CallbackOptionAbortable<string>
 ): undefined
-export function diffCss(oldStr: string, newStr: string, options: DiffCssOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
-export function diffCss(oldStr: string, newStr: string, options?: DiffCssOptions): ChangeObject<string>[];
+export function diffCss(
+  oldStr: string,
+  newStr: string,
+  options: DiffCssOptionsNonabortable & CallbackOptionNonabortable<string>
+): undefined
+export function diffCss(
+  oldStr: string,
+  newStr: string,
+  options: DiffCssOptionsAbortable
+): ChangeObject<string>[] | undefined
+export function diffCss(
+  oldStr: string,
+  newStr: string,
+  options?: DiffCssOptionsNonabortable
+): ChangeObject<string>[]
 export function diffCss(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return cssDiff.diff(oldStr, newStr, options);
 }

@@ -1,5 +1,5 @@
 import Diff from './base';
-import {CallbackOption, DiffCallback, ChangeObject, DiffCharsOptions, AbortableDiffOptions} from '../types';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffCharsOptionsAbortable, DiffCharsOptionsNonabortable} from '../types';
 
 class CharacterDiff extends Diff<string, string> {}
 
@@ -8,18 +8,28 @@ export const characterDiff = new CharacterDiff();
 export function diffChars(
   oldStr: string,
   newStr: string,
-  options: (DiffCharsOptions & CallbackOption<string>) | DiffCallback<string>
+  options: DiffCallbackNonabortable<string>
+): undefined;
+export function diffChars(
+  oldStr: string,
+  newStr: string,
+  options: DiffCharsOptionsAbortable & CallbackOptionAbortable<string>
 ): undefined
 export function diffChars(
   oldStr: string,
   newStr: string,
-  options: DiffCharsOptions & AbortableDiffOptions
-): ChangeObject<string>[] | undefined;
+  options: DiffCharsOptionsNonabortable & CallbackOptionNonabortable<string>
+): undefined
 export function diffChars(
   oldStr: string,
   newStr: string,
-  options?: DiffCharsOptions
-): ChangeObject<string>[];
+  options: DiffCharsOptionsAbortable
+): ChangeObject<string>[] | undefined
+export function diffChars(
+  oldStr: string,
+  newStr: string,
+  options?: DiffCharsOptionsNonabortable
+): ChangeObject<string>[]
 export function diffChars(
   oldStr: string,
   newStr: string,

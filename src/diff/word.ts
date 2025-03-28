@@ -1,5 +1,5 @@
 import Diff from './base';
-import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffWordsOptions } from '../types';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffWordsOptionsAbortable, DiffWordsOptionsNonabortable} from '../types';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
@@ -51,7 +51,7 @@ const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^$
 
 
 class WordDiff extends Diff<string, string> {
-  protected equals(left: string, right: string, options: DiffWordsOptions) {
+  protected equals(left: string, right: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable) {
     if (options.ignoreCase) {
       left = left.toLowerCase();
       right = right.toLowerCase();
@@ -60,7 +60,7 @@ class WordDiff extends Diff<string, string> {
     return left.trim() === right.trim();
   }
 
-  protected tokenize(value: string, options: DiffWordsOptions = {}) {
+  protected tokenize(value: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable = {}) {
     let parts;
     if (options.intlSegmenter) {
       if (options.intlSegmenter.resolvedOptions().granularity != 'word') {
@@ -145,10 +145,28 @@ export const wordDiff = new WordDiff();
 export function diffWords(
   oldStr: string,
   newStr: string,
-  options: (DiffWordsOptions & CallbackOption<string>) | DiffCallback<string>
+  options: DiffCallbackNonabortable<string>
+): undefined;
+export function diffWords(
+  oldStr: string,
+  newStr: string,
+  options: DiffWordsOptionsAbortable & CallbackOptionAbortable<string>
 ): undefined
-export function diffWords(oldStr: string, newStr: string, options: DiffWordsOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
-export function diffWords(oldStr: string, newStr: string, options?: DiffWordsOptions): ChangeObject<string>[];
+export function diffWords(
+  oldStr: string,
+  newStr: string,
+  options: DiffWordsOptionsNonabortable & CallbackOptionNonabortable<string>
+): undefined
+export function diffWords(
+  oldStr: string,
+  newStr: string,
+  options: DiffWordsOptionsAbortable
+): ChangeObject<string>[] | undefined
+export function diffWords(
+  oldStr: string,
+  newStr: string,
+  options?: DiffWordsOptionsNonabortable
+): ChangeObject<string>[]
 export function diffWords(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   // This option has never been documented and never will be (it's clearer to
   // just call `diffWordsWithSpace` directly if you need that behavior), but
@@ -301,10 +319,28 @@ export const wordsWithSpaceDiff = new WordsWithSpaceDiff();
 export function diffWordsWithSpace(
   oldStr: string,
   newStr: string,
-  options: (DiffWordsOptions & CallbackOption<string>) | DiffCallback<string>
+  options: DiffCallbackNonabortable<string>
+): undefined;
+export function diffWordsWithSpace(
+  oldStr: string,
+  newStr: string,
+  options: DiffWordsOptionsAbortable & CallbackOptionAbortable<string>
 ): undefined
-export function diffWordsWithSpace(oldStr: string, newStr: string, options: DiffWordsOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
-export function diffWordsWithSpace(oldStr: string, newStr: string, options?: DiffWordsOptions): ChangeObject<string>[];
+export function diffWordsWithSpace(
+  oldStr: string,
+  newStr: string,
+  options: DiffWordsOptionsNonabortable & CallbackOptionNonabortable<string>
+): undefined
+export function diffWordsWithSpace(
+  oldStr: string,
+  newStr: string,
+  options: DiffWordsOptionsAbortable
+): ChangeObject<string>[] | undefined
+export function diffWordsWithSpace(
+  oldStr: string,
+  newStr: string,
+  options?: DiffWordsOptionsNonabortable
+): ChangeObject<string>[]
 export function diffWordsWithSpace(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return wordsWithSpaceDiff.diff(oldStr, newStr, options);
 }

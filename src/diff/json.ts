@@ -1,5 +1,5 @@
 import Diff from './base';
-import { AbortableDiffOptions, CallbackOption, ChangeObject, DiffCallback, DiffJsonOptions } from '../types';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffJsonOptionsAbortable, DiffJsonOptionsNonabortable} from '../types';
 import {lineDiff} from './line';
 
 class JsonDiff extends Diff<string, string> {
@@ -11,13 +11,13 @@ class JsonDiff extends Diff<string, string> {
 
   protected tokenize = lineDiff.tokenize;
 
-  protected castInput(value: string, options: DiffJsonOptions) {
+  protected castInput(value: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
     const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
     return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
   }
 
-  protected equals(left: string, right: string, options: DiffJsonOptions) {
+  protected equals(left: string, right: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
     return super.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
   }
 }
@@ -28,10 +28,28 @@ const jsonDiff = new JsonDiff();
 export function diffJson(
   oldStr: string,
   newStr: string,
-  options: (DiffJsonOptions & CallbackOption<string>) | DiffCallback<string>
+  options: DiffCallbackNonabortable<string>
+): undefined;
+export function diffJson(
+  oldStr: string,
+  newStr: string,
+  options: DiffJsonOptionsAbortable & CallbackOptionAbortable<string>
 ): undefined
-export function diffJson(oldStr: string, newStr: string, options: DiffJsonOptions & AbortableDiffOptions): ChangeObject<string>[] | undefined;
-export function diffJson(oldStr: string, newStr: string, options?: DiffJsonOptions): ChangeObject<string>[];
+export function diffJson(
+  oldStr: string,
+  newStr: string,
+  options: DiffJsonOptionsNonabortable & CallbackOptionNonabortable<string>
+): undefined
+export function diffJson(
+  oldStr: string,
+  newStr: string,
+  options: DiffJsonOptionsAbortable
+): ChangeObject<string>[] | undefined
+export function diffJson(
+  oldStr: string,
+  newStr: string,
+  options?: DiffJsonOptionsNonabortable
+): ChangeObject<string>[]
 export function diffJson(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
   return jsonDiff.diff(oldStr, newStr, options);
 }
