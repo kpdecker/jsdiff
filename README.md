@@ -334,6 +334,10 @@ Diff.applyPatches(patch, {
 
 jsdiff supports all ES3 environments with some known issues on IE8 and below. Under these browsers some diff algorithms such as word diff and others may fail due to lack of support for capturing groups in the `split` operation.
 
+## TypeScript
+
+TODO: Write a bit about this here
+
 ## License
 
 See [LICENSE](https://github.com/kpdecker/jsdiff/blob/master/LICENSE).
