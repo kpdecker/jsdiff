@@ -1,13 +1,14 @@
 import {diffLines} from '../diff/line';
-import { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable } from '../types';
+import { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable, AbortableDiffOptions } from '../types';
 
 type StructuredPatchCallbackAbortable = (patch: StructuredPatch | undefined) => void;
 type StructuredPatchCallbackNonabortable = (patch: StructuredPatch) => void;
 
-export interface StructuredPatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
+interface _StructuredPatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   context?: number,
   callback?: StructuredPatchCallbackAbortable,
 }
+export type StructuredPatchOptionsAbortable = _StructuredPatchOptionsAbortable & AbortableDiffOptions;
 export interface StructuredPatchOptionsNonabortable extends Pick<DiffLinesOptionsNonabortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   context?: number,
   callback?: StructuredPatchCallbackNonabortable,
@@ -252,10 +253,11 @@ export function formatPatch(diff: StructuredPatch | StructuredPatch[]): string {
 type CreatePatchCallbackAbortable = (patch: string | undefined) => void;
 type CreatePatchCallbackNonabortable = (patch: string) => void;
 
-export interface CreatePatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
+interface _CreatePatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   context?: number,
   callback?: CreatePatchCallbackAbortable,
 }
+export type CreatePatchOptionsAbortable = _CreatePatchOptionsAbortable & AbortableDiffOptions;
 export interface CreatePatchOptionsNonabortable extends Pick<DiffLinesOptionsNonabortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   context?: number,
   callback?: CreatePatchCallbackNonabortable,
