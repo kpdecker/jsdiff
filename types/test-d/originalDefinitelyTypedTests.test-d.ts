@@ -24,7 +24,7 @@ expectType<undefined>(Diff.diffChars(one, other, (value) => {
 Diff.diffWords("吾輩は猫である。名前はまだ無い。", "吾輩は猫である。名前はたぬき。", {
     intlSegmenter: new Intl.Segmenter("ja-JP", { granularity: "word" }),
 });
-expectType<Change[]>(
+expectType<Change[]>( // TODO: Wrong in DT tests
     Diff.diffLines(
         "line\nold value\nline",
         "line\nnew value\nline",
@@ -46,10 +46,10 @@ expectType<undefined>(
 
 const diffArraysResult = Diff.diffArrays(["a", "b", "c"], ["a", "c", "d"]);
 diffArraysResult.forEach(result => {
-    expectType<boolean | undefined>(result.added);
-    expectType<boolean | undefined>(result.removed);
-    expectType<string[]>(result.value);
-    expectType<number | undefined>(result.count);
+    expectType<boolean | undefined>(result.added); // TODO: Wrong in DT tests
+    expectType<boolean | undefined>(result.removed); // TODO: Wrong in DT tests
+    expectType<string[]>(result.value); // TODO: Looks like DT handles this generically instead of using any[]. Can I do the same?
+    expectType<number | undefined>(result.count); // TODO: Wrong in DT tests
 });
 
 interface DiffObj {
@@ -59,22 +59,22 @@ const a: DiffObj = { value: 0 };
 const b: DiffObj = { value: 1 };
 const c: DiffObj = { value: 2 };
 const d: DiffObj = { value: 3 };
-const arrayOptions: Diff.ArrayOptions<DiffObj, DiffObj> = {
-    comparator: (left, right) => {
+const arrayOptions: Diff.ArrayOptions<DiffObj, DiffObj> = { // TODO: Update name
+    comparator: (left, right) => { // TODO: Should array options be generic?
         return left.value === right.value;
     },
 };
 const arrayChanges = Diff.diffArrays([a, b, c], [a, b, d], arrayOptions);
 arrayChanges.forEach(result => {
-    expectType<boolean | undefined>(result.added)
-    expectType<boolean | undefined>(result.removed)
-    expectType<DiffObj[]>(result.value)
-    expectType<number | undefined>(result.count)
+    expectType<boolean | undefined>(result.added) // TODO: Wrong in DT tests
+    expectType<boolean | undefined>(result.removed) // TODO: Wrong in DT tests
+    expectType<DiffObj[]>(result.value) // TODO: Looks like DT handles this generically instead of using any[]. Can I do the same?
+    expectType<number | undefined>(result.count) // TODO: Wrong in DT tests
 });
 
 // --------------------------
 
-class LineDiffWithoutWhitespace extends Diff.Diff {
+class LineDiffWithoutWhitespace extends Diff.Diff { // TODO: Pass generic arguments to reflect change from DT types
     tokenize(value: string): any {
         return value.split(/^/m);
     }
@@ -93,11 +93,11 @@ function examineChanges(diff: Diff.Change[]) {
         expectType<boolean>(part.added);
         expectType<boolean>(part.removed);
         expectType<string>(part.value);
-        expectType<number | undefined>(part.count);
+        expectType<number | undefined>(part.count); // TODO: Wrong in DT tests
     });
 }
 
-function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.ParsedDiff) {
+function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.ParsedDiff) { // TODO: Name change
     const verifyPatch = Diff.parsePatch(
         Diff.createTwoFilesPatch("oldFile.ts", "newFile.ts", oldStr, newStr, "old", "new", {
             context: 1,
@@ -115,7 +115,7 @@ function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.Parsed
 function verifyApplyMethods(oldStr: string, newStr: string, uniDiffStr: string) {
     const uniDiff = Diff.parsePatch(uniDiffStr)[0];
     const verifyApply = [Diff.applyPatch(oldStr, uniDiff), Diff.applyPatch(oldStr, [uniDiff])];
-    const options: Diff.ApplyPatchesOptions = {
+    const options: Diff.ApplyPatchesOptions = { // TODO: Name change
         loadFile(index, callback) {
             expectType<ParsedDiff>(index);
             callback(undefined, one);
@@ -160,18 +160,18 @@ verifyApplyMethods(one, other, uniDiffStr);
 const file1 = "line1\nline2\nline3\nline4\n";
 const file2 = "line1\nline2\nline5\nline4\n";
 const patch = Diff.structuredPatch("file1", "file2", file1, file2);
-expectType<ParsedDiff>(patch);
+expectType<ParsedDiff>(patch); // TODO: Name change
 const reversedPatch = Diff.reversePatch(patch);
-expectType<ParsedDiff>(reversedPatch)
+expectType<ParsedDiff>(reversedPatch) // TODO: Name change
 const verifyPatch = Diff.parsePatch(
     Diff.createTwoFilesPatch("oldFile.ts", "newFile.ts", "old content", "new content", "old", "new", {
         context: 1,
     }),
 );
-expectType<ParsedDiff[]>(verifyPatch)
+expectType<ParsedDiff[]>(verifyPatch) // TODO: Name change
 
 const wordDiff = new Diff.Diff();
-wordDiff.equals = function(left, right, options) {
+wordDiff.equals = function(left, right, options) { // TODO: Just make everything public to allow this?
     if (options.ignoreWhitespace) {
         if (!options.newlineIsToken || !left.includes("\n")) {
             left = left.trim();
