@@ -24,7 +24,7 @@ expectType<undefined>(Diff.diffChars(one, other, (value) => {
 Diff.diffWords("吾輩は猫である。名前はまだ無い。", "吾輩は猫である。名前はたぬき。", {
     intlSegmenter: new Intl.Segmenter("ja-JP", { granularity: "word" }),
 });
-expectType<Change[]>( // TODO: Wrong in DT tests
+expectType<Change[] | undefined>(
     Diff.diffLines(
         "line\nold value\nline",
         "line\nnew value\nline",
@@ -46,10 +46,10 @@ expectType<undefined>(
 
 const diffArraysResult = Diff.diffArrays(["a", "b", "c"], ["a", "c", "d"]);
 diffArraysResult.forEach(result => {
-    expectType<boolean | undefined>(result.added); // TODO: Wrong in DT tests
-    expectType<boolean | undefined>(result.removed); // TODO: Wrong in DT tests
+    expectType<boolean>(result.added);
+    expectType<boolean>(result.removed);
     expectType<string[]>(result.value); // TODO: Looks like DT handles this generically instead of using any[]. Can I do the same?
-    expectType<number | undefined>(result.count); // TODO: Wrong in DT tests
+    expectType<number>(result.count);
 });
 
 interface DiffObj {
@@ -66,10 +66,10 @@ const arrayOptions: Diff.ArrayOptions<DiffObj, DiffObj> = { // TODO: Update name
 };
 const arrayChanges = Diff.diffArrays([a, b, c], [a, b, d], arrayOptions);
 arrayChanges.forEach(result => {
-    expectType<boolean | undefined>(result.added) // TODO: Wrong in DT tests
-    expectType<boolean | undefined>(result.removed) // TODO: Wrong in DT tests
+    expectType<boolean>(result.added)
+    expectType<boolean>(result.removed)
     expectType<DiffObj[]>(result.value) // TODO: Looks like DT handles this generically instead of using any[]. Can I do the same?
-    expectType<number | undefined>(result.count) // TODO: Wrong in DT tests
+    expectType<number>(result.count)
 });
 
 // --------------------------
@@ -93,7 +93,7 @@ function examineChanges(diff: Diff.Change[]) {
         expectType<boolean>(part.added);
         expectType<boolean>(part.removed);
         expectType<string>(part.value);
-        expectType<number | undefined>(part.count); // TODO: Wrong in DT tests
+        expectType<number>(part.count);
     });
 }
 
