@@ -1,13 +1,22 @@
 import {diffLines} from '../diff/line';
-import { StructuredPatch, DiffLinesOptions } from '../types';
+import { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable } from '../types';
 
-interface PatchCreationOptions extends Pick<DiffLinesOptions, 'ignoreWhitespace' | 'stripTrailingCr'> {
+type StructuredPatchCallbackAbortable = (patch: StructuredPatch | undefined) => void;
+type StructuredPatchCallbackNonabortable = (patch: StructuredPatch) => void;
+
+export interface StructuredPatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   context?: number,
+  callback?: StructuredPatchCallbackAbortable,
 }
-
-type StructuredPatchCallback = (StructuredPatch) => void;
-interface StructuredPatchCallbackOption {
-  callback: StructuredPatchCallback;
+export interface StructuredPatchOptionsNonabortable extends Pick<DiffLinesOptionsNonabortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
+  context?: number,
+  callback?: StructuredPatchCallbackNonabortable,
+}
+interface StructuredPatchCallbackOptionAbortable {
+  callback: StructuredPatchCallbackAbortable;
+}
+interface StructuredPatchCallbackOptionNonabortable {
+  callback: StructuredPatchCallbackAbortable;
 }
 
 export function structuredPatch(
@@ -17,8 +26,35 @@ export function structuredPatch(
   newStr: string,
   oldHeader: string,
   newHeader: string,
-  options: (PatchCreationOptions & StructuredPatchCallbackOption) | StructuredPatchCallback
+  options: StructuredPatchCallbackNonabortable
+): undefined;
+export function structuredPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: StructuredPatchOptionsAbortable & StructuredPatchCallbackOptionAbortable
 ): undefined
+export function structuredPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: StructuredPatchOptionsNonabortable & StructuredPatchCallbackOptionNonabortable
+): undefined
+export function structuredPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: StructuredPatchOptionsAbortable
+): StructuredPatch | undefined
 export function structuredPatch(
   oldFileName: string,
   newFileName: string,
@@ -26,7 +62,7 @@ export function structuredPatch(
   newStr: string,
   oldHeader?: string,
   newHeader?: string,
-  options?: PatchCreationOptions
+  options?: StructuredPatchOptionsNonabortable
 ): StructuredPatch
 export function structuredPatch(
   oldFileName: string,
@@ -35,9 +71,9 @@ export function structuredPatch(
   newStr: string,
   oldHeader?: string,
   newHeader?: string,
-  options?: PatchCreationOptions & Partial<StructuredPatchCallbackOption> | StructuredPatchCallback
+  options?: StructuredPatchOptionsAbortable | StructuredPatchOptionsNonabortable | StructuredPatchCallbackNonabortable
 ): StructuredPatch | undefined {
-  let optionsObj: PatchCreationOptions & Partial<StructuredPatchCallbackOption>;
+  let optionsObj: StructuredPatchOptionsAbortable | StructuredPatchOptionsNonabortable;
   if (!options) {
     optionsObj = {};
   } else if (typeof options === 'function') {
@@ -57,7 +93,7 @@ export function structuredPatch(
   }
 
   if (!optionsObj.callback) {
-    return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj));
+    return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj as any));
   } else {
     const {callback} = optionsObj;
     diffLines(
@@ -213,9 +249,22 @@ export function formatPatch(diff: StructuredPatch | StructuredPatch[]): string {
   return ret.join('\n') + '\n';
 }
 
-type CreatePatchCallback = (string) => void;
-interface CreatePatchCallbackOption {
-  callback: CreatePatchCallback
+type CreatePatchCallbackAbortable = (patch: string | undefined) => void;
+type CreatePatchCallbackNonabortable = (patch: string) => void;
+
+export interface CreatePatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
+  context?: number,
+  callback?: CreatePatchCallbackAbortable,
+}
+export interface CreatePatchOptionsNonabortable extends Pick<DiffLinesOptionsNonabortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
+  context?: number,
+  callback?: CreatePatchCallbackNonabortable,
+}
+interface CreatePatchCallbackOptionAbortable {
+  callback: CreatePatchCallbackAbortable;
+}
+interface CreatePatchCallbackOptionNonabortable {
+  callback: CreatePatchCallbackAbortable;
 }
 
 export function createTwoFilesPatch(
@@ -225,8 +274,35 @@ export function createTwoFilesPatch(
   newStr: string,
   oldHeader: string,
   newHeader: string,
-  options: (PatchCreationOptions & CreatePatchCallbackOption) | CreatePatchCallback
+  options: CreatePatchCallbackNonabortable
+): undefined;
+export function createTwoFilesPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: CreatePatchOptionsAbortable & CreatePatchCallbackOptionAbortable
 ): undefined
+export function createTwoFilesPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: CreatePatchOptionsNonabortable & CreatePatchCallbackOptionNonabortable
+): undefined
+export function createTwoFilesPatch(
+  oldFileName: string,
+  newFileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: CreatePatchOptionsAbortable
+): string | undefined
 export function createTwoFilesPatch(
   oldFileName: string,
   newFileName: string,
@@ -234,7 +310,7 @@ export function createTwoFilesPatch(
   newStr: string,
   oldHeader?: string,
   newHeader?: string,
-  options?: PatchCreationOptions
+  options?: CreatePatchOptionsNonabortable
 ): string
 export function createTwoFilesPatch(
   oldFileName: string,
@@ -243,14 +319,14 @@ export function createTwoFilesPatch(
   newStr: string,
   oldHeader?: string,
   newHeader?: string,
-  options?: (PatchCreationOptions & Partial<CreatePatchCallbackOption>) | CreatePatchCallback
+  options?: CreatePatchOptionsAbortable | CreatePatchOptionsNonabortable | CreatePatchCallbackNonabortable
 ): string | undefined {
   if (typeof options === 'function') {
     options = {callback: options};
   }
 
   if (!options?.callback) {
-    const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
+    const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options as any);
     if (!patchObj) {
       return;
     }
@@ -278,31 +354,56 @@ export function createTwoFilesPatch(
   }
 }
 
+
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
   oldHeader: string,
   newHeader: string,
-  options: (PatchCreationOptions & CreatePatchCallbackOption) | CreatePatchCallback
+  options: CreatePatchCallbackNonabortable
+): undefined;
+export function createPatch(
+  fileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: CreatePatchOptionsAbortable & CreatePatchCallbackOptionAbortable
 ): undefined
+export function createPatch(
+  fileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: CreatePatchOptionsNonabortable & CreatePatchCallbackOptionNonabortable
+): undefined
+export function createPatch(
+  fileName: string,
+  oldStr: string,
+  newStr: string,
+  oldHeader: string,
+  newHeader: string,
+  options: CreatePatchOptionsAbortable
+): string | undefined
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
   oldHeader?: string,
   newHeader?: string,
-  options?: PatchCreationOptions
+  options?: CreatePatchOptionsNonabortable
 ): string
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
-  options?: any
-): undefined | string {
-  return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options);
+  oldHeader?: string,
+  newHeader?: string,
+  options?: CreatePatchOptionsAbortable | CreatePatchOptionsNonabortable | CreatePatchCallbackNonabortable
+): string | undefined {
+  return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options as any);
 }
 
 /**
