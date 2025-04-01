@@ -24,8 +24,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: StructuredPatchCallbackNonabortable
 ): undefined;
 export function structuredPatch(
@@ -33,8 +33,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: StructuredPatchOptionsAbortable & StructuredPatchCallbackOptionAbortable
 ): undefined
 export function structuredPatch(
@@ -42,8 +42,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: StructuredPatchOptionsNonabortable & StructuredPatchCallbackOptionNonabortable
 ): undefined
 export function structuredPatch(
@@ -51,8 +51,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: StructuredPatchOptionsAbortable
 ): StructuredPatch | undefined
 export function structuredPatch(
@@ -60,8 +60,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string,
-  newHeader?: string,
+  oldHeader?: string | undefined,
+  newHeader?: string | undefined,
   options?: StructuredPatchOptionsNonabortable
 ): StructuredPatch
 export function structuredPatch(
@@ -69,8 +69,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string,
-  newHeader?: string,
+  oldHeader?: string | undefined,
+  newHeader?: string | undefined,
   options?: StructuredPatchOptionsAbortable | StructuredPatchOptionsNonabortable | StructuredPatchCallbackNonabortable
 ): StructuredPatch | undefined {
   let optionsObj: StructuredPatchOptionsAbortable | StructuredPatchOptionsNonabortable;
@@ -272,8 +272,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchCallbackNonabortable
 ): undefined;
 export function createTwoFilesPatch(
@@ -281,8 +281,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchOptionsAbortable & CreatePatchCallbackOptionAbortable
 ): undefined
 export function createTwoFilesPatch(
@@ -290,8 +290,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchOptionsNonabortable & CreatePatchCallbackOptionNonabortable
 ): undefined
 export function createTwoFilesPatch(
@@ -299,8 +299,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchOptionsAbortable
 ): string | undefined
 export function createTwoFilesPatch(
@@ -308,8 +308,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string,
-  newHeader?: string,
+  oldHeader?: string | undefined,
+  newHeader?: string | undefined,
   options?: CreatePatchOptionsNonabortable
 ): string
 export function createTwoFilesPatch(
@@ -317,8 +317,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string,
-  newHeader?: string,
+  oldHeader?: string | undefined,
+  newHeader?: string | undefined,
   options?: CreatePatchOptionsAbortable | CreatePatchOptionsNonabortable | CreatePatchCallbackNonabortable
 ): string | undefined {
   if (typeof options === 'function') {
@@ -354,53 +354,52 @@ export function createTwoFilesPatch(
   }
 }
 
-
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchCallbackNonabortable
 ): undefined;
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchOptionsAbortable & CreatePatchCallbackOptionAbortable
 ): undefined
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchOptionsNonabortable & CreatePatchCallbackOptionNonabortable
 ): undefined
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   options: CreatePatchOptionsAbortable
 ): string | undefined
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string,
-  newHeader?: string,
+  oldHeader?: string | undefined,
+  newHeader?: string | undefined,
   options?: CreatePatchOptionsNonabortable
 ): string
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string,
-  newHeader?: string,
+  oldHeader?: string | undefined,
+  newHeader?: string | undefined,
   options?: CreatePatchOptionsAbortable | CreatePatchOptionsNonabortable | CreatePatchCallbackNonabortable
 ): string | undefined {
   return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options as any);
