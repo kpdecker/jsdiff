@@ -14,7 +14,7 @@ export function applyPatch(
   source: string,
   uniDiff: string | StructuredPatch | [StructuredPatch],
   options: ApplyPatchOptions = {}
-): string | boolean {
+): string | false {
   let patches: StructuredPatch[];
   if (typeof uniDiff === 'string') {
     patches = parsePatch(uniDiff);
@@ -35,7 +35,7 @@ function applyStructuredPatch(
   source: string,
   patch: StructuredPatch,
   options: ApplyPatchOptions = {}
-): string | boolean {
+): string | false {
   if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
     if (hasOnlyWinLineEndings(source) && isUnix(patch)) {
       patch = unixToWin(patch);
@@ -280,7 +280,7 @@ function applyStructuredPatch(
 
 export interface ApplyPatchesOptions extends ApplyPatchOptions {
   loadFile: (index: StructuredPatch, callback: (err: any, data: string) => void) => void,
-  patched: (index: StructuredPatch, content: string, callback: (err: any) => void) => void,
+  patched: (index: StructuredPatch, content: string | false, callback: (err: any) => void) => void,
   complete: (err?: any) => void,
 }
 
