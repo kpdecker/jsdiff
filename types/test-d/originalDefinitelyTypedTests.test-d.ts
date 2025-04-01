@@ -5,7 +5,7 @@
  */
 
 import {expectType} from 'tsd';
-import Diff, { ChangeObject } from "..";
+import Diff, { Change } from "..";
 
 const one = "beep boop";
 const other = "beep boob blah";
@@ -15,11 +15,11 @@ examineChanges(changes);
 
 expectType<undefined>(Diff.diffChars(one, other, {
     callback: (value) => {
-        expectType<ChangeObject<string>[]>(value);
+        expectType<Change[]>(value);
     },
 }));
 expectType<undefined>(Diff.diffChars(one, other, (value) => {
-    expectType<ChangeObject<string>[]>(value);
+    expectType<Change[]>(value);
 }));
 Diff.diffWords("吾輩は猫である。名前はまだ無い。", "吾輩は猫である。名前はたぬき。", {
     intlSegmenter: new Intl.Segmenter("ja-JP", { granularity: "word" }),

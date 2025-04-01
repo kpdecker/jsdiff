@@ -43,6 +43,7 @@ import {convertChangesToDMP} from './convert/dmp';
 import {convertChangesToXML} from './convert/xml';
 import {
   ChangeObject,
+  Change,
   DiffArraysOptionsAbortable,
   DiffArraysOptionsNonabortable,
   DiffCharsOptionsAbortable,
@@ -89,6 +90,7 @@ export {
   canonicalize,
 
   ChangeObject,
+  Change,
   DiffArraysOptionsAbortable,
   DiffArraysOptionsNonabortable,
   DiffCharsOptionsAbortable,

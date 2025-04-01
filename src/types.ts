@@ -5,6 +5,13 @@ export interface ChangeObject<ValueT> {
     count: number;
 }
 
+// Name "Change" is used here for consistency with the previous type definitions from
+// DefinitelyTyped. I would *guess* this is probably the single most common type for people to
+// explicitly reference by name in their own code, so keeping its name consistent is valuable even
+// though the names of many other types are inconsistent with the old DefinitelyTyped names.
+export type Change = ChangeObject<string>;
+export type ArrayChange = ChangeObject<any[]>;
+
 export interface CommonDiffOptions {
   oneChangePerToken?: boolean,
 }
