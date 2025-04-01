@@ -39,7 +39,7 @@ expectType<Change[]>(
 expectType<undefined>(
     Diff.createPatch("filename", "A", "a", undefined, undefined, {
         callback: (value) => {
-            value; // $ExpectType string
+            expectType<string>(value);
         },
     })
 );
