@@ -17,7 +17,7 @@ interface StructuredPatchCallbackOptionAbortable {
   callback: StructuredPatchCallbackAbortable;
 }
 interface StructuredPatchCallbackOptionNonabortable {
-  callback: StructuredPatchCallbackAbortable;
+  callback: StructuredPatchCallbackNonabortable;
 }
 
 export function structuredPatch(
@@ -266,7 +266,7 @@ interface CreatePatchCallbackOptionAbortable {
   callback: CreatePatchCallbackAbortable;
 }
 interface CreatePatchCallbackOptionNonabortable {
-  callback: CreatePatchCallbackAbortable;
+  callback: CreatePatchCallbackNonabortable;
 }
 
 export function createTwoFilesPatch(
