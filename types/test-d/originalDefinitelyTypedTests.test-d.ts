@@ -122,7 +122,9 @@ function verifyApplyMethods(oldStr: string, newStr: string, uniDiffStr: string) 
         },
         patched(index, content) {
             expectType<StructuredPatch>(index); 
-            verifyApply.push(content);
+            if (content !== false) {
+                verifyApply.push(content);
+            }
         },
         complete(err) {
             if (err) {
