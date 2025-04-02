@@ -170,7 +170,7 @@ const verifyPatch = Diff.parsePatch(
 );
 expectType<StructuredPatch[]>(verifyPatch)
 
-const wordDiff = new Diff.Diff();
+const wordDiff = new Diff.Diff<string, string>();
 wordDiff.equals = function(left, right, options) {
     if (options.ignoreWhitespace) {
         if (!options.newlineIsToken || !left.includes("\n")) {
