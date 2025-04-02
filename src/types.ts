@@ -99,7 +99,6 @@ export interface DiffCssOptionsNonabortable extends DiffCssOptions {
 export type DiffCssOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
 
 
-// TODO: Move this somewhere else?
 /**
  * Note that this contains the union of ALL options accepted by any of the built-in diffing
  * functions. The README notes which options are usable which functions. Using an option with a
