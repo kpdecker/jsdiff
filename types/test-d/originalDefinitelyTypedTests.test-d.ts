@@ -5,7 +5,7 @@
  */
 
 import {expectType} from 'tsd';
-import Diff, { Change } from "..";
+import Diff, { Change, StructuredPatch } from "..";
 
 const one = "beep boop";
 const other = "beep boob blah";
@@ -74,7 +74,7 @@ arrayChanges.forEach(result => {
 
 // --------------------------
 
-class LineDiffWithoutWhitespace extends Diff.Diff { // TODO: Pass generic arguments to reflect change from DT types
+class LineDiffWithoutWhitespace extends Diff.Diff<string, string> {
     tokenize(value: string): any {
         return value.split(/^/m);
     }
@@ -97,7 +97,7 @@ function examineChanges(diff: Diff.Change[]) {
     });
 }
 
-function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.ParsedDiff) { // TODO: Name change
+function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.StructuredPatch) { // TODO: Name change
     const verifyPatch = Diff.parsePatch(
         Diff.createTwoFilesPatch("oldFile.ts", "newFile.ts", oldStr, newStr, "old", "new", {
             context: 1,
@@ -117,11 +117,11 @@ function verifyApplyMethods(oldStr: string, newStr: string, uniDiffStr: string) 
     const verifyApply = [Diff.applyPatch(oldStr, uniDiff), Diff.applyPatch(oldStr, [uniDiff])];
     const options: Diff.ApplyPatchesOptions = { // TODO: Name change
         loadFile(index, callback) {
-            expectType<ParsedDiff>(index);
+            expectType<StructuredPatch>(index);
             callback(undefined, one);
         },
         patched(index, content) {
-            expectType<ParsedDiff>(index); 
+            expectType<StructuredPatch>(index); 
             verifyApply.push(content);
         },
         complete(err) {
@@ -160,15 +160,15 @@ verifyApplyMethods(one, other, uniDiffStr);
 const file1 = "line1\nline2\nline3\nline4\n";
 const file2 = "line1\nline2\nline5\nline4\n";
 const patch = Diff.structuredPatch("file1", "file2", file1, file2);
-expectType<ParsedDiff>(patch); // TODO: Name change
+expectType<StructuredPatch>(patch);
 const reversedPatch = Diff.reversePatch(patch);
-expectType<ParsedDiff>(reversedPatch) // TODO: Name change
+expectType<StructuredPatch>(reversedPatch)
 const verifyPatch = Diff.parsePatch(
     Diff.createTwoFilesPatch("oldFile.ts", "newFile.ts", "old content", "new content", "old", "new", {
         context: 1,
     }),
 );
-expectType<ParsedDiff[]>(verifyPatch) // TODO: Name change
+expectType<StructuredPatch[]>(verifyPatch)
 
 const wordDiff = new Diff.Diff();
 wordDiff.equals = function(left, right, options) { // TODO: Just make everything public to allow this?
