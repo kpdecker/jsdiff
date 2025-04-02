@@ -25,7 +25,7 @@ import {diffJson, canonicalize} from './diff/json';
 
 import {diffArrays} from './diff/array';
 
-import {applyPatch, applyPatches} from './patch/apply';
+import {applyPatch, applyPatches, ApplyPatchOptions, ApplyPatchesOptions} from './patch/apply';
 import {parsePatch} from './patch/parse';
 import {reversePatch} from './patch/reverse';
 import {
@@ -107,6 +107,9 @@ export {
   DiffCssOptionsNonabortable,
   StructuredPatch,
   StructuredPatchHunk,
+
+  ApplyPatchOptions,
+  ApplyPatchesOptions,
 
   StructuredPatchOptionsAbortable,
   StructuredPatchOptionsNonabortable,
