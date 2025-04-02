@@ -16,6 +16,8 @@
 
   Also, **the `Diff` object is now a class**. Custom extensions of `Diff`, as described in the "Defining custom diffing behaviors" section of the README, can therefore now be done by writing a `class CustomDiff extends Diff` and overriding methods, instead of the old way based on prototype inheritance. (I *think* code that did things the old way should still work, though!)
 
+  Finally, **the `ignoreWhitespace` option for `diffWords` is not included in the type declarations**. The effect of passing `ignoreWhitespace: true` has always been to make `diffWords` just call `diffWordsWithSpace` instead, which was confusing, because that behaviour doesn't seem properly described as "ignoring" whitespace at all. The property remains available to non-TypeScript applications for the sake of backwards compatability, but TypeScript applications will now see a type error if they try to pass `ignoreWhitespace: true` to `diffWords` and should change their code to call `diffWordsWithSpace` instead.
+
 ## 7.0.0
 
 Just a single (breaking) bugfix, undoing a behaviour change introduced accidentally in 6.0.0:

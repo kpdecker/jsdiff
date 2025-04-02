@@ -57,7 +57,7 @@ interface DiffLinesOptions extends CommonDiffOptions {
   stripTrailingCr?: boolean,
   newlineIsToken?: boolean,
   ignoreNewlineAtEof?: boolean,
-  ignoreWhitespace?: boolean, // TODO: This is SORT OF supported by diffWords. What to do?
+  ignoreWhitespace?: boolean,
 }
 export interface DiffLinesOptionsNonabortable extends DiffLinesOptions {
   callback?: DiffCallbackNonabortable<string>
