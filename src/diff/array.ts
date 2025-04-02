@@ -1,7 +1,7 @@
 import Diff from './base';
 import {ChangeObject, DiffArraysOptionsNonabortable, CallbackOptionNonabortable, DiffArraysOptionsAbortable, DiffCallbackNonabortable, CallbackOptionAbortable} from '../types';
 
-class ArrayDiff extends Diff<any, Array<any>> {
+class ArrayDiff<T> extends Diff<T, Array<T>> {
   protected tokenize(value: Array<any>) {
     return value.slice();
   }
@@ -17,35 +17,35 @@ class ArrayDiff extends Diff<any, Array<any>> {
 
 export const arrayDiff = new ArrayDiff();
 
-export function diffArrays(
-  oldArr: any[],
-  newArr: any[],
-  options: DiffCallbackNonabortable<any[]>
+export function diffArrays<T>(
+  oldArr: T[],
+  newArr: T[],
+  options: DiffCallbackNonabortable<T[]>
 ): undefined;
-export function diffArrays(
-  oldArr: any[],
-  newArr: any[],
-  options: DiffArraysOptionsAbortable & CallbackOptionAbortable<any[]>
+export function diffArrays<T>(
+  oldArr: T[],
+  newArr: T[],
+  options: DiffArraysOptionsAbortable<T> & CallbackOptionAbortable<T[]>
 ): undefined
-export function diffArrays(
-  oldArr: any[],
-  newArr: any[],
-  options: DiffArraysOptionsNonabortable & CallbackOptionNonabortable<any[]>
+export function diffArrays<T>(
+  oldArr: T[],
+  newArr: T[],
+  options: DiffArraysOptionsNonabortable<T> & CallbackOptionNonabortable<T[]>
 ): undefined
-export function diffArrays(
-  oldArr: any[],
-  newArr: any[],
-  options: DiffArraysOptionsAbortable
-): ChangeObject<any[]>[] | undefined
-export function diffArrays(
-  oldArr: any[],
-  newArr: any[],
-  options?: DiffArraysOptionsNonabortable
-): ChangeObject<any[]>[]
-export function diffArrays(
-  oldArr: any[],
-  newArr: any[],
+export function diffArrays<T>(
+  oldArr: T[],
+  newArr: T[],
+  options: DiffArraysOptionsAbortable<T>
+): ChangeObject<T[]>[] | undefined
+export function diffArrays<T>(
+  oldArr: T[],
+  newArr: T[],
+  options?: DiffArraysOptionsNonabortable<T>
+): ChangeObject<T[]>[]
+export function diffArrays<T>(
+  oldArr: T[],
+  newArr: T[],
   options?
-): undefined | ChangeObject<any[]>[] {
+): undefined | ChangeObject<T[]>[] {
   return arrayDiff.diff(oldArr, newArr, options);
 }

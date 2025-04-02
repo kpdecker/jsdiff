@@ -36,13 +36,13 @@ export interface CallbackOptionAbortable<T> {
   callback: DiffCallbackAbortable<T>
 }
 
-interface DiffArraysOptions extends CommonDiffOptions {
-  comparator?: (a: any, b: any) => boolean,
+interface DiffArraysOptions<T> extends CommonDiffOptions {
+  comparator?: (a: T, b: T) => boolean,
 }
-export interface DiffArraysOptionsNonabortable extends DiffArraysOptions {
-  callback?: DiffCallbackNonabortable<any[]>
+export interface DiffArraysOptionsNonabortable<T> extends DiffArraysOptions<T> {
+  callback?: DiffCallbackNonabortable<T[]>
 }
-export type DiffArraysOptionsAbortable = DiffArraysOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<any[]>>
+export type DiffArraysOptionsAbortable<T> = DiffArraysOptions<T> & AbortableDiffOptions & Partial<CallbackOptionAbortable<T[]>>
 
 
 interface DiffCharsOptions extends CommonDiffOptions {
@@ -106,7 +106,7 @@ export type DiffCssOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & P
  * diffing function that doesn't support it might yield unreasonable results.
  */
 export type AllDiffOptions =
-  DiffArraysOptions &
+  DiffArraysOptions<unknown> &
   DiffCharsOptions &
   DiffWordsOptions &
   DiffLinesOptions &
