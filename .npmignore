@@ -4,6 +4,7 @@
 .npmignore
 .vscode
 .nyc_output
+test-d
 components
 coverage
 examples

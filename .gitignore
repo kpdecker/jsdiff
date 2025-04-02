@@ -7,3 +7,4 @@ yarn-error.log
 .nyc_output
 /src/**/*.js
 /types
+!/types/test-d
