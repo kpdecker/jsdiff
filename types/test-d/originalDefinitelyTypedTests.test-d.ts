@@ -59,7 +59,7 @@ const a: DiffObj = { value: 0 };
 const b: DiffObj = { value: 1 };
 const c: DiffObj = { value: 2 };
 const d: DiffObj = { value: 3 };
-const arrayOptions: Diff.ArrayOptions<DiffObj, DiffObj> = { // TODO: Update name
+const arrayOptions: Diff.DiffArraysOptionsNonabortable<DiffObj> = { // TODO: Update name
     comparator: (left, right) => { // TODO: Should array options be generic?
         return left.value === right.value;
     },
