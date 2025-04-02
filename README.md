@@ -336,7 +336,15 @@ jsdiff supports all ES3 environments with some known issues on IE8 and below. Un
 
 ## TypeScript
 
-TODO: Write a bit about this here
+As of version 8, JsDiff ships with type definitions. From version 8 onwards, you should not depend on the `@types/diff` package.
+
+One tricky pattern pervades the type definitions and is worth explaining here. Most diff-generating and patch-generating functions (`diffChars`, `diffWords`, `structuredPatch`, etc) can be run in async mode (by providing a `callback` option), in abortable mode (by passing a `timeout` or `maxEditLength` property), or both. This is awkward for typing, because these modes have different call signatures:
+  * in abortable mode, the result *might* be `undefined`, and
+  * in async mode, the result (which *might* be allowed to be `undefined`, depending upon whether we're in abortable mode) is passed to the provide callback instead of being returned, and the return value is always `undefined`
+
+Our type definitions handle this as best they can by declaring different types for multiple [overload signatures](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads) for each such function - and also by declaring different types for abortable and nonabortable options objects. For instance, an object of type `DiffCharsOptionsAbortable` is valid to pass as the `options` argument to `diffChars` and represents an *abortable* call (whose result may be `undefined`) since it necessarily contains either the `timeout` or `maxEditLength` property.
+
+This approach, while probably the least bad way available to add types to JsDiff without radically refactoring the library's API, does not yield perfect results. *As long as* TypeScript is able to statically determine the type of your options, and therefore which overload signature is appropriate, everything should work fine. This should always be the case if you are passing an object literal as the `options` argument and inlining the definition of any `callback` function within that literal. But in cases where TypeScript *cannot* manage to do this - as may often be the case if you, say, define an `options: any = {}` object, build up your options programmatically, and then pass the result to a JsDiff function - then it is likely to fail to match the correct overload signature (probably defaulting to assuming you are calling the function in non-abortable, non-async mode), potentially causing type errors. You can either ignore (e.g. with `@ts-expect-error`) any such errors, or try to avoid them by refactoring your code so that TypeScript can always statically determine the type of the options you pass.
 
 ## License
 
