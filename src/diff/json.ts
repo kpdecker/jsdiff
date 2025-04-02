@@ -3,21 +3,21 @@ import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, Diff
 import {lineDiff} from './line';
 
 class JsonDiff extends Diff<string, string> {
-  protected get useLongestToken() {
+  get useLongestToken() {
     // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
     // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
     return true;
   }
 
-  protected tokenize = lineDiff.tokenize;
+  tokenize = lineDiff.tokenize;
 
-  protected castInput(value: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
+  castInput(value: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
     const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
     return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
   }
 
-  protected equals(left: string, right: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
+  equals(left: string, right: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
     return super.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
   }
 }

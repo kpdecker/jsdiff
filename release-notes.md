@@ -14,6 +14,8 @@
 
   Note that the transition from the DefinitelyTyped types to JsDiff's own type definitions includes multiple fixes and also removes many exported types previously used for `options` arguments to diffing and patch-generation functions. (There are now different exported options types for abortable calls - ones with a `timeout` or `maxEditLength` that may give a result of `undefined` - and non-abortable calls.) See the TypeScript section of the README for some usage tips.
 
+  Also, **the `Diff` object is now a class**. Custom extensions of `Diff`, as described in the "Defining custom diffing behaviors" section of the README, can therefore now be done by writing a `class CustomDiff extends Diff` and overriding methods, instead of the old way based on prototype inheritance. (I *think* code that did things the old way should still work, though!)
+
 ## 7.0.0
 
 Just a single (breaking) bugfix, undoing a behaviour change introduced accidentally in 6.0.0:

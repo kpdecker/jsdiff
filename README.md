@@ -188,7 +188,7 @@ The simplest way to customize tokenization behavior is to simply tokenize the te
 
 To customize the notion of token equality used, use the `comparator` option to `diffArrays`.
 
-For even more customisation of the diffing behavior, you can create a `new Diff.Diff()` object, overwrite its `castInput`, `tokenize`, `removeEmpty`, `equals`, and `join` properties with your own functions, then call its `diff(oldString, newString[, options])` method. The methods you can overwrite are used as follows:
+For even more customisation of the diffing behavior, you can extend the `Diff.Diff()` class, override its `castInput`, `tokenize`, `removeEmpty`, `equals`, and `join` properties with your own functions, then call its `diff(oldString, newString[, options])` method. The methods you can override are used as follows:
 
 * `castInput(value, options)`: used to transform the `oldString` and `newString` before any other steps in the diffing algorithm happen. For instance, `diffJson` uses `castInput` to serialize the objects being diffed to JSON. Defaults to a no-op.
 * `tokenize(value, options)`: used to convert each of `oldString` and `newString` (after they've gone through `castInput`) to an array of tokens. Defaults to returning `value.split('')` (returning an array of individual characters).

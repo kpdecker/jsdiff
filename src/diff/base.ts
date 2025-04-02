@@ -260,7 +260,7 @@ export default class Diff<
     return newPos;
   }
 
-  protected equals(left: TokenT, right: TokenT, options: AllDiffOptions): boolean {
+  equals(left: TokenT, right: TokenT, options: AllDiffOptions): boolean {
     if (options.comparator) {
       return options.comparator(left, right);
     } else {
@@ -269,7 +269,7 @@ export default class Diff<
     }
   }
 
-  protected removeEmpty(array: TokenT[]): TokenT[] {
+  removeEmpty(array: TokenT[]): TokenT[] {
     const ret: TokenT[] = [];
     for (let i = 0; i < array.length; i++) {
       if (array[i]) {
@@ -280,16 +280,16 @@ export default class Diff<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected castInput(value: ValueT, options: AllDiffOptions): ValueT {
+  castInput(value: ValueT, options: AllDiffOptions): ValueT {
     return value;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected tokenize(value: ValueT, options: AllDiffOptions): TokenT[] {
+  tokenize(value: ValueT, options: AllDiffOptions): TokenT[] {
     return Array.from(value);
   }
 
-  protected join(chars: TokenT[]): ValueT {
+  join(chars: TokenT[]): ValueT {
     // Assumes ValueT is string, which is the case for most subclasses.
     // When it's false, e.g. in diffArrays, this method needs to be overridden (e.g. with a no-op)
     // Yes, the casts are verbose and ugly, because this pattern - of having the base class SORT OF
@@ -297,7 +297,7 @@ export default class Diff<
     return (chars as string[]).join('') as unknown as ValueT;
   }
 
-  protected postProcess(
+  postProcess(
     changeObjects: ChangeObject<ValueT>[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options: AllDiffOptions
@@ -305,7 +305,7 @@ export default class Diff<
     return changeObjects;
   }
 
-  protected get useLongestToken(): boolean {
+  get useLongestToken(): boolean {
     return false;
   }
 

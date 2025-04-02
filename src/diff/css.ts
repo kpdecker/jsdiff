@@ -2,7 +2,7 @@ import Diff from './base';
 import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffCssOptionsAbortable, DiffCssOptionsNonabortable} from '../types';
 
 class CssDiff extends Diff<string, string> {
-  protected tokenize(value: string) {
+  tokenize(value: string) {
     return value.split(/([{}:;,]|\s+)/);
   }
 }

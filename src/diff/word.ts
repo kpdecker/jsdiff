@@ -51,7 +51,7 @@ const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^$
 
 
 class WordDiff extends Diff<string, string> {
-  protected equals(left: string, right: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable) {
+  equals(left: string, right: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable) {
     if (options.ignoreCase) {
       left = left.toLowerCase();
       right = right.toLowerCase();
@@ -60,7 +60,7 @@ class WordDiff extends Diff<string, string> {
     return left.trim() === right.trim();
   }
 
-  protected tokenize(value: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable = {}) {
+  tokenize(value: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable = {}) {
     let parts;
     if (options.intlSegmenter) {
       if (options.intlSegmenter.resolvedOptions().granularity != 'word') {
@@ -94,7 +94,7 @@ class WordDiff extends Diff<string, string> {
     return tokens;
   }
 
-  protected join(tokens) {
+  join(tokens) {
     // Tokens being joined here will always have appeared consecutively in the
     // same text, so we can simply strip off the leading whitespace from all the
     // tokens except the first (and except any whitespace-only tokens - but such
@@ -109,7 +109,7 @@ class WordDiff extends Diff<string, string> {
     }).join('');
   }
 
-  protected postProcess(changes, options) {
+  postProcess(changes, options) {
     if (!changes || options.oneChangePerToken) {
       return changes;
     }
@@ -304,7 +304,7 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
 
 
 class WordsWithSpaceDiff extends Diff<string, string> {
-  protected tokenize(value: string) {
+  tokenize(value: string) {
     // Slightly different to the tokenizeIncludingWhitespace regex used above in
     // that this one treats each individual newline as a distinct tokens, rather
     // than merging them into other surrounding whitespace. This was requested

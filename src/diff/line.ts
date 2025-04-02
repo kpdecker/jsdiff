@@ -33,7 +33,7 @@ class LineDiff extends Diff<string, string> {
     return retLines;
   }
 
-  protected equals(left: string, right: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
+  equals(left: string, right: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
     // If we're ignoring whitespace, we need to normalise lines by stripping
     // whitespace before checking equality. (This has an annoying interaction
     // with newlineIsToken that requires special handling: if newlines get their

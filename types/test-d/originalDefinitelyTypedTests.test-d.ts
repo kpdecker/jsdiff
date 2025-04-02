@@ -171,7 +171,7 @@ const verifyPatch = Diff.parsePatch(
 expectType<StructuredPatch[]>(verifyPatch)
 
 const wordDiff = new Diff.Diff();
-wordDiff.equals = function(left, right, options) { // TODO: Just make everything public to allow this?
+wordDiff.equals = function(left, right, options) {
     if (options.ignoreWhitespace) {
         if (!options.newlineIsToken || !left.includes("\n")) {
             left = left.trim();
