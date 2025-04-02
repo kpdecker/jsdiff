@@ -48,7 +48,7 @@ const diffArraysResult = Diff.diffArrays(["a", "b", "c"], ["a", "c", "d"]);
 diffArraysResult.forEach(result => {
     expectType<boolean>(result.added);
     expectType<boolean>(result.removed);
-    expectType<string[]>(result.value); // TODO: Looks like DT handles this generically instead of using any[]. Can I do the same?
+    expectType<string[]>(result.value);
     expectType<number>(result.count);
 });
 
@@ -59,8 +59,8 @@ const a: DiffObj = { value: 0 };
 const b: DiffObj = { value: 1 };
 const c: DiffObj = { value: 2 };
 const d: DiffObj = { value: 3 };
-const arrayOptions: Diff.DiffArraysOptionsNonabortable<DiffObj> = { // TODO: Update name
-    comparator: (left, right) => { // TODO: Should array options be generic?
+const arrayOptions: Diff.DiffArraysOptionsNonabortable<DiffObj> = {
+    comparator: (left, right) => {
         return left.value === right.value;
     },
 };
@@ -68,7 +68,7 @@ const arrayChanges = Diff.diffArrays([a, b, c], [a, b, d], arrayOptions);
 arrayChanges.forEach(result => {
     expectType<boolean>(result.added)
     expectType<boolean>(result.removed)
-    expectType<DiffObj[]>(result.value) // TODO: Looks like DT handles this generically instead of using any[]. Can I do the same?
+    expectType<DiffObj[]>(result.value)
     expectType<number>(result.count)
 });
 
@@ -97,7 +97,7 @@ function examineChanges(diff: Diff.Change[]) {
     });
 }
 
-function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.StructuredPatch) { // TODO: Name change
+function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.StructuredPatch) {
     const verifyPatch = Diff.parsePatch(
         Diff.createTwoFilesPatch("oldFile.ts", "newFile.ts", oldStr, newStr, "old", "new", {
             context: 1,
@@ -115,7 +115,7 @@ function verifyPatchMethods(oldStr: string, newStr: string, uniDiff: Diff.Struct
 function verifyApplyMethods(oldStr: string, newStr: string, uniDiffStr: string) {
     const uniDiff = Diff.parsePatch(uniDiffStr)[0];
     const verifyApply = [Diff.applyPatch(oldStr, uniDiff), Diff.applyPatch(oldStr, [uniDiff])];
-    const options: Diff.ApplyPatchesOptions = { // TODO: Name change
+    const options: Diff.ApplyPatchesOptions = {
         loadFile(index, callback) {
             expectType<StructuredPatch>(index);
             callback(undefined, one);
