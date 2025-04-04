@@ -28,14 +28,14 @@
   "engines": {
     "node": ">=0.3.1"
   },
-  "main": "./lib/index.js",
-  "module": "./lib/index.es6.js",
+  "main": "./libcsm/index.js",
+  "module": "./libesm/index.js",
   "browser": "./dist/diff.js",
   "unpkg": "./dist/diff.js",
   "exports": {
     ".": {
-      "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "import": "./libesm/index.js",
+      "require": "./libcsm/index.js"
     },
     "./package.json": "./package.json",
     "./": "./",
@@ -43,15 +43,17 @@
   },
   "types": "./types/",
   "scripts": {
-    "clean": "rm -rf lib/ dist/ coverage/ .nyc_output/ types/",
+    "clean": "rm -rf libcsm/ libesm/ dist/ coverage/ .nyc_output/ types/",
     "lint": "yarn eslint",
-    "build": "yarn lint && yarn tsc && yarn check-types && yarn run-babel && yarn run-rollup && yarn run-uglify",
+    "build": "yarn lint && yarn generate-types && yarn check-types && yarn generate-esm && yarn generate-cjs && yarn run-rollup && yarn run-uglify",
+    "generate-types": "yarn tsc --emitDeclarationOnly",
+    "generate-cjs": "yarn tsc --module commonjs --outDir libcjs",
+    "generate-esm": "yarn tsc --module es2022 --outDir libesm",
     "check-types": "yarn run-tsd && yarn run-attw",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
     "run-attw": "yarn attw --pack",
     "run-tsd": "yarn tsd --typings types/ && yarn tsd --files test-d/",
-    "run-babel": "babel --out-dir lib  --source-maps=inline src",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
     "run-mocha": "mocha --require ./runtime 'test/**/*.js'"

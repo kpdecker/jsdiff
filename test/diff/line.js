@@ -1,5 +1,5 @@
-import {diffLines, diffTrimmedLines} from '../../lib/diff/line';
-import {convertChangesToXML} from '../../lib/convert/xml';
+import {diffLines, diffTrimmedLines} from '../../libesm/diff/line';
+import {convertChangesToXML} from '../../libesm/convert/xml';
 
 import {expect} from 'chai';
 

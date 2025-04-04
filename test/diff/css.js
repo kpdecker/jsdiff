@@ -1,5 +1,5 @@
-import {diffCss} from '../../lib/diff/css';
-import {convertChangesToXML} from '../../lib/convert/xml';
+import {diffCss} from '../../libesm/diff/css';
+import {convertChangesToXML} from '../../libesm/convert/xml';
 
 import {expect} from 'chai';
 

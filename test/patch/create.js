@@ -1,6 +1,6 @@
-import {diffWords} from '../../lib';
-import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../lib/patch/create';
-import {parsePatch} from '../../lib/patch/parse';
+import {diffWords} from '../../libesm';
+import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../libesm/patch/create';
+import {parsePatch} from '../../libesm/patch/parse';
 
 import {expect} from 'chai';
 

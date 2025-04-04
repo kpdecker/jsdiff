@@ -1,7 +1,7 @@
-import {applyPatch} from '../../lib/patch/apply';
-import {structuredPatch, formatPatch} from '../../lib/patch/create';
-import {reversePatch} from '../../lib/patch/reverse';
-import {parsePatch} from '../../lib/patch/parse';
+import {applyPatch} from '../../libesm/patch/apply';
+import {structuredPatch, formatPatch} from '../../libesm/patch/create';
+import {reversePatch} from '../../libesm/patch/reverse';
+import {parsePatch} from '../../libesm/patch/parse';
 
 import {expect} from 'chai';
 

@@ -1,5 +1,5 @@
-import {parsePatch} from '../../lib/patch/parse';
-import {createPatch} from '../../lib/patch/create';
+import {parsePatch} from '../../libesm/patch/parse';
+import {createPatch} from '../../libesm/patch/create';
 
 import {expect} from 'chai';
 

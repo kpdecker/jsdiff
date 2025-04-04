@@ -1,5 +1,5 @@
-import {convertChangesToDMP} from '../../lib/convert/dmp';
-import {diffChars} from '../../lib/diff/character';
+import {convertChangesToDMP} from '../../libesm/convert/dmp';
+import {diffChars} from '../../libesm/diff/character';
 
 import {expect} from 'chai';
 

@@ -1,5 +1,5 @@
-import {diffJson, canonicalize} from '../../lib/diff/json';
-import {convertChangesToXML} from '../../lib/convert/xml';
+import {diffJson, canonicalize} from '../../libesm/diff/json';
+import {convertChangesToXML} from '../../libesm/convert/xml';
 
 import {expect} from 'chai';
 

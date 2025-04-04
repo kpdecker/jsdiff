@@ -1,5 +1,5 @@
-import {diffChars} from '../../lib/diff/character';
-import {convertChangesToXML} from '../../lib/convert/xml';
+import {diffChars} from '../../libesm/diff/character';
+import {convertChangesToXML} from '../../libesm/convert/xml';
 
 import {expect} from 'chai';
 
