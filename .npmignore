@@ -1,5 +1,5 @@
 .babelrc
-.eslintrc
+.eslint.config.mjs
 .gitignore
 .npmignore
 .vscode
@@ -12,8 +12,10 @@ images
 index.html
 karma.conf.js
 rollup.config.mjs
+runtime.js
 src
 tasks
 test
+tsconfig.json
 yarn-error.log
 yarn.lock
