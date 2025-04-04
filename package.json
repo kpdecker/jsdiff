@@ -48,6 +48,7 @@
     "build": "yarn lint && yarn tsc && yarn run-babel && yarn run-rollup && yarn run-uglify",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
+    "run-tsd": "yarn tsd --typings types/ && yarn tsd --files test-d/",
     "run-babel": "babel --out-dir lib  --source-maps=inline src",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
