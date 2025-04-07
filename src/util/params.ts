@@ -1,5 +1,5 @@
 export function generateOptions(
-  options: object | ((_: unknown) => void),
+  options: {[key: string]: any} | ((_: unknown) => void),
   defaults: any
 ): object {
   if (typeof options === 'function') {
