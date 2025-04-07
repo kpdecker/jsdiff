@@ -183,6 +183,51 @@ describe('diff/json', function() {
       ]);
     });
 
+    it('should only run each value through stringifyReplacer once', function() {
+      expect(
+        diffJson(
+          {foo: '123ab'},
+          {foo: '123xy'},
+          {stringifyReplacer: (k, v) => typeof v === 'string' ? v.slice(0, v.length - 1) : v}
+        )
+      ).to.deep.equal(
+        [
+          { count: 1, value: '{\n', removed: false, added: false },
+          { count: 1, value: '  \"foo\": "123a"\n', added: false, removed: true },
+          { count: 1, value: '  \"foo\": "123x"\n', added: true, removed: false },
+          { count: 1, value: '}', removed: false, added: false }
+        ]
+      );
+    });
+
+    it("should pass the same 'key' values to the replacer as JSON.stringify would", function() {
+      const calls = [];
+      diffJson(
+        {a: ['q', 'r', 's', {t: []}]},
+        {a: ['x', 'y', 'z', {bla: []}]},
+        {stringifyReplacer: (k, v) => {
+          calls.push([k, v]);
+          return v;
+        }}
+      );
+      expect(calls).to.deep.equal([
+        ['', {a: ['q', 'r', 's', {t: []}]}],
+        ['a', ['q', 'r', 's', {t: []}]],
+        ['0', 'q'],
+        ['1', 'r'],
+        ['2', 's'],
+        ['3', {t: []}],
+        ['t', []],
+        ['', {a: ['x', 'y', 'z', {bla: []}]}],
+        ['a', ['x', 'y', 'z', {bla: []}]],
+        ['0', 'x'],
+        ['1', 'y'],
+        ['2', 'z'],
+        ['3', {bla: []}],
+        ['t', []]
+      ]);
+    });
+
     it("doesn't throw on Object.create(null)", function() {
       let diff;
       expect(function() {
