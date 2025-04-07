@@ -290,25 +290,23 @@ export interface ApplyPatchesOptions extends ApplyPatchOptions {
 }
 
 // Wrapper that supports multiple file patches via callbacks.
-export function applyPatches(uniDiff: string | StructuredPatch[], options): void {
-  if (typeof uniDiff === 'string') {
-    uniDiff = parsePatch(uniDiff);
-  }
+export function applyPatches(uniDiff: string | StructuredPatch[], options: ApplyPatchesOptions): void {
+  const spDiff: StructuredPatch[] = typeof uniDiff === 'string' ? parsePatch(uniDiff) : uniDiff;
 
   let currentIndex = 0;
   function processIndex(): void {
-    const index = uniDiff[currentIndex++];
+    const index = spDiff[currentIndex++];
     if (!index) {
       return options.complete();
     }
 
-    options.loadFile(index, function(err, data) {
+    options.loadFile(index, function(err: any, data: string) {
       if (err) {
         return options.complete(err);
       }
 
       const updatedContent = applyPatch(data, index, options);
-      options.patched(index, updatedContent, function(err) {
+      options.patched(index, updatedContent, function(err: any) {
         if (err) {
           return options.complete(err);
         }
