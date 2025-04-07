@@ -14,7 +14,7 @@ class JsonDiff extends Diff<string, string> {
   castInput(value: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
     const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
-    return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
+    return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), null, '  ');
   }
 
   equals(left: string, right: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
@@ -67,7 +67,7 @@ export function canonicalize(
   replacementStack = replacementStack || [];
 
   if (replacer) {
-    obj = replacer(key, obj);
+    obj = replacer(key === undefined ? '' : key, obj);
   }
 
   let i;
@@ -85,7 +85,7 @@ export function canonicalize(
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, key);
+      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
     }
     stack.pop();
     replacementStack.pop();

@@ -17,6 +17,9 @@
   Also, **the `Diff` object is now a class**. Custom extensions of `Diff`, as described in the "Defining custom diffing behaviors" section of the README, can therefore now be done by writing a `class CustomDiff extends Diff` and overriding methods, instead of the old way based on prototype inheritance. (I *think* code that did things the old way should still work, though!)
 
   Finally, **the `ignoreWhitespace` option for `diffWords` is not included in the type declarations**. The effect of passing `ignoreWhitespace: true` has always been to make `diffWords` just call `diffWordsWithSpace` instead, which was confusing, because that behaviour doesn't seem properly described as "ignoring" whitespace at all. The property remains available to non-TypeScript applications for the sake of backwards compatability, but TypeScript applications will now see a type error if they try to pass `ignoreWhitespace: true` to `diffWords` and should change their code to call `diffWordsWithSpace` instead.
+- [#601](https://github.com/kpdecker/jsdiff/pull/601) - **`diffJson`'s `stringifyReplacer` option behaves more like `JSON.stringify`'s `replacer` argument now.** In particular:
+  * Each key/value pair now gets passed through the replacer once instead of twice
+  * The `key` passed to the replacer when the top-level object is passed in as `value` is now `""` (previously, was `undefined`), and the `key` passed with an array element is the array index as a string, like `"0"` or `"1"` (previously was whatever the key for the entire array was). Both the new behaviours match that of `JSON.stringify`.
 
 ## 7.0.0
 
