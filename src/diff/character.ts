@@ -1,5 +1,5 @@
-import Diff from './base';
-import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffCharsOptionsAbortable, DiffCharsOptionsNonabortable} from '../types';
+import Diff from './base.js';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffCharsOptionsAbortable, DiffCharsOptionsNonabortable} from '../types.js';
 
 class CharacterDiff extends Diff<string, string> {}
 

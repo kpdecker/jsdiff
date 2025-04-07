@@ -28,32 +28,31 @@
   "engines": {
     "node": ">=0.3.1"
   },
-  "main": "./libcsm/index.js",
-  "module": "./libesm/index.js",
-  "browser": "./dist/diff.js",
-  "unpkg": "./dist/diff.js",
   "exports": {
     ".": {
-      "import": "./libesm/index.js",
-      "require": "./libcsm/index.js"
-    },
-    "./package.json": "./package.json",
-    "./": "./",
-    "./*": "./*"
+      "import": {
+        "types": "./libesm/index.d.ts",
+        "default": "./libesm/index.js"
+      },
+      "require": {
+        "types": "./libcjs/index.d.ts",
+        "default": "./libcjs/index.js"
+      }
+    }
   },
-  "types": "./types/",
+  "type": "module",
+  "types": "libcjs/index.d.ts",
   "scripts": {
-    "clean": "rm -rf libcsm/ libesm/ dist/ coverage/ .nyc_output/ types/",
+    "clean": "rm -rf libcsm/ libesm/ dist/ coverage/ .nyc_output/",
     "lint": "yarn eslint",
-    "build": "yarn lint && yarn generate-types && yarn check-types && yarn generate-esm && yarn generate-cjs && yarn run-rollup && yarn run-uglify",
-    "generate-types": "yarn tsc --emitDeclarationOnly",
-    "generate-cjs": "yarn tsc --module commonjs --outDir libcjs",
-    "generate-esm": "yarn tsc --module es2022 --outDir libesm",
+    "build": "yarn lint && yarn generate-esm && yarn generate-cjs && yarn check-types && yarn run-rollup && yarn run-uglify",
+    "generate-cjs": "yarn tsc --module commonjs --outDir libcjs && echo '{\"type\": \"commonjs\"}' > libcjs/package.json",
+    "generate-esm": "yarn tsc --module nodenext --outDir libesm && echo '{\"type\": \"module\"}' > libesm/package.json",
     "check-types": "yarn run-tsd && yarn run-attw",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
     "run-attw": "yarn attw --pack",
-    "run-tsd": "yarn tsd --typings types/ && yarn tsd --files test-d/",
+    "run-tsd": "yarn tsd --typings libesm/ && yarn tsd --files test-d/",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
     "run-mocha": "mocha --require ./runtime 'test/**/*.js'"

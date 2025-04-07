@@ -1,6 +1,6 @@
-import Diff from './base';
-import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable} from '../types';
-import {generateOptions} from '../util/params';
+import Diff from './base.js';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable} from '../types.js';
+import {generateOptions} from '../util/params.js';
 
 
 class LineDiff extends Diff<string, string> {

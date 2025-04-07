@@ -5,7 +5,7 @@
  */
 
 import {expectType} from 'tsd';
-import Diff, { Change, StructuredPatch } from "..";
+import Diff, { Change, StructuredPatch } from "../libesm";
 
 const one = "beep boop";
 const other = "beep boob blah";

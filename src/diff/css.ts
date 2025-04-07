@@ -1,5 +1,5 @@
-import Diff from './base';
-import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffCssOptionsAbortable, DiffCssOptionsNonabortable} from '../types';
+import Diff from './base.js';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffCssOptionsAbortable, DiffCssOptionsNonabortable} from '../types.js';
 
 class CssDiff extends Diff<string, string> {
   tokenize(value: string) {

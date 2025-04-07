@@ -1,4 +1,4 @@
-import { StructuredPatch } from '../types';
+import { StructuredPatch } from '../types.js';
 
 export function parsePatch(uniDiff: string): StructuredPatch[] {
   const diffstr = uniDiff.split(/\n/),

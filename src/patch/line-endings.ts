@@ -1,4 +1,4 @@
-import { StructuredPatch } from '../types';
+import { StructuredPatch } from '../types.js';
 
 export function unixToWin(patch: StructuredPatch): StructuredPatch;
 export function unixToWin(patches: StructuredPatch[]): StructuredPatch[];

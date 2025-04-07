@@ -1,6 +1,6 @@
-import Diff from './base';
-import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffJsonOptionsAbortable, DiffJsonOptionsNonabortable} from '../types';
-import {lineDiff} from './line';
+import Diff from './base.js';
+import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffJsonOptionsAbortable, DiffJsonOptionsNonabortable} from '../types.js';
+import {lineDiff} from './line.js';
 
 class JsonDiff extends Diff<string, string> {
   get useLongestToken() {

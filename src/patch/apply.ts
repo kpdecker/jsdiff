@@ -1,8 +1,8 @@
-import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string';
-import {isWin, isUnix, unixToWin, winToUnix} from './line-endings';
-import {parsePatch} from './parse';
-import distanceIterator from '../util/distance-iterator';
-import { StructuredPatch } from '../types';
+import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string.js';
+import {isWin, isUnix, unixToWin, winToUnix} from './line-endings.js';
+import {parsePatch} from './parse.js';
+import distanceIterator from '../util/distance-iterator.js';
+import { StructuredPatch } from '../types.js';
 
 export interface ApplyPatchOptions {
   fuzzFactor?: number,
