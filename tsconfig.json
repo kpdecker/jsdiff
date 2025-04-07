@@ -10,7 +10,7 @@
         "skipLibCheck": true,
         // TODO: https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html#im-writing-a-library
         //       says that we should enable the two flags below, but they break things
-        // "strict": true,
+        "strict": true,
         // "verbatimModuleSyntax": true,
         "declarationMap": true,
     }
