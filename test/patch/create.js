@@ -881,6 +881,21 @@ describe('patch/create', function() {
       );
     });
 
+    it('sets oldHeader and newHeader to undefined if they are not provided', function() {
+      const res = structuredPatch(
+        'oldfile', 'newfile',
+        'line2\nline3\nline4\n', 'line2\nline3\nline5'
+      );
+      expect(res).to.eql({
+        oldFileName: 'oldfile', newFileName: 'newfile',
+        oldHeader: undefined, newHeader: undefined,
+        hunks: [{
+          oldStart: 1, oldLines: 3, newStart: 1, newLines: 3,
+          lines: [' line2', ' line3', '-line4', '+line5', '\\ No newline at end of file']
+        }]
+      });
+    });
+
     describe('given options.maxEditLength', function() {
       const options = { maxEditLength: 1 };
 
