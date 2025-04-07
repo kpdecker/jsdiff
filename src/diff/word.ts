@@ -179,7 +179,12 @@ export function diffWords(oldStr: string, newStr: string, options?: any): undefi
   return wordDiff.diff(oldStr, newStr, options);
 }
 
-function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep) {
+function dedupeWhitespaceInChangeObjects(
+  startKeep: ChangeObject<string> | null,
+  deletion: ChangeObject<string> | null,
+  insertion: ChangeObject<string> | null,
+  endKeep: ChangeObject<string> | null
+) {
   // Before returning, we tidy up the leading and trailing whitespace of the
   // change objects to eliminate cases where trailing whitespace in one object
   // is repeated as leading whitespace in the next.
@@ -258,13 +263,13 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
   // otherwise we've got a deletion and no insertion
   } else if (startKeep && endKeep) {
     const newWsFull = leadingWs(endKeep.value),
-        delWsStart = leadingWs(deletion.value),
-        delWsEnd = trailingWs(deletion.value);
+        delWsStart = leadingWs(deletion!.value),
+        delWsEnd = trailingWs(deletion!.value);
 
     // Any whitespace that comes straight after startKeep in both the old and
     // new texts, assign to startKeep and remove from the deletion.
     const newWsStart = longestCommonPrefix(newWsFull, delWsStart);
-    deletion.value = removePrefix(deletion.value, newWsStart);
+    deletion!.value = removePrefix(deletion!.value, newWsStart);
 
     // Any whitespace that comes straight before endKeep in both the old and
     // new texts, and hasn't already been assigned to startKeep, assign to
@@ -273,7 +278,7 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
       removePrefix(newWsFull, newWsStart),
       delWsEnd
     );
-    deletion.value = removeSuffix(deletion.value, newWsEnd);
+    deletion!.value = removeSuffix(deletion!.value, newWsEnd);
     endKeep.value = replacePrefix(endKeep.value, newWsFull, newWsEnd);
 
     // If there's any whitespace from the new text that HASN'T already been
@@ -288,17 +293,17 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
     // endKeep, and just remove whitespace from the end of deletion to the
     // extent that it overlaps with the start of endKeep.
     const endKeepWsPrefix = leadingWs(endKeep.value);
-    const deletionWsSuffix = trailingWs(deletion.value);
+    const deletionWsSuffix = trailingWs(deletion!.value);
     const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
-    deletion.value = removeSuffix(deletion.value, overlap);
+    deletion!.value = removeSuffix(deletion!.value, overlap);
   } else if (startKeep) {
     // We are at the END of the text. Preserve all the whitespace on
     // startKeep, and just remove whitespace from the start of deletion to
     // the extent that it overlaps with the end of startKeep.
     const startKeepWsSuffix = trailingWs(startKeep.value);
-    const deletionWsPrefix = leadingWs(deletion.value);
+    const deletionWsPrefix = leadingWs(deletion!.value);
     const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
-    deletion.value = removePrefix(deletion.value, overlap);
+    deletion!.value = removePrefix(deletion!.value, overlap);
   }
 }
 
