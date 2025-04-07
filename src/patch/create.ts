@@ -416,7 +416,9 @@ function splitLines(text: string): string[] {
   if (hasTrailingNl) {
     result.pop();
   } else {
-    result.push(result.pop().slice(0, -1));
+    result.push(
+      (result.pop() as string).slice(0, -1)
+    );
   }
   return result;
 }
