@@ -114,11 +114,11 @@ class WordDiff extends Diff<string, string> {
       return changes;
     }
 
-    let lastKeep = null;
+    let lastKeep: ChangeObject<string> | null = null;
     // Change objects representing any insertion or deletion since the last
     // "keep" change object. There can be at most one of each.
-    let insertion = null;
-    let deletion = null;
+    let insertion: ChangeObject<string> | null = null;
+    let deletion: ChangeObject<string> | null = null;
     changes.forEach(change => {
       if (change.added) {
         insertion = change;
