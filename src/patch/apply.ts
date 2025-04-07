@@ -256,7 +256,7 @@ function applyStructuredPatch(
     }
 
     // Copy everything from the end of where we applied the last hunk to the start of this hunk
-    for (let i = minLine; i < toPos; i++) {
+    for (let i = minLine; i < toPos!; i++) {
       resultLines.push(lines[i]);
     }
 
@@ -272,7 +272,7 @@ function applyStructuredPatch(
 
     // Note the offset between where the patch said the hunk should've applied and where we
     // applied it, so we can adjust future hunks accordingly:
-    prevHunkOffset = toPos + 1 - hunk.oldStart;
+    prevHunkOffset = toPos! + 1 - hunk.oldStart;
   }
 
   // Copy over the rest of the lines from the old text
