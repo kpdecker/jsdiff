@@ -201,16 +201,38 @@ describe('diff/json', function() {
     });
 
     it("should pass the same 'key' values to the replacer as JSON.stringify would", function() {
-      const calls = [];
+      const calls = [],
+            obj1 = {a: ['q', 'r', 's', {t: []}]},
+            obj2 = {a: ['x', 'y', 'z', {bla: []}]};
       diffJson(
-        {a: ['q', 'r', 's', {t: []}]},
-        {a: ['x', 'y', 'z', {bla: []}]},
+        obj1,
+        obj2,
         {stringifyReplacer: (k, v) => {
           calls.push([k, v]);
           return v;
         }}
       );
-      expect(calls).to.deep.equal([
+
+      // We run the same objects through JSON.stringify just to make unambiguous when reading this
+      // test that we're checking for the same key/value pairs that JSON.stringify would pass to
+      // the replacer.
+      const jsonStringifyCalls = [];
+      JSON.stringify(
+        obj1,
+        (k, v) => {
+          jsonStringifyCalls.push([k, v]);
+          return v;
+        }
+      );
+      JSON.stringify(
+        obj2,
+        (k, v) => {
+          jsonStringifyCalls.push([k, v]);
+          return v;
+        }
+      );
+
+      expect(jsonStringifyCalls).to.deep.equal([
         ['', {a: ['q', 'r', 's', {t: []}]}],
         ['a', ['q', 'r', 's', {t: []}]],
         ['0', 'q'],
@@ -224,8 +246,10 @@ describe('diff/json', function() {
         ['1', 'y'],
         ['2', 'z'],
         ['3', {bla: []}],
-        ['t', []]
+        ['bla', []]
       ]);
+
+      expect(calls).to.deep.equal(jsonStringifyCalls);
     });
 
     it("doesn't throw on Object.create(null)", function() {
