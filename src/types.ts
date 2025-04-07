@@ -114,8 +114,8 @@ export type AllDiffOptions =
 export interface StructuredPatch {
   oldFileName: string,
   newFileName: string,
-  oldHeader: string,
-  newHeader: string,
+  oldHeader: string | undefined,
+  newHeader: string | undefined,
   hunks: StructuredPatchHunk[],
   index?: string,
 }
