@@ -60,7 +60,7 @@ export function diffJson(oldStr: string, newStr: string, options?: any): undefin
 export function canonicalize(
   obj: any,
   stack: Array<any> | null, replacementStack: Array<any> | null,
-  replacer: (string, any) => any,
+  replacer: (k: string, v: any) => any,
   key?: string
 ) {
   stack = stack || [];
@@ -78,7 +78,7 @@ export function canonicalize(
     }
   }
 
-  let canonicalizedObj;
+  let canonicalizedObj: any;
 
   if ('[object Array]' === Object.prototype.toString.call(obj)) {
     stack.push(obj);
