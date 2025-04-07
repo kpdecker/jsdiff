@@ -18,7 +18,7 @@ interface DraftChangeObject {
 
 interface Path {
   oldPos: number;
-  lastComponent?: DraftChangeObject
+  lastComponent: DraftChangeObject | undefined
 }
 
 export default class Diff<
@@ -98,7 +98,7 @@ export default class Diff<
     const maxExecutionTime = options.timeout ?? Infinity;
     const abortAfterTimestamp = Date.now() + maxExecutionTime;
 
-    const bestPath = [{ oldPos: -1, lastComponent: undefined }];
+    const bestPath: Path[] = [{ oldPos: -1, lastComponent: undefined }];
 
     // Seed editLength = 0, i.e. the content starts with the same values
     let newPos = this.extractCommon(bestPath[0], newTokens, oldTokens, 0, options);
