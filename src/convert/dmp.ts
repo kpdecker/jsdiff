@@ -4,9 +4,9 @@ type DmpOperation = 1 | 0 | -1;
 
 // See: http://code.google.com/p/google-diff-match-patch/wiki/API
 export function convertChangesToDMP<ValueT>(changes: ChangeObject<ValueT>[]): [DmpOperation, ValueT][] {
-  const ret = [];
+  const ret: [DmpOperation, ValueT][] = [];
   let change,
-      operation;
+      operation: DmpOperation;
   for (let i = 0; i < changes.length; i++) {
     change = changes[i];
     if (change.added) {
