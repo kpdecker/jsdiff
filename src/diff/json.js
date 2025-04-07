@@ -25,7 +25,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
   replacementStack = replacementStack || [];
 
   if (replacer) {
-    obj = replacer(key, obj);
+    obj = replacer(key === undefined ? '' : key, obj);
   }
 
   let i;
@@ -43,7 +43,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, key);
+      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
     }
     stack.pop();
     replacementStack.pop();
