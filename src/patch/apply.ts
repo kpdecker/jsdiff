@@ -10,6 +10,11 @@ export interface ApplyPatchOptions {
   compareLine?: (lineNumber: number, line: string, operation: string, patchContent: string) => boolean,
 }
 
+interface ApplyHunkReturnType {
+  patchedLines: string[];
+  oldLineLastI: number;
+}
+
 export function applyPatch(
   source: string,
   uniDiff: string | StructuredPatch | [StructuredPatch],
@@ -120,7 +125,7 @@ function applyStructuredPatch(
     lastContextLineMatched: boolean = true,
     patchedLines: string[] = [],
     patchedLinesLength: number = 0
-  ) {
+  ): ApplyHunkReturnType | null {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
     for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
