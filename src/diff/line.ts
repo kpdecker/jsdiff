@@ -122,7 +122,7 @@ export function diffTrimmedLines(
   newStr: string,
   options?: DiffLinesOptionsNonabortable
 ): ChangeObject<string>[]
-export function diffTrimmedLines(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
+export function diffTrimmedLines(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   options = generateOptions(options, {ignoreWhitespace: true});
   return lineDiff.diff(oldStr, newStr, options);
 }
