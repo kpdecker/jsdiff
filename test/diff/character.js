@@ -59,5 +59,10 @@ describe('diff/character', function() {
       diffChars('whatever', 'whatever', {ignoreCase: true});
       diffChars('whatever', 'whatever', {ignoreCase: true, callback: () => {}});
     });
+
+    it('should return undefined when called in async mode', function() {
+      expect(diffChars('whatever', 'whatever', {callback: () => {}})).to.be.undefined;
+      expect(diffChars('whatever', 'whatever else', {callback: () => {}})).to.be.undefined;
+    });
   });
 });

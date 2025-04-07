@@ -83,7 +83,7 @@ export default class Diff<
       value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() { callback(value); }, 0);
-        return true;
+        return undefined;
       } else {
         return value;
       }
@@ -168,7 +168,7 @@ export default class Diff<
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
-          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens));
+          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens)) || true;
         } else {
           bestPath[diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {
