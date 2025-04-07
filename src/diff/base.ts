@@ -79,7 +79,7 @@ export default class Diff<
     options: AllDiffOptions & Partial<TimeoutOption> & Partial<MaxEditLengthOption>,
     callback: DiffCallbackAbortable<ValueT> | DiffCallbackNonabortable<ValueT> | undefined
   ): ChangeObject<ValueT>[] | undefined {
-    const done = (value) => {
+    const done = (value: ChangeObject<ValueT>[]) => {
       value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() { callback(value); }, 0);
@@ -138,6 +138,7 @@ export default class Diff<
               addPath = bestPath[diagonalPath + 1];
         if (removePath) {
           // No one else is going to attempt to use this value, clear it
+          // @ts-expect-error - perf optimisation. This type-violating value will never be read.
           bestPath[diagonalPath - 1] = undefined;
         }
 
@@ -151,6 +152,7 @@ export default class Diff<
         const canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
+          // @ts-expect-error - perf optimisation. This type-violating value will never be read.
           bestPath[diagonalPath] = undefined;
           continue;
         }
