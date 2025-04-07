@@ -51,17 +51,22 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
-  function parseFileHeader(index) {
+  function parseFileHeader(index: Partial<StructuredPatch>) {
     const fileHeader = (/^(---|\+\+\+)\s+(.*)\r?$/).exec(diffstr[i]);
     if (fileHeader) {
-      const keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
-      const data = fileHeader[2].split('\t', 2);
+      const data = fileHeader[2].split('\t', 2),
+            header = (data[1] || '').trim();
       let fileName = data[0].replace(/\\\\/g, '\\');
       if ((/^".*"$/).test(fileName)) {
         fileName = fileName.substr(1, fileName.length - 2);
       }
-      index[keyPrefix + 'FileName'] = fileName;
-      index[keyPrefix + 'Header'] = (data[1] || '').trim();
+      if (fileHeader[1] === '---') {
+        index.oldFileName = fileName;
+        index.oldHeader = header;
+      } else {
+        index.newFileName = fileName;
+        index.newHeader = header;
+      }
 
       i++;
     }
@@ -79,7 +84,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       oldLines: typeof chunkHeader[2] === 'undefined' ? 1 : +chunkHeader[2],
       newStart: +chunkHeader[3],
       newLines: typeof chunkHeader[4] === 'undefined' ? 1 : +chunkHeader[4],
-      lines: []
+      lines: [] as string[]
     };
 
     // Unified Diff Format quirk: If the chunk size is 0,
