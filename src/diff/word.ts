@@ -94,7 +94,7 @@ class WordDiff extends Diff<string, string> {
     return tokens;
   }
 
-  join(tokens) {
+  join(tokens: string[]) {
     // Tokens being joined here will always have appeared consecutively in the
     // same text, so we can simply strip off the leading whitespace from all the
     // tokens except the first (and except any whitespace-only tokens - but such
@@ -109,7 +109,7 @@ class WordDiff extends Diff<string, string> {
     }).join('');
   }
 
-  postProcess(changes, options) {
+  postProcess(changes: ChangeObject<string>[], options: any) {
     if (!changes || options.oneChangePerToken) {
       return changes;
     }
