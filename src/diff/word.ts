@@ -71,7 +71,7 @@ class WordDiff extends Diff<string, string> {
       parts = value.match(tokenizeIncludingWhitespace) || [];
     }
     const tokens: string[] = [];
-    let prevPart = null;
+    let prevPart: string | null = null;
     parts.forEach(part => {
       if ((/\s/).test(part)) {
         if (prevPart == null) {
