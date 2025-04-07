@@ -193,7 +193,7 @@ export default class Diff<
       (function exec() {
         setTimeout(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
-            return callback(undefined);
+            return (callback as DiffCallbackAbortable<ValueT>)(undefined);
           }
 
           if (!execEditLength()) {
@@ -205,7 +205,7 @@ export default class Diff<
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
         const ret = execEditLength();
         if (ret) {
-          return ret;
+          return ret as ChangeObject<ValueT>[];
         }
       }
     }
