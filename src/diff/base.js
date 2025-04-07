@@ -14,7 +14,7 @@ Diff.prototype = {
       value = self.postProcess(value, options);
       if (callback) {
         setTimeout(function() { callback(value); }, 0);
-        return true;
+        return undefined;
       } else {
         return value;
       }
@@ -106,7 +106,7 @@ Diff.prototype = {
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
-          return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken));
+          return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken)) || true;
         } else {
           bestPath[diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {
