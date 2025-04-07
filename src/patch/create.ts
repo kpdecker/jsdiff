@@ -88,6 +88,10 @@ export function structuredPatch(
     optionsObj.context = 4;
   }
 
+  // We copy this into its own variable to placate TypeScript, which thinks
+  // optionsObj.context might be undefined in the callbacks below.
+  const context = optionsObj.context;
+
   // @ts-expect-error (runtime check for something that is correctly a static type error)
   if (optionsObj.newlineIsToken) {
     throw new Error('newlineIsToken may not be used with patch-generation functions, only with diffing functions');
@@ -140,7 +144,7 @@ export function structuredPatch(
           newRangeStart = newLine;
 
           if (prev) {
-            curRange = optionsObj.context > 0 ? contextLines(prev.lines.slice(-optionsObj.context)) : [];
+            curRange = context > 0 ? contextLines(prev.lines.slice(-context)) : [];
             oldRangeStart -= curRange.length;
             newRangeStart -= curRange.length;
           }
@@ -161,14 +165,14 @@ export function structuredPatch(
         // Identical context lines. Track line changes
         if (oldRangeStart) {
           // Close out any changes that have been output (or join overlapping)
-          if (lines.length <= optionsObj.context * 2 && i < diff.length - 2) {
+          if (lines.length <= context * 2 && i < diff.length - 2) {
             // Overlapping
             for (const line of contextLines(lines)) {
               curRange.push(line);
             }
           } else {
             // end the range and output
-            const contextSize = Math.min(lines.length, optionsObj.context);
+            const contextSize = Math.min(lines.length, context);
             for (const line of contextLines(lines.slice(0, contextSize))) {
               curRange.push(line);
             }
