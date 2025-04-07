@@ -1,5 +1,5 @@
 import {diffLines} from '../diff/line.js';
-import { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable, AbortableDiffOptions } from '../types.js';
+import { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable, AbortableDiffOptions, ChangeObject } from '../types.js';
 
 type StructuredPatchCallbackAbortable = (patch: StructuredPatch | undefined) => void;
 type StructuredPatchCallbackNonabortable = (patch: StructuredPatch) => void;
@@ -18,6 +18,13 @@ interface StructuredPatchCallbackOptionAbortable {
 }
 interface StructuredPatchCallbackOptionNonabortable {
   callback: StructuredPatchCallbackNonabortable;
+}
+
+// Purely an implementation detail of diffLinesResultToPatch, which mutates the result of diffLines
+// for convenience of implementation
+interface ChangeObjectPlusLines extends Partial<ChangeObject<string>> {
+  value: string;
+  lines?: string[];
 }
 
 export function structuredPatch(
@@ -116,7 +123,7 @@ export function structuredPatch(
     );
   }
 
-  function diffLinesResultToPatch(diff) {
+  function diffLinesResultToPatch(diff: ChangeObjectPlusLines[] | undefined) {
     // STEP 1: Build up the patch with no "\ No newline at end of file" lines and with the arrays
     //         of lines containing trailing newline characters. We'll tidy up later...
 
@@ -126,12 +133,12 @@ export function structuredPatch(
 
     diff.push({value: '', lines: []}); // Append an empty value to make cleanup easier
 
-    function contextLines(lines) {
+    function contextLines(lines: string[]) {
       return lines.map(function(entry) { return ' ' + entry; });
     }
 
     const hunks = [];
-    let oldRangeStart = 0, newRangeStart = 0, curRange = [],
+    let oldRangeStart = 0, newRangeStart = 0, curRange: string[] = [],
         oldLine = 1, newLine = 1;
     for (let i = 0; i < diff.length; i++) {
       const current = diff[i],
@@ -146,7 +153,7 @@ export function structuredPatch(
           newRangeStart = newLine;
 
           if (prev) {
-            curRange = context > 0 ? contextLines(prev.lines.slice(-context)) : [];
+            curRange = context > 0 ? contextLines(prev.lines!.slice(-context)) : [];
             oldRangeStart -= curRange.length;
             newRangeStart -= curRange.length;
           }
