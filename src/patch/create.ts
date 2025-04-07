@@ -346,7 +346,7 @@ export function createTwoFilesPatch(
         ...options,
         callback: patchObj => {
           if (!patchObj) {
-            callback(undefined);
+            (callback as CreatePatchCallbackAbortable)(undefined);
           } else {
             callback(formatPatch(patchObj));
           }
