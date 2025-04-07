@@ -1,4 +1,4 @@
-import { StructuredPatch } from '../types.js';
+import type { StructuredPatch } from '../types.js';
 
 export function reversePatch(structuredPatch: StructuredPatch): StructuredPatch;
 export function reversePatch(structuredPatch: StructuredPatch[]): StructuredPatch[];

@@ -1,5 +1,5 @@
 import {diffLines} from '../diff/line.js';
-import { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable, AbortableDiffOptions, ChangeObject } from '../types.js';
+import type { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable, AbortableDiffOptions, ChangeObject } from '../types.js';
 
 type StructuredPatchCallbackAbortable = (patch: StructuredPatch | undefined) => void;
 type StructuredPatchCallbackNonabortable = (patch: StructuredPatch) => void;

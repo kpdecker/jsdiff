@@ -1,5 +1,5 @@
 import Diff from './base.js';
-import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffWordsOptionsAbortable, DiffWordsOptionsNonabortable} from '../types.js';
+import type { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffWordsOptionsAbortable, DiffWordsOptionsNonabortable} from '../types.js';
 import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string.js';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode

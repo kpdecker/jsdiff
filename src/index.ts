@@ -25,14 +25,17 @@ import {diffJson, canonicalize} from './diff/json.js';
 
 import {diffArrays} from './diff/array.js';
 
-import {applyPatch, applyPatches, ApplyPatchOptions, ApplyPatchesOptions} from './patch/apply.js';
+import {applyPatch, applyPatches} from './patch/apply.js';
+import type {ApplyPatchOptions, ApplyPatchesOptions} from './patch/apply.js';
 import {parsePatch} from './patch/parse.js';
 import {reversePatch} from './patch/reverse.js';
 import {
   structuredPatch,
   createTwoFilesPatch,
   createPatch,
-  formatPatch,
+  formatPatch
+} from './patch/create.js';
+import type {
   StructuredPatchOptionsAbortable,
   StructuredPatchOptionsNonabortable,
   CreatePatchOptionsAbortable,
@@ -41,7 +44,7 @@ import {
 
 import {convertChangesToDMP} from './convert/dmp.js';
 import {convertChangesToXML} from './convert/xml.js';
-import {
+import type {
   ChangeObject,
   Change,
   DiffArraysOptionsAbortable,
@@ -87,8 +90,10 @@ export {
   reversePatch,
   convertChangesToDMP,
   convertChangesToXML,
-  canonicalize,
+  canonicalize
+};
 
+export type {
   ChangeObject,
   Change,
   DiffArraysOptionsAbortable,

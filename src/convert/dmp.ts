@@ -1,4 +1,4 @@
-import {ChangeObject} from '../types.js';
+import type {ChangeObject} from '../types.js';
 
 type DmpOperation = 1 | 0 | -1;
 

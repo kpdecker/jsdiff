@@ -1,5 +1,5 @@
 import Diff from './base.js';
-import { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffSentencesOptionsAbortable, DiffSentencesOptionsNonabortable} from '../types.js';
+import type { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffSentencesOptionsAbortable, DiffSentencesOptionsNonabortable} from '../types.js';
 
 class SentenceDiff extends Diff<string, string> {
   tokenize(value: string) {

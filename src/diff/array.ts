@@ -1,5 +1,5 @@
 import Diff from './base.js';
-import {ChangeObject, DiffArraysOptionsNonabortable, CallbackOptionNonabortable, DiffArraysOptionsAbortable, DiffCallbackNonabortable, CallbackOptionAbortable} from '../types.js';
+import type {ChangeObject, DiffArraysOptionsNonabortable, CallbackOptionNonabortable, DiffArraysOptionsAbortable, DiffCallbackNonabortable, CallbackOptionAbortable} from '../types.js';
 
 class ArrayDiff<T> extends Diff<T, Array<T>> {
   tokenize(value: Array<any>) {

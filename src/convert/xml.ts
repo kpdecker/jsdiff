@@ -1,4 +1,4 @@
-import {ChangeObject} from '../types.js';
+import type {ChangeObject} from '../types.js';
 
 export function convertChangesToXML(changes: ChangeObject<string>[]): string {
   const ret = [];

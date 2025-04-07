@@ -138,6 +138,13 @@ export default tseslint.config(
       // diffFoo function) and future-proofs against the API having to change in future if we add a
       // non-common option to one of these functions.
       "@typescript-eslint/no-empty-object-type": [2, {allowInterfaces: 'with-single-extends'}],
+
+      // Not sure if these actually serve a purpose, but they provide a way to enforce SOME of what
+      // would be imposed by having "verbatimModuleSyntax": true in our tsconfig.json without
+      // actually doing that.
+      "@typescript-eslint/consistent-type-imports": 2,
+      // Below would be nice to have but requires https://typescript-eslint.io/getting-started/typed-linting/
+      // "@typescript-eslint/consistent-type-exports": 2,
     },
   },
   {
