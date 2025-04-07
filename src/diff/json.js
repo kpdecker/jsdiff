@@ -10,7 +10,7 @@ jsonDiff.tokenize = lineDiff.tokenize;
 jsonDiff.castInput = function(value, options) {
   const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
 
-  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
+  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), null, '  ');
 };
 jsonDiff.equals = function(left, right, options) {
   return Diff.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
@@ -25,7 +25,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
   replacementStack = replacementStack || [];
 
   if (replacer) {
-    obj = replacer(key, obj);
+    obj = replacer(key === undefined ? '' : key, obj);
   }
 
   let i;
@@ -43,7 +43,7 @@ export function canonicalize(obj, stack, replacementStack, replacer, key) {
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, key);
+      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
     }
     stack.pop();
     replacementStack.pop();

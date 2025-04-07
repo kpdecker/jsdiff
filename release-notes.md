@@ -10,6 +10,9 @@
 - [#581](https://github.com/kpdecker/jsdiff/pull/581) - **fixed some regex operations used for tokenization in `diffWords` taking O(n^2) time** in pathological cases
 - [#595](https://github.com/kpdecker/jsdiff/pull/595) - **fixed a crash in patch creation functions when handling a single hunk consisting of a very large number (e.g. >130k) of lines**. (This was caused by spreading indefinitely-large arrays to `.push()` using `.apply` or the spread operator and hitting the JS-implementation-specific limit on the maximum number of arguments to a function, as shown at https://stackoverflow.com/a/56809779/1709587; thus the exact threshold to hit the error will depend on the environment in which you were running JsDiff.)
 - [#596](https://github.com/kpdecker/jsdiff/pull/596) - **removed the `merge` function**. Previously JsDiff included an undocumented function called `merge` that was meant to, in some sense, merge patches. It had at least a couple of serious bugs that could lead to it returning unambiguously wrong results, and it was difficult to simply "fix" because it was [unclear precisely what it was meant to do](https://github.com/kpdecker/jsdiff/issues/181#issuecomment-2198319542). For now, the fix is to remove it entirely.
+- [#601](https://github.com/kpdecker/jsdiff/pull/601) - **`diffJson`'s `stringifyReplacer` option behaves more like `JSON.stringify`'s `replacer` argument now.** In particular:
+  * Each key/value pair now gets passed through the replacer once instead of twice
+  * The `key` passed to the replacer when the top-level object is passed in as `value` is now `""` (previously, was `undefined`), and the `key` passed with an array element is the array index as a string, like `"0"` or `"1"` (previously was whatever the key for the entire array was). Both the new behaviours match that of `JSON.stringify`.
 
 ## 7.0.0
 

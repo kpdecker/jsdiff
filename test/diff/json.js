@@ -183,6 +183,75 @@ describe('diff/json', function() {
       ]);
     });
 
+    it('should only run each value through stringifyReplacer once', function() {
+      expect(
+        diffJson(
+          {foo: '123ab'},
+          {foo: '123xy'},
+          {stringifyReplacer: (k, v) => typeof v === 'string' ? v.slice(0, v.length - 1) : v}
+        )
+      ).to.deep.equal(
+        [
+          { count: 1, value: '{\n', removed: false, added: false },
+          { count: 1, value: '  \"foo\": "123a"\n', added: false, removed: true },
+          { count: 1, value: '  \"foo\": "123x"\n', added: true, removed: false },
+          { count: 1, value: '}', removed: false, added: false }
+        ]
+      );
+    });
+
+    it("should pass the same 'key' values to the replacer as JSON.stringify would", function() {
+      const calls = [],
+            obj1 = {a: ['q', 'r', 's', {t: []}]},
+            obj2 = {a: ['x', 'y', 'z', {bla: []}]};
+      diffJson(
+        obj1,
+        obj2,
+        {stringifyReplacer: (k, v) => {
+          calls.push([k, v]);
+          return v;
+        }}
+      );
+
+      // We run the same objects through JSON.stringify just to make unambiguous when reading this
+      // test that we're checking for the same key/value pairs that JSON.stringify would pass to
+      // the replacer.
+      const jsonStringifyCalls = [];
+      JSON.stringify(
+        obj1,
+        (k, v) => {
+          jsonStringifyCalls.push([k, v]);
+          return v;
+        }
+      );
+      JSON.stringify(
+        obj2,
+        (k, v) => {
+          jsonStringifyCalls.push([k, v]);
+          return v;
+        }
+      );
+
+      expect(jsonStringifyCalls).to.deep.equal([
+        ['', {a: ['q', 'r', 's', {t: []}]}],
+        ['a', ['q', 'r', 's', {t: []}]],
+        ['0', 'q'],
+        ['1', 'r'],
+        ['2', 's'],
+        ['3', {t: []}],
+        ['t', []],
+        ['', {a: ['x', 'y', 'z', {bla: []}]}],
+        ['a', ['x', 'y', 'z', {bla: []}]],
+        ['0', 'x'],
+        ['1', 'y'],
+        ['2', 'z'],
+        ['3', {bla: []}],
+        ['bla', []]
+      ]);
+
+      expect(calls).to.deep.equal(jsonStringifyCalls);
+    });
+
     it("doesn't throw on Object.create(null)", function() {
       let diff;
       expect(function() {
