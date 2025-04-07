@@ -4,8 +4,7 @@ import {generateOptions} from '../util/params.js';
 
 
 class LineDiff extends Diff<string, string> {
-  // public so it can be copied by jsonDiff
-  public tokenize(value: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
+  tokenize(value: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
     if(options.stripTrailingCr) {
       // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
       value = value.replace(/\r\n/g, '\n');
