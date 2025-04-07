@@ -108,7 +108,9 @@ export function structuredPatch(
         ...optionsObj,
         callback: (diff) => {
           const patch = diffLinesResultToPatch(diff);
-          callback(patch);
+          // TypeScript is unhappy without the cast because it does not understand that `patch` may
+          // be undefined here only if `callback` is StructuredPatchCallbackAbortable:
+          (callback as any)(patch);
         }
       }
     );
