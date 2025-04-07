@@ -34,6 +34,6 @@ export function diffSentences(
   newStr: string,
   options?: DiffSentencesOptionsNonabortable
 ): ChangeObject<string>[]
-export function diffSentences(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
+export function diffSentences(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   return sentenceDiff.diff(oldStr, newStr, options);
 }

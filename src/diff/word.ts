@@ -167,7 +167,7 @@ export function diffWords(
   newStr: string,
   options?: DiffWordsOptionsNonabortable
 ): ChangeObject<string>[]
-export function diffWords(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
+export function diffWords(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   // This option has never been documented and never will be (it's clearer to
   // just call `diffWordsWithSpace` directly if you need that behavior), but
   // has existed in jsdiff for a long time, so we retain support for it here
@@ -341,6 +341,6 @@ export function diffWordsWithSpace(
   newStr: string,
   options?: DiffWordsOptionsNonabortable
 ): ChangeObject<string>[]
-export function diffWordsWithSpace(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
+export function diffWordsWithSpace(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   return wordsWithSpaceDiff.diff(oldStr, newStr, options);
 }

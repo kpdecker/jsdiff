@@ -87,7 +87,7 @@ export function diffLines(
   newStr: string,
   options?: DiffLinesOptionsNonabortable
 ): ChangeObject<string>[]
-export function diffLines(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
+export function diffLines(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   return lineDiff.diff(oldStr, newStr, options);
 }
 

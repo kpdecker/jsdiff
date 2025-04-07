@@ -33,7 +33,7 @@ export function diffChars(
 export function diffChars(
   oldStr: string,
   newStr: string,
-  options?
+  options?: any
 ): undefined | ChangeObject<string>[] {
   return characterDiff.diff(oldStr, newStr, options);
 }

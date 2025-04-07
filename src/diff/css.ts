@@ -34,6 +34,6 @@ export function diffCss(
   newStr: string,
   options?: DiffCssOptionsNonabortable
 ): ChangeObject<string>[]
-export function diffCss(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
+export function diffCss(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   return cssDiff.diff(oldStr, newStr, options);
 }

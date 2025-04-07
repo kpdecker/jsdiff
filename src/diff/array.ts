@@ -45,7 +45,7 @@ export function diffArrays<T>(
 export function diffArrays<T>(
   oldArr: T[],
   newArr: T[],
-  options?
+  options?: any
 ): undefined | ChangeObject<T[]>[] {
   return arrayDiff.diff(oldArr, newArr, options);
 }

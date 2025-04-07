@@ -50,7 +50,7 @@ export function diffJson(
   newStr: string,
   options?: DiffJsonOptionsNonabortable
 ): ChangeObject<string>[]
-export function diffJson(oldStr: string, newStr: string, options?): undefined | ChangeObject<string>[] {
+export function diffJson(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   return jsonDiff.diff(oldStr, newStr, options);
 }
 
