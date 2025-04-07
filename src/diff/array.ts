@@ -2,15 +2,15 @@ import Diff from './base.js';
 import type {ChangeObject, DiffArraysOptionsNonabortable, CallbackOptionNonabortable, DiffArraysOptionsAbortable, DiffCallbackNonabortable, CallbackOptionAbortable} from '../types.js';
 
 class ArrayDiff<T> extends Diff<T, Array<T>> {
-  tokenize(value: Array<any>) {
+  tokenize(value: Array<T>) {
     return value.slice();
   }
 
-  join(value: Array<any>) {
+  join(value: Array<T>) {
     return value;
   }
 
-  removeEmpty(value: Array<any>) {
+  removeEmpty(value: Array<T>) {
     return value;
   }
 }

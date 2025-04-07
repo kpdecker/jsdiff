@@ -2,35 +2,8 @@ import Diff from './base.js';
 import type { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable} from '../types.js';
 import {generateOptions} from '../util/params.js';
 
-
 class LineDiff extends Diff<string, string> {
-  tokenize(value: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
-    if(options.stripTrailingCr) {
-      // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
-      value = value.replace(/\r\n/g, '\n');
-    }
-
-    const retLines = [],
-        linesAndNewlines = value.split(/(\n|\r\n)/);
-
-    // Ignore the final empty token that occurs if the string ends with a new line
-    if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-      linesAndNewlines.pop();
-    }
-
-    // Merge the content and line separators into single tokens
-    for (let i = 0; i < linesAndNewlines.length; i++) {
-      const line = linesAndNewlines[i];
-
-      if (i % 2 && !options.newlineIsToken) {
-        retLines[retLines.length - 1] += line;
-      } else {
-        retLines.push(line);
-      }
-    }
-
-    return retLines;
-  }
+  tokenize = tokenize;
 
   equals(left: string, right: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
     // If we're ignoring whitespace, we need to normalise lines by stripping
@@ -124,4 +97,33 @@ export function diffTrimmedLines(
 export function diffTrimmedLines(oldStr: string, newStr: string, options?: any): undefined | ChangeObject<string>[] {
   options = generateOptions(options, {ignoreWhitespace: true});
   return lineDiff.diff(oldStr, newStr, options);
+}
+
+// Exported standalone so it can be used from jsonDiff too.
+export function tokenize(value: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
+  if(options.stripTrailingCr) {
+    // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
+    value = value.replace(/\r\n/g, '\n');
+  }
+
+  const retLines = [],
+      linesAndNewlines = value.split(/(\n|\r\n)/);
+
+  // Ignore the final empty token that occurs if the string ends with a new line
+  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
+    linesAndNewlines.pop();
+  }
+
+  // Merge the content and line separators into single tokens
+  for (let i = 0; i < linesAndNewlines.length; i++) {
+    const line = linesAndNewlines[i];
+
+    if (i % 2 && !options.newlineIsToken) {
+      retLines[retLines.length - 1] += line;
+    } else {
+      retLines.push(line);
+    }
+  }
+
+  return retLines;
 }

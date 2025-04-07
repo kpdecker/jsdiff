@@ -15,6 +15,39 @@ export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.recommended,
   {
+    files: ['src/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    extends: [tseslint.configs.recommendedTypeChecked],
+    rules: {
+      // Not sure if these actually serve a purpose, but they provide a way to enforce SOME of what
+      // would be imposed by having "verbatimModuleSyntax": true in our tsconfig.json without
+      // actually doing that.
+      "@typescript-eslint/consistent-type-imports": 2,
+      "@typescript-eslint/consistent-type-exports": 2,
+
+      // Things from the recommendedTypeChecked shared config that are disabled simply because they
+      // caused lots of errors in our existing code when tried. Plausibly useful to turn on if
+      // possible and somebody fancies doing the work:
+      "@typescript-eslint/no-unsafe-argument": 0,
+      "@typescript-eslint/no-unsafe-assignment": 0,
+      "@typescript-eslint/no-unsafe-call": 0,
+      "@typescript-eslint/no-unsafe-member-access": 0,
+      "@typescript-eslint/no-unsafe-return": 0,
+
+      // TODO: This rule is just WRONG, right? Or am I confused...?
+      "@typescript-eslint/no-duplicate-type-constituents": 0,
+
+      // TODO: This rule seems to be broken. It demands removing some assertions in apply.ts whose
+      //       removal makes tsc refuse to compile the code. WTF?
+      "@typescript-eslint/no-unnecessary-type-assertion": 0,
+    }
+  },
+  {
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -138,13 +171,6 @@ export default tseslint.config(
       // diffFoo function) and future-proofs against the API having to change in future if we add a
       // non-common option to one of these functions.
       "@typescript-eslint/no-empty-object-type": [2, {allowInterfaces: 'with-single-extends'}],
-
-      // Not sure if these actually serve a purpose, but they provide a way to enforce SOME of what
-      // would be imposed by having "verbatimModuleSyntax": true in our tsconfig.json without
-      // actually doing that.
-      "@typescript-eslint/consistent-type-imports": 2,
-      // Below would be nice to have but requires https://typescript-eslint.io/getting-started/typed-linting/
-      // "@typescript-eslint/consistent-type-exports": 2,
     },
   },
   {

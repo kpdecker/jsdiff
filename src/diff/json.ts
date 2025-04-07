@@ -1,6 +1,6 @@
 import Diff from './base.js';
 import type { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffJsonOptionsAbortable, DiffJsonOptionsNonabortable} from '../types.js';
-import {lineDiff} from './line.js';
+import { tokenize } from './line.js';
 
 class JsonDiff extends Diff<string, string> {
   get useLongestToken() {
@@ -9,7 +9,7 @@ class JsonDiff extends Diff<string, string> {
     return true;
   }
 
-  tokenize = lineDiff.tokenize;
+  tokenize = tokenize;
 
   castInput(value: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
     const {undefinedReplacement, stringifyReplacer = (k, v) => typeof v === 'undefined' ? undefinedReplacement : v} = options;
