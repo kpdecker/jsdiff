@@ -39,9 +39,6 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-member-access": 0,
       "@typescript-eslint/no-unsafe-return": 0,
 
-      // TODO: This rule is just WRONG, right? Or am I confused...?
-      "@typescript-eslint/no-duplicate-type-constituents": 0,
-
       // TODO: This rule seems to be broken. It demands removing some assertions in apply.ts whose
       //       removal makes tsc refuse to compile the code. WTF?
       "@typescript-eslint/no-unnecessary-type-assertion": 0,

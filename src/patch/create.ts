@@ -68,8 +68,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string | undefined,
-  newHeader?: string | undefined,
+  oldHeader?: string,
+  newHeader?: string,
   options?: StructuredPatchOptionsNonabortable
 ): StructuredPatch
 export function structuredPatch(
@@ -77,8 +77,8 @@ export function structuredPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string | undefined,
-  newHeader?: string | undefined,
+  oldHeader?: string,
+  newHeader?: string,
   options?: StructuredPatchOptionsAbortable | StructuredPatchOptionsNonabortable | StructuredPatchCallbackNonabortable
 ): StructuredPatch | undefined {
   let optionsObj: StructuredPatchOptionsAbortable | StructuredPatchOptionsNonabortable;
@@ -323,8 +323,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string | undefined,
-  newHeader?: string | undefined,
+  oldHeader?: string,
+  newHeader?: string,
   options?: CreatePatchOptionsNonabortable
 ): string
 export function createTwoFilesPatch(
@@ -332,8 +332,8 @@ export function createTwoFilesPatch(
   newFileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string | undefined,
-  newHeader?: string | undefined,
+  oldHeader?: string,
+  newHeader?: string,
   options?: CreatePatchOptionsAbortable | CreatePatchOptionsNonabortable | CreatePatchCallbackNonabortable
 ): string | undefined {
   if (typeof options === 'function') {
@@ -405,16 +405,16 @@ export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string | undefined,
-  newHeader?: string | undefined,
+  oldHeader?: string,
+  newHeader?: string,
   options?: CreatePatchOptionsNonabortable
 ): string
 export function createPatch(
   fileName: string,
   oldStr: string,
   newStr: string,
-  oldHeader?: string | undefined,
-  newHeader?: string | undefined,
+  oldHeader?: string,
+  newHeader?: string,
   options?: CreatePatchOptionsAbortable | CreatePatchOptionsNonabortable | CreatePatchCallbackNonabortable
 ): string | undefined {
   return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options as any);
