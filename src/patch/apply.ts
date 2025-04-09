@@ -236,7 +236,7 @@ function applyStructuredPatch(
     const hunk = hunks[i];
     let hunkResult;
     const maxLine = lines.length - hunk.oldLines + fuzzFactor;
-    let toPos;
+    let toPos: number | undefined;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
       toPos = hunk.oldStart + prevHunkOffset - 1;
       const iterator = distanceIterator(toPos, minLine, maxLine);
