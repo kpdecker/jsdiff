@@ -38,6 +38,17 @@
         "types": "./libcjs/index.d.ts",
         "default": "./libcjs/index.js"
       }
+    },
+    "./package.json": "./package.json",
+    "./lib/*.js": {
+      "import": {
+        "types": "./libesm/*.d.ts",
+        "default": "./libesm/*.js"
+      },
+      "require": {
+        "types": "./libcjs/*.d.ts",
+        "default": "./libcjs/*.js"
+      }
     }
   },
   "type": "module",
