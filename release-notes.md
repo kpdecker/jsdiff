@@ -20,12 +20,13 @@
   * **`diff/lib/index.es6.js` and `diff/lib/index.mjs` no longer exist, and the ESM version of the library is no longer bundled into a single file.**
 
   * **The `ignoreWhitespace` option for `diffWords` is no longer included in the type declarations**. The effect of passing `ignoreWhitespace: true` has always been to make `diffWords` just call `diffWordsWithSpace` instead, which was confusing, because that behaviour doesn't seem properly described as "ignoring" whitespace at all. The property remains available to non-TypeScript applications for the sake of backwards compatability, but TypeScript applications will now see a type error if they try to pass `ignoreWhitespace: true` to `diffWords` and should change their code to call `diffWordsWithSpace` instead.
+
+  * JsDiff no longer purports to support ES3 environments. (I'm pretty sure it never truly did, despite claiming to in its README, since even the 1.0.0 release used `Array.map` which was added in ES5.)
 - [#601](https://github.com/kpdecker/jsdiff/pull/601) - **`diffJson`'s `stringifyReplacer` option behaves more like `JSON.stringify`'s `replacer` argument now.** In particular:
   * Each key/value pair now gets passed through the replacer once instead of twice
   * The `key` passed to the replacer when the top-level object is passed in as `value` is now `""` (previously, was `undefined`), and the `key` passed with an array element is the array index as a string, like `"0"` or `"1"` (previously was whatever the key for the entire array was). Both the new behaviours match that of `JSON.stringify`.
 - [#602](https://github.com/kpdecker/jsdiff/pull/602) - **diffing functions now consistently return `undefined` when called in async mode** (i.e. with a callback). Previously, there was an odd quirk where they would return `true` if the strings being diffed were equal and `undefined` otherwise.
 
-  * JsDiff no longer purports to support ES3 environments. (I'm pretty sure it never truly did, despite claiming to in its README, since even the 1.0.0 release used `Array.map` which was added in ES5.)
 
 ## 7.0.0
 
