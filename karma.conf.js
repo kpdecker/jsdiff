@@ -1,5 +1,3 @@
-/* eslint-env node */
-/* eslint-disable no-var, camelcase */
 export default function(config) {
   config.set({
     basePath: '',
