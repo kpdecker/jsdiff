@@ -22,7 +22,7 @@ class JsonDiff extends Diff<string, string> {
   }
 }
 
-const jsonDiff = new JsonDiff();
+export const jsonDiff = new JsonDiff();
 
 
 export function diffJson(

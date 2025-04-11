@@ -15,15 +15,15 @@
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 import Diff from './diff/base.js';
-import {diffChars} from './diff/character.js';
-import {diffWords, diffWordsWithSpace} from './diff/word.js';
-import {diffLines, diffTrimmedLines} from './diff/line.js';
-import {diffSentences} from './diff/sentence.js';
+import {diffChars, characterDiff} from './diff/character.js';
+import {diffWords, diffWordsWithSpace, wordDiff, wordsWithSpaceDiff} from './diff/word.js';
+import {diffLines, diffTrimmedLines, lineDiff} from './diff/line.js';
+import {diffSentences, sentenceDiff} from './diff/sentence.js';
 
-import {diffCss} from './diff/css.js';
-import {diffJson, canonicalize} from './diff/json.js';
+import {diffCss, cssDiff} from './diff/css.js';
+import {diffJson, canonicalize, jsonDiff} from './diff/json.js';
 
-import {diffArrays} from './diff/array.js';
+import {diffArrays, arrayDiff} from './diff/array.js';
 
 import {applyPatch, applyPatches} from './patch/apply.js';
 import type {ApplyPatchOptions, ApplyPatchesOptions} from './patch/apply.js';
@@ -69,16 +69,22 @@ export {
   Diff,
 
   diffChars,
+  characterDiff,
   diffWords,
+  wordDiff,
   diffWordsWithSpace,
+  wordsWithSpaceDiff,
   diffLines,
+  lineDiff,
   diffTrimmedLines,
   diffSentences,
-
+  sentenceDiff,
   diffCss,
+  cssDiff,
   diffJson,
-
+  jsonDiff,
   diffArrays,
+  arrayDiff,
 
   structuredPatch,
   createTwoFilesPatch,
