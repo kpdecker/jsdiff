@@ -19,9 +19,17 @@ export interface StructuredPatchOptionsNonabortable extends Pick<DiffLinesOption
   callback?: StructuredPatchCallbackNonabortable,
 }
 interface StructuredPatchCallbackOptionAbortable {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback: StructuredPatchCallbackAbortable;
 }
 interface StructuredPatchCallbackOptionNonabortable {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback: StructuredPatchCallbackNonabortable;
 }
 

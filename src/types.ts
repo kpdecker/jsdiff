@@ -1,8 +1,21 @@
 export interface ChangeObject<ValueT> {
-    value: ValueT;
-    added: boolean;
-    removed: boolean;
-    count: number;
+  /**
+   * The concatenated content of all the tokens represented by this change object - i.e. generally the text that is either added, deleted, or common, as a single string.
+   * In cases where tokens are considered common but are non-identical (e.g. because an option like `ignoreCase` or a custom `comparator` was used), the value from the *new* string will be provided here.
+   */
+  value: ValueT;
+  /**
+   * true if the value was inserted into the new string, otherwise false
+   */
+  added: boolean;
+  /**
+   * true if the value was removed from the old string, otherwise false
+   */
+  removed: boolean;
+  /**
+   * How many tokens (e.g. chars for `diffChars`, lines for `diffLines`) the value in the change object consists of
+   */
+  count: number;
 }
 
 // Name "Change" is used here for consistency with the previous type definitions from
@@ -13,14 +26,26 @@ export type Change = ChangeObject<string>;
 export type ArrayChange = ChangeObject<any[]>;
 
 export interface CommonDiffOptions {
+  /**
+   * If `true`, the array of change objects returned will contain one change object per token (e.g. one per line if calling `diffLines`), instead of runs of consecutive tokens that are all added / all removed / all conserved being combined into a single change object.
+   */
   oneChangePerToken?: boolean,
 }
 
 export interface TimeoutOption {
+  /**
+   * A number of milliseconds after which the diffing algorithm will abort and return `undefined`.
+   * Supported by the same functions as `maxEditLength`.
+   */
   timeout: number;
 }
 
 export interface MaxEditLengthOption {
+  /**
+   * A number specifying the maximum edit distance to consider between the old and new texts.
+   * You can use this to limit the computational cost of diffing large, very different texts by giving up early if the cost will be huge.
+   * This option can be passed either to diffing functions (`diffLines`, `diffChars`, etc) or to patch-creation function (`structuredPatch`, `createPatch`, etc), all of which will indicate that the max edit length was reached by returning `undefined` instead of whatever they'd normally return.
+   */
   maxEditLength: number;
 }
 
@@ -30,9 +55,17 @@ export type DiffCallbackNonabortable<T> = (result: ChangeObject<T>[]) => void;
 export type DiffCallbackAbortable<T> = (result: ChangeObject<T>[] | undefined) => void;
 
 export interface CallbackOptionNonabortable<T> {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback: DiffCallbackNonabortable<T>
 }
 export interface CallbackOptionAbortable<T> {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback: DiffCallbackAbortable<T>
 }
 
@@ -40,6 +73,10 @@ interface DiffArraysOptions<T> extends CommonDiffOptions {
   comparator?: (a: T, b: T) => boolean,
 }
 export interface DiffArraysOptionsNonabortable<T> extends DiffArraysOptions<T> {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback?: DiffCallbackNonabortable<T[]>
 }
 export type DiffArraysOptionsAbortable<T> = DiffArraysOptions<T> & AbortableDiffOptions & Partial<CallbackOptionAbortable<T[]>>
@@ -53,6 +90,10 @@ interface DiffCharsOptions extends CommonDiffOptions {
   ignoreCase?: boolean;
 }
 export interface DiffCharsOptionsNonabortable extends DiffCharsOptions {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback?: DiffCallbackNonabortable<string>
 }
 export type DiffCharsOptionsAbortable = DiffCharsOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
@@ -90,6 +131,10 @@ interface DiffLinesOptions extends CommonDiffOptions {
   ignoreWhitespace?: boolean,
 }
 export interface DiffLinesOptionsNonabortable extends DiffLinesOptions {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback?: DiffCallbackNonabortable<string>
 }
 export type DiffLinesOptionsAbortable = DiffLinesOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
@@ -112,6 +157,10 @@ interface DiffWordsOptions extends CommonDiffOptions {
   intlSegmenter?: Intl.Segmenter,
 }
 export interface DiffWordsOptionsNonabortable extends DiffWordsOptions {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback?: DiffCallbackNonabortable<string>
 }
 export type DiffWordsOptionsAbortable = DiffWordsOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
@@ -119,6 +168,10 @@ export type DiffWordsOptionsAbortable = DiffWordsOptions & AbortableDiffOptions 
 
 interface DiffSentencesOptions extends CommonDiffOptions {}
 export interface DiffSentencesOptionsNonabortable extends DiffSentencesOptions {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback?: DiffCallbackNonabortable<string>
 }
 export type DiffSentencesOptionsAbortable = DiffSentencesOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
@@ -136,6 +189,10 @@ interface DiffJsonOptions extends CommonDiffOptions {
   stringifyReplacer?: (k: string, v: any) => any,
 }
 export interface DiffJsonOptionsNonabortable extends DiffJsonOptions {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback?: DiffCallbackNonabortable<string>
 }
 export type DiffJsonOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
@@ -143,6 +200,10 @@ export type DiffJsonOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & 
 
 interface DiffCssOptions extends CommonDiffOptions {}
 export interface DiffCssOptionsNonabortable extends DiffCssOptions {
+  /**
+   * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
+   * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
+   */
   callback?: DiffCallbackNonabortable<string>
 }
 export type DiffCssOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>

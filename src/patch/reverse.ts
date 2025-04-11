@@ -1,5 +1,9 @@
 import type { StructuredPatch } from '../types.js';
 
+/**
+ * @param patch either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
+ * @returns a new structured patch which when applied will undo the original `patch`.
+ */
 export function reversePatch(structuredPatch: StructuredPatch): StructuredPatch;
 export function reversePatch(structuredPatch: StructuredPatch[]): StructuredPatch[];
 export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[]): StructuredPatch | StructuredPatch[];

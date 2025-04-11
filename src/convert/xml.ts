@@ -1,5 +1,8 @@
 import type {ChangeObject} from '../types.js';
 
+/**
+ * converts a list of change objects to a serialized XML format
+ */
 export function convertChangesToXML(changes: ChangeObject<string>[]): string {
   const ret = [];
   for (let i = 0; i < changes.length; i++) {

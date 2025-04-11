@@ -325,7 +325,18 @@ export interface ApplyPatchesOptions extends ApplyPatchOptions {
   complete: (err?: any) => void,
 }
 
-// Wrapper that supports multiple file patches via callbacks.
+/**
+ * applies one or more patches.
+ *
+ * `patch` may be either an array of structured patch objects, or a string representing a patch in unified diff format (which may patch one or more files).
+ *
+ * This method will iterate over the contents of the patch and apply to data provided through callbacks. The general flow for each patch index is:
+ *
+ * - `options.loadFile(index, callback)` is called. The caller should then load the contents of the file and then pass that to the `callback(err, data)` callback. Passing an `err` will terminate further patch execution.
+ * - `options.patched(index, content, callback)` is called once the patch has been applied. `content` will be the return value from `applyPatch`. When it's ready, the caller should call `callback(err)` callback. Passing an `err` will terminate further patch execution.
+ *
+ * Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
+ */
 export function applyPatches(uniDiff: string | StructuredPatch[], options: ApplyPatchesOptions): void {
   const spDiff: StructuredPatch[] = typeof uniDiff === 'string' ? parsePatch(uniDiff) : uniDiff;
 

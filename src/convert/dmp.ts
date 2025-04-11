@@ -2,7 +2,9 @@ import type {ChangeObject} from '../types.js';
 
 type DmpOperation = 1 | 0 | -1;
 
-// See: http://code.google.com/p/google-diff-match-patch/wiki/API
+/**
+ * converts a list of change objects to the format returned by Google's [diff-match-patch](https://github.com/google/diff-match-patch) library
+ */
 export function convertChangesToDMP<ValueT>(changes: ChangeObject<ValueT>[]): [DmpOperation, ValueT][] {
   const ret: [DmpOperation, ValueT][] = [];
   let change,
