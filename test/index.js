@@ -1,4 +1,4 @@
-import * as Diff from '../libesm';
+import * as Diff from 'marktesty';
 
 import {expect} from 'chai';
 

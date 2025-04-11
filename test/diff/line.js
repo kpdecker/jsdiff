@@ -1,5 +1,5 @@
-import {diffLines, diffTrimmedLines} from '../../libesm/diff/line';
-import {convertChangesToXML} from '../../libesm/convert/xml';
+import {diffLines, diffTrimmedLines} from '../../libesm/diff/line.js';
+import {convertChangesToXML} from '../../libesm/convert/xml.js';
 
 import {expect} from 'chai';
 

@@ -1,6 +1,6 @@
-import {parsePatch} from '../../libesm/patch/parse';
-import {formatPatch} from '../../libesm/patch/create';
-import {winToUnix, unixToWin, isWin, isUnix} from '../../libesm/patch/line-endings';
+import {parsePatch} from '../../libesm/patch/parse.js';
+import {formatPatch} from '../../libesm/patch/create.js';
+import {winToUnix, unixToWin, isWin, isUnix} from '../../libesm/patch/line-endings.js';
 
 import {expect} from 'chai';
 

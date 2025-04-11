@@ -1,6 +1,6 @@
-import {diffWords} from '../../libesm';
-import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../libesm/patch/create';
-import {parsePatch} from '../../libesm/patch/parse';
+import {diffWords} from 'marktesty';
+import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../libesm/patch/create.js';
+import {parsePatch} from '../../libesm/patch/parse.js';
 
 import {expect} from 'chai';
 

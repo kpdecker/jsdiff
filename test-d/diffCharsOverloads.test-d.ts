@@ -1,5 +1,5 @@
 import {expectType} from 'tsd';
-import {ChangeObject, diffChars} from '../libesm';
+import {ChangeObject, diffChars} from '../libesm/index.js';
 
 const result1 = diffChars('foo', 'bar', {ignoreCase: true});
 expectType<ChangeObject<string>[]>(result1);

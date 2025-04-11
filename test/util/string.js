@@ -1,4 +1,4 @@
-import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap} from '../../libesm/util/string';
+import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap} from '../../libesm/util/string.js';
 import {expect} from 'chai';
 
 describe('#longestCommonPrefix', function() {

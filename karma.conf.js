@@ -1,6 +1,6 @@
 /* eslint-env node */
 /* eslint-disable no-var, camelcase */
-module.exports = function(config) {
+export default function(config) {
   config.set({
     basePath: '',
 
