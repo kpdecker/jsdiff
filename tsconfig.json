@@ -2,7 +2,7 @@
     "include": ["src/*.ts", "src/**/*.ts"],
     "compilerOptions": {
         "rootDir": "src/",
-        "target": "es2022",
+        "target": "es5",
         "lib": [
             "es2022"
         ],
