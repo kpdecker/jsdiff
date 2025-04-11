@@ -1,4 +1,4 @@
-import * as Diff from '../lib';
+import * as Diff from 'diff';
 
 import {expect} from 'chai';
 

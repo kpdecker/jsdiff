@@ -1,9 +1,10 @@
 .babelrc
-.eslintrc
+.eslint.config.mjs
 .gitignore
 .npmignore
 .vscode
 .nyc_output
+test-d
 components
 coverage
 examples
@@ -15,5 +16,6 @@ runtime.js
 src
 tasks
 test
+tsconfig.json
 yarn-error.log
 yarn.lock

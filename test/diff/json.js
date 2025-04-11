@@ -1,5 +1,5 @@
-import {diffJson, canonicalize} from '../../lib/diff/json';
-import {convertChangesToXML} from '../../lib/convert/xml';
+import {diffJson, canonicalize} from '../../libesm/diff/json.js';
+import {convertChangesToXML} from '../../libesm/convert/xml.js';
 
 import {expect} from 'chai';
 
@@ -117,25 +117,25 @@ describe('diff/json', function() {
 
   describe('#canonicalize', function() {
     it('should put the keys in canonical order', function() {
-      expect(getKeys(canonicalize({b: 456, a: 123}))).to.eql(['a', 'b']);
+      expect(Object.keys(canonicalize({b: 456, a: 123}))).to.eql(['a', 'b']);
     });
 
     it('should dive into nested objects', function() {
       const canonicalObj = canonicalize({b: 456, a: {d: 123, c: 456}});
-      expect(getKeys(canonicalObj.a)).to.eql(['c', 'd']);
+      expect(Object.keys(canonicalObj.a)).to.eql(['c', 'd']);
     });
 
     it('should dive into nested arrays', function() {
       const canonicalObj = canonicalize({b: 456, a: [789, {d: 123, c: 456}]});
-      expect(getKeys(canonicalObj.a[1])).to.eql(['c', 'd']);
+      expect(Object.keys(canonicalObj.a[1])).to.eql(['c', 'd']);
     });
 
     it('should handle circular references correctly', function() {
       const obj = {b: 456};
       obj.a = obj;
       const canonicalObj = canonicalize(obj);
-      expect(getKeys(canonicalObj)).to.eql(['a', 'b']);
-      expect(getKeys(canonicalObj.a)).to.eql(['a', 'b']);
+      expect(Object.keys(canonicalObj)).to.eql(['a', 'b']);
+      expect(Object.keys(canonicalObj.a)).to.eql(['a', 'b']);
     });
 
     it('should accept a custom JSON.stringify() replacer function', function() {
@@ -144,8 +144,8 @@ describe('diff/json', function() {
         {a: /foo/}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 1, value: '  \"a\": {}\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 1, value: '  "a": {}\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
 
@@ -155,8 +155,8 @@ describe('diff/json', function() {
         {stringifyReplacer: (k, v) => v instanceof RegExp ? v.toString() : v}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 1, value: '  \"a\": "/foo/gi"\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 1, value: '  "a": "/foo/gi"\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
 
@@ -166,8 +166,8 @@ describe('diff/json', function() {
         {stringifyReplacer: (k, v) => v instanceof Error ? `${v.name}: ${v.message}` : v}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 1, value: '  \"a\": "Error: ohaider"\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 1, value: '  "a": "Error: ohaider"\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
 
@@ -177,8 +177,8 @@ describe('diff/json', function() {
         {stringifyReplacer: (k, v) => v instanceof Error ? `${v.name}: ${v.message}` : v}
       )).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', added: false, removed: true },
-        { count: 3, value: '  \"a\": [\n    "Error: ohaider"\n  ]\n', added: true, removed: false },
+        { count: 1, value: '  "a": 123\n', added: false, removed: true },
+        { count: 3, value: '  "a": [\n    "Error: ohaider"\n  ]\n', added: true, removed: false },
         { count: 1, value: '}', removed: false, added: false }
       ]);
     });
@@ -193,8 +193,8 @@ describe('diff/json', function() {
       ).to.deep.equal(
         [
           { count: 1, value: '{\n', removed: false, added: false },
-          { count: 1, value: '  \"foo\": "123a"\n', added: false, removed: true },
-          { count: 1, value: '  \"foo\": "123x"\n', added: true, removed: false },
+          { count: 1, value: '  "foo": "123a"\n', added: false, removed: true },
+          { count: 1, value: '  "foo": "123x"\n', added: true, removed: false },
           { count: 1, value: '}', removed: false, added: false }
         ]
       );
@@ -262,20 +262,10 @@ describe('diff/json', function() {
       }).not.to['throw']();
       expect(diff).to.eql([
         { count: 1, value: '{\n', removed: false, added: false },
-        { count: 1, value: '  \"a\": 123\n', removed: true, added: false },
-        { count: 1, value: '  \"b\": 456\n', removed: false, added: true },
+        { count: 1, value: '  "a": 123\n', removed: true, added: false },
+        { count: 1, value: '  "b": 456\n', removed: false, added: true },
         { count: 1, value: '}', removed: false, added: false }
       ]);
     });
   });
 });
-
-function getKeys(obj) {
-  const keys = [];
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      keys.push(key);
-    }
-  }
-  return keys;
-}

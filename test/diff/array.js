@@ -1,4 +1,4 @@
-import {diffArrays} from '../../lib/diff/array';
+import {diffArrays} from '../../libesm/diff/array.js';
 
 import {expect} from 'chai';
 

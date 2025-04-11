@@ -1,0 +1,31 @@
+{
+    "include": ["src/*.ts", "src/**/*.ts"],
+    "compilerOptions": {
+        "rootDir": "src/",
+        "target": "es5",
+        "lib": [
+            "es2022"
+        ],
+        "declaration": true,
+        "skipLibCheck": true,
+
+        // Options below enabled per recommendation at
+        // https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html#im-writing-a-library
+        "strict": true,
+        "declarationMap": true,
+        // The same docs page recommends setting
+        // "verbatimModuleSyntax": true,
+        // but this totally breaks the CJS build and a footnote observes that "Any configuration
+        // that produces both an ESM and a CJS output from the same source file is fundamentally 
+        // incompatible with" this setting. I don't really know WTF the authors of those docs were
+        // thinking, because the recommendation to turn this setting on is from the section
+        // specifically for "a library author" who wants to ensure their code works "under all
+        // possible library consumer compilation settings" - i.e. a person who is essentially 100%
+        // guaranteed to be running both an ESM and CJS build. So how can the recommendation to
+        // turn this setting on possible be even remotely sane? Beats me. ¯\_(ツ)_/¯
+        // I've done the best I can by using the @typescript-eslint/consistent-type-imports and
+        // @typescript-eslint/consistent-type-exports ESLint rules to enforce SOME of what this
+        // setting would have enforced, though I dunno if I'm enforcing the bits that motivated the
+        // recommendation to turn it on.
+    }
+}

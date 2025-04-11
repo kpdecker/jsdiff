@@ -1,3 +1,3 @@
 require('@babel/register')({
-  ignore: ['lib', 'node_modules']
+  ignore: ['libcjs', 'libesm', 'node_modules']
 });

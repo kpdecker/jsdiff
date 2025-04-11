@@ -1,36 +1,96 @@
-import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string';
-import {isWin, isUnix, unixToWin, winToUnix} from './line-endings';
-import {parsePatch} from './parse';
-import distanceIterator from '../util/distance-iterator';
+import {hasOnlyWinLineEndings, hasOnlyUnixLineEndings} from '../util/string.js';
+import {isWin, isUnix, unixToWin, winToUnix} from './line-endings.js';
+import {parsePatch} from './parse.js';
+import distanceIterator from '../util/distance-iterator.js';
+import type { StructuredPatch } from '../types.js';
 
-export function applyPatch(source, uniDiff, options = {}) {
-  if (typeof uniDiff === 'string') {
-    uniDiff = parsePatch(uniDiff);
+export interface ApplyPatchOptions {
+  /**
+   * Maximum Levenshtein distance (in lines deleted, added, or subtituted) between the context shown in a patch hunk and the lines found in the file.
+   * @default 0
+   */
+  fuzzFactor?: number,
+  /**
+   * If `true`, and if the file to be patched consistently uses different line endings to the patch (i.e. either the file always uses Unix line endings while the patch uses Windows ones, or vice versa), then `applyPatch` will behave as if the line endings in the patch were the same as those in the source file.
+   * (If `false`, the patch will usually fail to apply in such circumstances since lines deleted in the patch won't be considered to match those in the source file.)
+   * @default true
+   */
+  autoConvertLineEndings?: boolean,
+  /**
+   * Callback used to compare to given lines to determine if they should be considered equal when patching.
+   * Defaults to strict equality but may be overridden to provide fuzzier comparison.
+   * Should return false if the lines should be rejected.
+   */
+  compareLine?: (lineNumber: number, line: string, operation: string, patchContent: string) => boolean,
+}
+
+interface ApplyHunkReturnType {
+  patchedLines: string[];
+  oldLineLastI: number;
+}
+
+/**
+ * attempts to apply a unified diff patch.
+ *
+ * Hunks are applied first to last.
+ * `applyPatch` first tries to apply the first hunk at the line number specified in the hunk header, and with all context lines matching exactly.
+ * If that fails, it tries scanning backwards and forwards, one line at a time, to find a place to apply the hunk where the context lines match exactly.
+ * If that still fails, and `fuzzFactor` is greater than zero, it increments the maximum number of mismatches (missing, extra, or changed context lines) that there can be between the hunk context and a region where we are trying to apply the patch such that the hunk will still be considered to match.
+ * Regardless of `fuzzFactor`, lines to be deleted in the hunk *must* be present for a hunk to match, and the context lines *immediately* before and after an insertion must match exactly.
+ *
+ * Once a hunk is successfully fitted, the process begins again with the next hunk.
+ * Regardless of `fuzzFactor`, later hunks must be applied later in the file than earlier hunks.
+ *
+ * If a hunk cannot be successfully fitted *anywhere* with fewer than `fuzzFactor` mismatches, `applyPatch` fails and returns `false`.
+ *
+ * If a hunk is successfully fitted but not at the line number specified by the hunk header, all subsequent hunks have their target line number adjusted accordingly.
+ * (e.g. if the first hunk is applied 10 lines below where the hunk header said it should fit, `applyPatch` will *start* looking for somewhere to apply the second hunk 10 lines below where its hunk header says it goes.)
+ *
+ * If the patch was applied successfully, returns a string containing the patched text.
+ * If the patch could not be applied (because some hunks in the patch couldn't be fitted to the text in `source`), `applyPatch` returns false.
+ *
+ * @param patch a string diff or the output from the `parsePatch` or `structuredPatch` methods.
+ */
+export function applyPatch(
+  source: string,
+  patch: string | StructuredPatch | [StructuredPatch],
+  options: ApplyPatchOptions = {}
+): string | false {
+  let patches: StructuredPatch[];
+  if (typeof patch === 'string') {
+    patches = parsePatch(patch);
+  } else if (Array.isArray(patch)) {
+    patches = patch;
+  } else {
+    patches = [patch];
   }
 
-  if (Array.isArray(uniDiff)) {
-    if (uniDiff.length > 1) {
-      throw new Error('applyPatch only works with a single input.');
-    }
-
-    uniDiff = uniDiff[0];
+  if (patches.length > 1) {
+    throw new Error('applyPatch only works with a single input.');
   }
 
+  return applyStructuredPatch(source, patches[0], options);
+}
+
+function applyStructuredPatch(
+  source: string,
+  patch: StructuredPatch,
+  options: ApplyPatchOptions = {}
+): string | false {
   if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
-    if (hasOnlyWinLineEndings(source) && isUnix(uniDiff)) {
-      uniDiff = unixToWin(uniDiff);
-    } else if (hasOnlyUnixLineEndings(source) && isWin(uniDiff)) {
-      uniDiff = winToUnix(uniDiff);
+    if (hasOnlyWinLineEndings(source) && isUnix(patch)) {
+      patch = unixToWin(patch);
+    } else if (hasOnlyUnixLineEndings(source) && isWin(patch)) {
+      patch = winToUnix(patch);
     }
   }
 
   // Apply the diff to the input
-  let lines = source.split('\n'),
-      hunks = uniDiff.hunks,
-
-      compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
-      fuzzFactor = options.fuzzFactor || 0,
-      minLine = 0;
+  const lines = source.split('\n'),
+        hunks = patch.hunks,
+        compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
+        fuzzFactor = options.fuzzFactor || 0;
+  let minLine = 0;
 
   if (fuzzFactor < 0 || !Number.isInteger(fuzzFactor)) {
     throw new Error('fuzzFactor must be a non-negative integer');
@@ -94,18 +154,18 @@ export function applyPatch(source, uniDiff, options = {}) {
    * `replacementLines`. Otherwise, returns null.
    */
   function applyHunk(
-    hunkLines,
-    toPos,
-    maxErrors,
-    hunkLinesI = 0,
-    lastContextLineMatched = true,
-    patchedLines = [],
-    patchedLinesLength = 0
-  ) {
+    hunkLines: string[],
+    toPos: number,
+    maxErrors: number,
+    hunkLinesI: number = 0,
+    lastContextLineMatched: boolean = true,
+    patchedLines: string[] = [],
+    patchedLinesLength: number = 0
+  ): ApplyHunkReturnType | null {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
     for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
-      let hunkLine = hunkLines[hunkLinesI],
+      const hunkLine = hunkLines[hunkLinesI],
           operation = (hunkLine.length > 0 ? hunkLine[0] : ' '),
           content = (hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine);
 
@@ -204,18 +264,18 @@ export function applyPatch(source, uniDiff, options = {}) {
     };
   }
 
-  const resultLines = [];
+  const resultLines: string[] = [];
 
   // Search best fit offsets for each hunk based on the previous ones
   let prevHunkOffset = 0;
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
     let hunkResult;
-    let maxLine = lines.length - hunk.oldLines + fuzzFactor;
-    let toPos;
+    const maxLine = lines.length - hunk.oldLines + fuzzFactor;
+    let toPos: number | undefined;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
       toPos = hunk.oldStart + prevHunkOffset - 1;
-      let iterator = distanceIterator(toPos, minLine, maxLine);
+      const iterator = distanceIterator(toPos, minLine, maxLine);
       for (; toPos !== undefined; toPos = iterator()) {
         hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
         if (hunkResult) {
@@ -232,7 +292,7 @@ export function applyPatch(source, uniDiff, options = {}) {
     }
 
     // Copy everything from the end of where we applied the last hunk to the start of this hunk
-    for (let i = minLine; i < toPos; i++) {
+    for (let i = minLine; i < toPos!; i++) {
       resultLines.push(lines[i]);
     }
 
@@ -248,7 +308,7 @@ export function applyPatch(source, uniDiff, options = {}) {
 
     // Note the offset between where the patch said the hunk should've applied and where we
     // applied it, so we can adjust future hunks accordingly:
-    prevHunkOffset = toPos + 1 - hunk.oldStart;
+    prevHunkOffset = toPos! + 1 - hunk.oldStart;
   }
 
   // Copy over the rest of the lines from the old text
@@ -259,26 +319,41 @@ export function applyPatch(source, uniDiff, options = {}) {
   return resultLines.join('\n');
 }
 
-// Wrapper that supports multiple file patches via callbacks.
-export function applyPatches(uniDiff, options) {
-  if (typeof uniDiff === 'string') {
-    uniDiff = parsePatch(uniDiff);
-  }
+export interface ApplyPatchesOptions extends ApplyPatchOptions {
+  loadFile: (index: StructuredPatch, callback: (err: any, data: string) => void) => void,
+  patched: (index: StructuredPatch, content: string | false, callback: (err: any) => void) => void,
+  complete: (err?: any) => void,
+}
+
+/**
+ * applies one or more patches.
+ *
+ * `patch` may be either an array of structured patch objects, or a string representing a patch in unified diff format (which may patch one or more files).
+ *
+ * This method will iterate over the contents of the patch and apply to data provided through callbacks. The general flow for each patch index is:
+ *
+ * - `options.loadFile(index, callback)` is called. The caller should then load the contents of the file and then pass that to the `callback(err, data)` callback. Passing an `err` will terminate further patch execution.
+ * - `options.patched(index, content, callback)` is called once the patch has been applied. `content` will be the return value from `applyPatch`. When it's ready, the caller should call `callback(err)` callback. Passing an `err` will terminate further patch execution.
+ *
+ * Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
+ */
+export function applyPatches(uniDiff: string | StructuredPatch[], options: ApplyPatchesOptions): void {
+  const spDiff: StructuredPatch[] = typeof uniDiff === 'string' ? parsePatch(uniDiff) : uniDiff;
 
   let currentIndex = 0;
-  function processIndex() {
-    let index = uniDiff[currentIndex++];
+  function processIndex(): void {
+    const index = spDiff[currentIndex++];
     if (!index) {
       return options.complete();
     }
 
-    options.loadFile(index, function(err, data) {
+    options.loadFile(index, function(err: any, data: string) {
       if (err) {
         return options.complete(err);
       }
 
-      let updatedContent = applyPatch(data, index, options);
-      options.patched(index, updatedContent, function(err) {
+      const updatedContent = applyPatch(data, index, options);
+      options.patched(index, updatedContent, function(err: any) {
         if (err) {
           return options.complete(err);
         }

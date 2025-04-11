@@ -1,6 +1,7 @@
 coverage
 node_modules
-lib
+libesm
+libcjs
 dist
 yarn-error.log
 .vscode

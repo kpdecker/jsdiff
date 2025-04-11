@@ -1,5 +1,5 @@
-import {wordDiff, diffWords, diffWordsWithSpace} from '../../lib/diff/word';
-import {convertChangesToXML} from '../../lib/convert/xml';
+import {wordDiff, diffWords, diffWordsWithSpace} from '../../libesm/diff/word.js';
+import {convertChangesToXML} from '../../libesm/convert/xml.js';
 
 import {expect} from 'chai';
 

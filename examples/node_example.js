@@ -1,12 +1,12 @@
 require('colors');
-let Diff = require('../');
+const {diffChars} = require('diff');
 
-let one = 'beep boop';
-let other = 'beep boob blah';
+const one = 'beep boop';
+const other = 'beep boob blah';
 
-let diff = Diff.diffChars(one, other);
+const diff = diffChars(one, other);
 
-diff.forEach(function(part) {
+diff.forEach((part) => {
   // green for additions, red for deletions
   let text = part.added ? part.value.bgGreen :
              part.removed ? part.value.bgRed :
