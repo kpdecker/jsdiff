@@ -49,6 +49,16 @@
         "types": "./libcjs/*.d.ts",
         "default": "./libcjs/*.js"
       }
+    },
+    "./lib/": {
+      "import": {
+        "types": "./libesm/",
+        "default": "./libesm/"
+      },
+      "require": {
+        "types": "./libcjs/",
+        "default": "./libcjs/"
+      }
     }
   },
   "type": "module",
@@ -62,7 +72,7 @@
     "check-types": "yarn run-tsd && yarn run-attw",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
-    "run-attw": "yarn attw --pack",
+    "run-attw": "yarn attw --pack --entrypoints . && yarn attw --pack --entrypoints lib/diff/word.js --profile node16",
     "run-tsd": "yarn tsd --typings libesm/ && yarn tsd --files test-d/",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
