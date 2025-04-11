@@ -34,6 +34,10 @@ class LineDiff extends Diff<string, string> {
 
 export const lineDiff = new LineDiff();
 
+/**
+ * diffs two blocks of text, treating each line as a token.
+ * @returns a list of change objects.
+ */
 export function diffLines(
   oldStr: string,
   newStr: string,

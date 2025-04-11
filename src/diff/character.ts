@@ -5,6 +5,13 @@ class CharacterDiff extends Diff<string, string> {}
 
 export const characterDiff = new CharacterDiff();
 
+/**
+ * diffs two blocks of text, treating each character as a token.
+ *
+ * ("Characters" here means Unicode code points - the elements you get when you loop over a string with a `for ... of ...` loop.)
+ *
+ * @returns a list of change objects.
+ */
 export function diffChars(
   oldStr: string,
   newStr: string,

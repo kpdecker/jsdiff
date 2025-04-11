@@ -142,6 +142,12 @@ class WordDiff extends Diff<string, string> {
 
 export const wordDiff = new WordDiff();
 
+/**
+ * diffs two blocks of text, treating each word and each punctuation mark as a token.
+ * Whitespace is ignored when computing the diff (but preserved as far as possible in the final change objects).
+ *
+ * @returns a list of change objects.
+ */
 export function diffWords(
   oldStr: string,
   newStr: string,
@@ -321,6 +327,11 @@ class WordsWithSpaceDiff extends Diff<string, string> {
 }
 
 export const wordsWithSpaceDiff = new WordsWithSpaceDiff();
+
+/**
+ * diffs two blocks of text, treating each word, punctuation mark, newline, or run of (non-newline) whitespace as a token.
+ * @returns a list of change objects
+ */
 export function diffWordsWithSpace(
   oldStr: string,
   newStr: string,
