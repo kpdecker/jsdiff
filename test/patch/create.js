@@ -1,4 +1,4 @@
-import {diffWords} from 'marktesty';
+import {diffWords} from 'diff';
 import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../libesm/patch/create.js';
 import {parsePatch} from '../../libesm/patch/parse.js';
 
