@@ -5,6 +5,11 @@ type StructuredPatchCallbackAbortable = (patch: StructuredPatch | undefined) => 
 type StructuredPatchCallbackNonabortable = (patch: StructuredPatch) => void;
 
 interface _StructuredPatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
+  /**
+   * describes how many lines of context should be included.
+   * You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
+   * @default 4
+   */
   context?: number,
   callback?: StructuredPatchCallbackAbortable,
 }
@@ -27,6 +32,17 @@ interface ChangeObjectPlusLines extends Partial<ChangeObject<string>> {
   lines?: string[];
 }
 
+/**
+ * returns an object with an array of hunk objects.
+ *
+ * This method is similar to createTwoFilesPatch, but returns a data structure suitable for further processing.
+ * @param oldFileName String to be output in the filename section of the patch for the removals
+ * @param newFileName String to be output in the filename section of the patch for the additions
+ * @param oldStr Original string value
+ * @param newStr New string value
+ * @param oldHeader Optional additional information to include in the old file header.
+ * @param newHeader Optional additional information to include in the new file header.
+ */
 export function structuredPatch(
   oldFileName: string,
   newFileName: string,
@@ -226,21 +242,25 @@ export function structuredPatch(
   }
 }
 
-export function formatPatch(diff: StructuredPatch | StructuredPatch[]): string {
-  if (Array.isArray(diff)) {
-    return diff.map(formatPatch).join('\n');
+/**
+ * creates a unified diff patch.
+ * @param patch either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`)
+ */
+export function formatPatch(patch: StructuredPatch | StructuredPatch[]): string {
+  if (Array.isArray(patch)) {
+    return patch.map(formatPatch).join('\n');
   }
 
   const ret = [];
-  if (diff.oldFileName == diff.newFileName) {
-    ret.push('Index: ' + diff.oldFileName);
+  if (patch.oldFileName == patch.newFileName) {
+    ret.push('Index: ' + patch.oldFileName);
   }
   ret.push('===================================================================');
-  ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
-  ret.push('+++ ' + diff.newFileName + (typeof diff.newHeader === 'undefined' ? '' : '\t' + diff.newHeader));
+  ret.push('--- ' + patch.oldFileName + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
+  ret.push('+++ ' + patch.newFileName + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
 
-  for (let i = 0; i < diff.hunks.length; i++) {
-    const hunk = diff.hunks[i];
+  for (let i = 0; i < patch.hunks.length; i++) {
+    const hunk = patch.hunks[i];
     // Unified Diff Format quirk: If the chunk size is 0,
     // the first number is one lower than one would expect.
     // https://www.artima.com/weblogs/viewpost.jsp?thread=164293
@@ -282,6 +302,15 @@ interface CreatePatchCallbackOptionNonabortable {
   callback: CreatePatchCallbackNonabortable;
 }
 
+/**
+ * creates a unified diff patch by first computing a diff with `diffLines` and then serializing it to unified diff format.
+ * @param oldFileName String to be output in the filename section of the patch for the removals
+ * @param newFileName String to be output in the filename section of the patch for the additions
+ * @param oldStr Original string value
+ * @param newStr New string value
+ * @param oldHeader Optional additional information to include in the old file header.
+ * @param newHeader Optional additional information to include in the new file header.
+ */
 export function createTwoFilesPatch(
   oldFileName: string,
   newFileName: string,
@@ -369,6 +398,16 @@ export function createTwoFilesPatch(
   }
 }
 
+/**
+ * creates a unified diff patch.
+ *
+ * Just like createTwoFilesPatch, but with oldFileName being equal to newFileName.
+ * @param fileName String to be output in the filename section of the patch
+ * @param oldStr Original string value
+ * @param newStr New string value
+ * @param oldHeader Optional additional information to include in the old file header.
+ * @param newHeader Optional additional information to include in the new file header.
+ */
 export function createPatch(
   fileName: string,
   oldStr: string,

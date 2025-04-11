@@ -5,8 +5,22 @@ import distanceIterator from '../util/distance-iterator.js';
 import type { StructuredPatch } from '../types.js';
 
 export interface ApplyPatchOptions {
+  /**
+   * Maximum Levenshtein distance (in lines deleted, added, or subtituted) between the context shown in a patch hunk and the lines found in the file.
+   * @default 0
+   */
   fuzzFactor?: number,
+  /**
+   * If `true`, and if the file to be patched consistently uses different line endings to the patch (i.e. either the file always uses Unix line endings while the patch uses Windows ones, or vice versa), then `applyPatch` will behave as if the line endings in the patch were the same as those in the source file.
+   * (If `false`, the patch will usually fail to apply in such circumstances since lines deleted in the patch won't be considered to match those in the source file.)
+   * @default true
+   */
   autoConvertLineEndings?: boolean,
+  /**
+   * Callback used to compare to given lines to determine if they should be considered equal when patching.
+   * Defaults to strict equality but may be overridden to provide fuzzier comparison.
+   * Should return false if the lines should be rejected.
+   */
   compareLine?: (lineNumber: number, line: string, operation: string, patchContent: string) => boolean,
 }
 
@@ -15,18 +29,40 @@ interface ApplyHunkReturnType {
   oldLineLastI: number;
 }
 
+/**
+ * attempts to apply a unified diff patch.
+ *
+ * Hunks are applied first to last.
+ * `applyPatch` first tries to apply the first hunk at the line number specified in the hunk header, and with all context lines matching exactly.
+ * If that fails, it tries scanning backwards and forwards, one line at a time, to find a place to apply the hunk where the context lines match exactly.
+ * If that still fails, and `fuzzFactor` is greater than zero, it increments the maximum number of mismatches (missing, extra, or changed context lines) that there can be between the hunk context and a region where we are trying to apply the patch such that the hunk will still be considered to match.
+ * Regardless of `fuzzFactor`, lines to be deleted in the hunk *must* be present for a hunk to match, and the context lines *immediately* before and after an insertion must match exactly.
+ *
+ * Once a hunk is successfully fitted, the process begins again with the next hunk.
+ * Regardless of `fuzzFactor`, later hunks must be applied later in the file than earlier hunks.
+ *
+ * If a hunk cannot be successfully fitted *anywhere* with fewer than `fuzzFactor` mismatches, `applyPatch` fails and returns `false`.
+ *
+ * If a hunk is successfully fitted but not at the line number specified by the hunk header, all subsequent hunks have their target line number adjusted accordingly.
+ * (e.g. if the first hunk is applied 10 lines below where the hunk header said it should fit, `applyPatch` will *start* looking for somewhere to apply the second hunk 10 lines below where its hunk header says it goes.)
+ *
+ * If the patch was applied successfully, returns a string containing the patched text.
+ * If the patch could not be applied (because some hunks in the patch couldn't be fitted to the text in `source`), `applyPatch` returns false.
+ *
+ * @param patch a string diff or the output from the `parsePatch` or `structuredPatch` methods.
+ */
 export function applyPatch(
   source: string,
-  uniDiff: string | StructuredPatch | [StructuredPatch],
+  patch: string | StructuredPatch | [StructuredPatch],
   options: ApplyPatchOptions = {}
 ): string | false {
   let patches: StructuredPatch[];
-  if (typeof uniDiff === 'string') {
-    patches = parsePatch(uniDiff);
-  } else if (Array.isArray(uniDiff)) {
-    patches = uniDiff;
+  if (typeof patch === 'string') {
+    patches = parsePatch(patch);
+  } else if (Array.isArray(patch)) {
+    patches = patch;
   } else {
-    patches = [uniDiff];
+    patches = [patch];
   }
 
   if (patches.length > 1) {
