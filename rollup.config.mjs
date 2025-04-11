@@ -4,7 +4,7 @@ import pkg from './package.json' with { type: 'json' };
 export default [
   // browser-friendly UMD build
   {
-    input: 'libcjs/index.js',
+    input: 'libesm/index.js',
     output: [
       {
         name: 'Diff',
