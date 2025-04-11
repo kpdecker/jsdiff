@@ -24,7 +24,12 @@ class JsonDiff extends Diff<string, string> {
 
 export const jsonDiff = new JsonDiff();
 
-
+/**
+ * diffs two JSON-serializable objects by first serializing them to prettily-formatted JSON and then treating each line of the JSON as a token.
+ * Object properties are ordered alphabetically in the serialized JSON, so the order of properties in the objects being compared doesn't affect the result.
+ *
+ * @returns a list of change objects.
+ */
 export function diffJson(
   oldStr: string,
   newStr: string,

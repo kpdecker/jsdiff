@@ -9,6 +9,14 @@ class SentenceDiff extends Diff<string, string> {
 
 export const sentenceDiff = new SentenceDiff();
 
+/**
+ * diffs two blocks of text, treating each sentence, and the whitespace between each pair of sentences, as a token.
+ * The characters `.`, `!`, and `?`, when followed by whitespace, are treated as marking the end of a sentence; nothing else besides the end of the string is considered to mark a sentence end.
+ *
+ * (For more sophisticated detection of sentence breaks, including support for non-English punctuation, consider instead tokenizing with an [`Intl.Segmenter`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) with `granularity: 'sentence'` and passing the result to `diffArrays`.)
+ *
+ * @returns a list of change objects.
+ */
 export function diffSentences(
   oldStr: string,
   newStr: string,

@@ -17,6 +17,10 @@ class ArrayDiff<T> extends Diff<T, Array<T>> {
 
 export const arrayDiff = new ArrayDiff();
 
+/**
+ * diffs two arrays of tokens, comparing each item for strict equality (===).
+ * @returns a list of change objects.
+ */
 export function diffArrays<T>(
   oldArr: T[],
   newArr: T[],

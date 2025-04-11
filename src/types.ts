@@ -125,7 +125,14 @@ export type DiffSentencesOptionsAbortable = DiffSentencesOptions & AbortableDiff
 
 
 interface DiffJsonOptions extends CommonDiffOptions {
+  /**
+   * A value to replace `undefined` with. Ignored if a `stringifyReplacer` is provided.
+   */
   undefinedReplacement?: any,
+  /**
+   * A custom replacer function.
+   * Operates similarly to the `replacer` parameter to [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter), but must be a function.
+   */
   stringifyReplacer?: (k: string, v: any) => any,
 }
 export interface DiffJsonOptionsNonabortable extends DiffJsonOptions {

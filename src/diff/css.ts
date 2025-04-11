@@ -9,6 +9,11 @@ class CssDiff extends Diff<string, string> {
 
 export const cssDiff = new CssDiff();
 
+/**
+ * diffs two blocks of text, comparing CSS tokens.
+ *
+ * @returns a list of change objects.
+ */
 export function diffCss(
   oldStr: string,
   newStr: string,
