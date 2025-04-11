@@ -1,17 +1,3 @@
-# How to Contribute
-
-## Pull Requests
-
-We also accept [pull requests][pull-request]!
-
-Generally we like to see pull requests that
-
-- Maintain the existing code style
-- Are focused on a single change (i.e. avoid large refactoring or style adjustments in untouched code if not the primary goal of the pull request)
-- Have [good commit messages](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
-- Have tests
-- Don't decrease the current code coverage (see coverage/lcov-report/index.html)
-
 ## Building and testing
 
 ```
