@@ -28,6 +28,10 @@
   "engines": {
     "node": ">=0.3.1"
   },
+  "main": "./libcjs/index.js",
+  "module": "./libesm/index.js",
+  "browser": "./dist/diff.js",
+  "unpkg": "./dist/diff.js",
   "exports": {
     ".": {
       "import": {
