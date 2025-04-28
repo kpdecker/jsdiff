@@ -1,6 +1,6 @@
-import {diffWords} from '../../lib';
-import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../lib/patch/create';
-import {parsePatch} from '../../lib/patch/parse';
+import {diffWords} from 'diff';
+import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../libesm/patch/create.js';
+import {parsePatch} from '../../libesm/patch/parse.js';
 
 import {expect} from 'chai';
 
@@ -702,7 +702,7 @@ describe('patch/create', function() {
           + '+line\n'
           + '\\ No newline at end of file\n';
 
-        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: false});
+        const diffResult = createPatch('testFileName', 'line   \n line', 'line\nline', undefined, undefined, {ignoreWhitespace: false});
         expect(diffResult).to.equal(expectedResult);
       });
 
@@ -713,7 +713,7 @@ describe('patch/create', function() {
           + '--- testFileName\n'
           + '+++ testFileName\n';
 
-        const diffResult = createPatch('testFileName', 'line   \n\ line', 'line\n\line', undefined, undefined, {ignoreWhitespace: true});
+        const diffResult = createPatch('testFileName', 'line   \n line', 'line\nline', undefined, undefined, {ignoreWhitespace: true});
         expect(diffResult).to.equal(expectedResult);
       });
     });
@@ -794,9 +794,9 @@ describe('patch/create', function() {
       + '--- foo\n'
       + '+++ bar\n'
       + '@@ -1,2 +1,2 @@\n'
-      + '\-line\n'
-      + '\+line\r\n'
-      + '\ line\n'
+      + '-line\n'
+      + '+line\r\n'
+      + ' line\n'
       + '\\ No newline at end of file\n';
       expect(createTwoFilesPatch(
         'foo',

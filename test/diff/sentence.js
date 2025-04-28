@@ -1,5 +1,5 @@
-import {diffSentences, sentenceDiff} from '../../lib/diff/sentence';
-import {convertChangesToXML} from '../../lib/convert/xml';
+import {diffSentences, sentenceDiff} from '../../libesm/diff/sentence.js';
+import {convertChangesToXML} from '../../libesm/convert/xml.js';
 
 import {expect} from 'chai';
 
