@@ -1,6 +1,6 @@
 {
   "name": "diff",
-  "version": "7.0.0",
+  "version": "8.0.0",
   "description": "A JavaScript text diff implementation.",
   "keywords": [
     "diff",
