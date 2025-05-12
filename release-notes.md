@@ -1,6 +1,6 @@
 # Release Notes
 
-## 8.0.0 (pending release)
+## 8.0.0
 
 - [#580](https://github.com/kpdecker/jsdiff/pull/580) **Multiple tweaks to `diffSentences`**:
   * tokenization no longer takes quadratic time on pathological inputs (reported as a ReDOS vulnerability by Snyk); is now linear instead
