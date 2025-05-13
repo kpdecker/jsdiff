@@ -7,7 +7,7 @@
     var Diff = /** @class */ (function () {
         function Diff() {
         }
-        Diff.prototype.diff = function (oldString, newString,
+        Diff.prototype.diff = function (oldStr, newStr,
         // Type below is not accurate/complete - see above for full possibilities - but it compiles
         options) {
             if (options === void 0) { options = {}; }
@@ -20,8 +20,8 @@
                 callback = options.callback;
             }
             // Allow subclasses to massage the input prior to running
-            oldString = this.castInput(oldString, options);
-            newString = this.castInput(newString, options);
+            var oldString = this.castInput(oldStr, options);
+            var newString = this.castInput(newStr, options);
             var oldTokens = this.removeEmpty(this.tokenize(oldString, options));
             var newTokens = this.removeEmpty(this.tokenize(newString, options));
             return this.diffWithOptionsObj(oldTokens, newTokens, options, callback);
