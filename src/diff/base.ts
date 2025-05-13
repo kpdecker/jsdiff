@@ -23,36 +23,37 @@ interface Path {
 
 export default class Diff<
   TokenT,
-  ValueT extends Iterable<TokenT> = Iterable<TokenT>
+  ValueT extends Iterable<TokenT> = Iterable<TokenT>,
+  InputValueT = ValueT
 > {
   diff(
-    oldStr: ValueT,
-    newStr: ValueT,
+    oldStr: InputValueT,
+    newStr: InputValueT,
     options: DiffCallbackNonabortable<ValueT>
   ): undefined;
   diff(
-    oldStr: ValueT,
-    newStr: ValueT,
+    oldStr: InputValueT,
+    newStr: InputValueT,
     options: AllDiffOptions & AbortableDiffOptions & CallbackOptionAbortable<ValueT>
   ): undefined
   diff(
-    oldStr: ValueT,
-    newStr: ValueT,
+    oldStr: InputValueT,
+    newStr: InputValueT,
     options: AllDiffOptions & CallbackOptionNonabortable<ValueT>
   ): undefined
   diff(
-    oldStr: ValueT,
-    newStr: ValueT,
+    oldStr: InputValueT,
+    newStr: InputValueT,
     options: AllDiffOptions & AbortableDiffOptions
   ): ChangeObject<ValueT>[] | undefined
   diff(
-    oldStr: ValueT,
-    newStr: ValueT,
+    oldStr: InputValueT,
+    newStr: InputValueT,
     options?: AllDiffOptions
   ): ChangeObject<ValueT>[]
   diff(
-    oldString: ValueT,
-    newString: ValueT,
+    oldStr: InputValueT,
+    newStr: InputValueT,
     // Type below is not accurate/complete - see above for full possibilities - but it compiles
     options: DiffCallbackNonabortable<ValueT> | AllDiffOptions & Partial<CallbackOptionNonabortable<ValueT>> = {}
   ): ChangeObject<ValueT>[] | undefined {
@@ -64,8 +65,8 @@ export default class Diff<
       callback = options.callback;
     }
     // Allow subclasses to massage the input prior to running
-    oldString = this.castInput(oldString, options);
-    newString = this.castInput(newString, options);
+    const oldString = this.castInput(oldStr, options);
+    const newString = this.castInput(newStr, options);
 
     const oldTokens = this.removeEmpty(this.tokenize(oldString, options));
     const newTokens = this.removeEmpty(this.tokenize(newString, options));
@@ -282,8 +283,8 @@ export default class Diff<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  castInput(value: ValueT, options: AllDiffOptions): ValueT {
-    return value;
+  castInput(value: InputValueT, options: AllDiffOptions): ValueT {
+    return value as unknown as ValueT;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
