@@ -71,8 +71,8 @@
     "clean": "rm -rf libcsm/ libesm/ dist/ coverage/ .nyc_output/",
     "lint": "yarn eslint",
     "build": "yarn lint && yarn generate-esm && yarn generate-cjs && yarn check-types && yarn run-rollup && yarn run-uglify",
-    "generate-cjs": "yarn tsc --module commonjs --outDir libcjs && echo {\"type\": \"commonjs\"} > libcjs/package.json",
-    "generate-esm": "yarn tsc --module nodenext --outDir libesm && echo {\"type\": \"module\",\"sideEffects\":false} > libesm/package.json",
+    "generate-cjs": "yarn tsc --module commonjs --outDir libcjs && echo {\"type\": \"commonjs\", \"sideEffects\":false} > libcjs/package.json",
+    "generate-esm": "yarn tsc --module nodenext --outDir libesm && echo {\"type\": \"module\", \"sideEffects\":false} > libesm/package.json",
     "check-types": "yarn run-tsd && yarn run-attw",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
@@ -127,6 +127,5 @@
     "lines": 100,
     "functions": 100,
     "statements": 100
-  },
-  "sideEffects": false
+  }
 }
