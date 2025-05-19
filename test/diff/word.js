@@ -240,18 +240,16 @@ describe('WordDiff', function() {
 
     it('supports tokenizing with an Intl.Segmenter', () => {
       // Example 1: Diffing Chinese text with no spaces.
-      // I am not a Chinese speaker but I believe these sentences to mean:
-      // 1. "I have (我有) many (很多) tables (桌子)"
-      // 2. "Mei (梅) has (有) many (很多) sons (儿子)"
+      // a. "He (他) has (有) many (很多) tables (桌子)"
+      // b. "Mei (梅) has (有) many (很多) sons (儿子)"
       // We want to see that diffWords will get the word counts right and won't try to treat the
       // trailing 子 as common to both texts (since it's part of a different word each time).
-      // TODO: Check with a Chinese speaker that this example is correct Chinese.
       const chineseSegmenter = new Intl.Segmenter('zh', {granularity: 'word'});
       const diffResult = diffWords('我有很多桌子。', '梅有很多儿子。', {intlSegmenter: chineseSegmenter});
       expect(diffResult).to.deep.equal([
-        { count: 1, added: false, removed: true, value: '我有' },
-        { count: 2, added: true, removed: false, value: '梅有' },
-        { count: 1, added: false, removed: false, value: '很多' },
+        { count: 1, added: false, removed: true, value: '他' },
+        { count: 1, added: true, removed: false, value: '梅' },
+        { count: 2, added: false, removed: false, value: '有很多' },
         { count: 1, added: false, removed: true, value: '桌子' },
         { count: 1, added: true, removed: false, value: '儿子' },
         { count: 1, added: false, removed: false, value: '。' }
