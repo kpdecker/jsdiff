@@ -72,7 +72,7 @@
     "lint": "yarn eslint",
     "build": "yarn lint && yarn generate-esm && yarn generate-cjs && yarn check-types && yarn run-rollup && yarn run-uglify",
     "generate-cjs": "yarn tsc --module commonjs --outDir libcjs && node --eval \"fs.writeFileSync('libcjs/package.json', JSON.stringify({type:'commonjs',sideEffects:false}))\"",
-    "generate-esm": "yarn tsc --module nodenext --outDir libesm && node --eval \"fs.writeFileSync('libesm/package.json', JSON.stringify({type:'module',sideEffects:false}))\"",
+    "generate-esm": "yarn tsc --module nodenext --outDir libesm --target es6 && node --eval \"fs.writeFileSync('libesm/package.json', JSON.stringify({type:'module',sideEffects:false}))\"",
     "check-types": "yarn run-tsd && yarn run-attw",
     "test": "nyc yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
