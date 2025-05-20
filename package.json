@@ -68,7 +68,7 @@
   "type": "module",
   "types": "libcjs/index.d.ts",
   "scripts": {
-    "clean": "rm -rf libcsm/ libesm/ dist/ coverage/ .nyc_output/",
+    "clean": "rm -rf libcjs/ libesm/ dist/ coverage/ .nyc_output/",
     "lint": "yarn eslint",
     "build": "yarn lint && yarn generate-esm && yarn generate-cjs && yarn check-types && yarn run-rollup && yarn run-uglify",
     "generate-cjs": "yarn tsc --module commonjs --outDir libcjs && node --eval \"fs.writeFileSync('libcjs/package.json', JSON.stringify({type:'commonjs',sideEffects:false}))\"",
