@@ -1,5 +1,10 @@
 # Release Notes
 
+## 8.0.2
+
+- [#616](https://github.com/kpdecker/jsdiff/pull/616) **Restored compatibility of `diffSentences` with old Safari versions.** This was broken in 8.0.0 by the introduction of a regex with a [lookbehind assertion](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Lookbehind_assertion); these weren't supported in Safari prior to version 16.4.
+- [#612](https://github.com/kpdecker/jsdiff/pull/612) **Improved tree shakeability** by marking the built CJS and ESM packages with `sideEffects: false`.
+
 ## 8.0.1
 
 - [#610](https://github.com/kpdecker/jsdiff/pull/610) **Fixes types for `diffJson` which were broken by 8.0.0**. The new bundled types in 8.0.0 only allowed `diffJson` to be passed string arguments, but it should've been possible to pass either strings or objects (and now is). Thanks to Josh Kelley for the fix.
