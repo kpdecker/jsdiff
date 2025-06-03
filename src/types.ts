@@ -209,7 +209,7 @@ export interface DiffCssOptionsNonabortable extends DiffCssOptions {
    */
   callback?: DiffCallbackNonabortable<string>
 }
-export type DiffCssOptionsAbortable = DiffJsonOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
+export type DiffCssOptionsAbortable = DiffCssOptions & AbortableDiffOptions & Partial<CallbackOptionAbortable<string>>
 
 
 /**
