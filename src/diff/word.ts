@@ -25,7 +25,7 @@ const extendedWordChars = 'a-zA-Z0-9_\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2
 // Each token is one of the following:
 // - A punctuation mark plus the surrounding whitespace
 // - A word plus the surrounding whitespace
-// - Pure whitespace (but only in the special case where this the entire text
+// - Pure whitespace (but only in the special case where the entire text
 //   is just whitespace)
 //
 // We have to include surrounding whitespace in the tokens because the two
@@ -318,7 +318,7 @@ function dedupeWhitespaceInChangeObjects(
 class WordsWithSpaceDiff extends Diff<string, string> {
   tokenize(value: string) {
     // Slightly different to the tokenizeIncludingWhitespace regex used above in
-    // that this one treats each individual newline as a distinct tokens, rather
+    // that this one treats each individual newline as a distinct token, rather
     // than merging them into other surrounding whitespace. This was requested
     // in https://github.com/kpdecker/jsdiff/issues/180 &
     //    https://github.com/kpdecker/jsdiff/issues/211
