@@ -47,6 +47,7 @@ import {convertChangesToXML} from './convert/xml.js';
 import type {
   ChangeObject,
   Change,
+  ArrayChange,
   DiffArraysOptionsAbortable,
   DiffArraysOptionsNonabortable,
   DiffCharsOptionsAbortable,
@@ -102,6 +103,7 @@ export {
 export type {
   ChangeObject,
   Change,
+  ArrayChange,
   DiffArraysOptionsAbortable,
   DiffArraysOptionsNonabortable,
   DiffCharsOptionsAbortable,
