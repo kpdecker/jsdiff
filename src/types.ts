@@ -23,7 +23,7 @@ export interface ChangeObject<ValueT> {
 // explicitly reference by name in their own code, so keeping its name consistent is valuable even
 // though the names of many other types are inconsistent with the old DefinitelyTyped names.
 export type Change = ChangeObject<string>;
-export type ArrayChange = ChangeObject<any[]>;
+export type ArrayChange<T> = ChangeObject<T[]>;
 
 export interface CommonDiffOptions {
   /**
