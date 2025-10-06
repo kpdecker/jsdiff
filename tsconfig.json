@@ -22,7 +22,7 @@
         // specifically for "a library author" who wants to ensure their code works "under all
         // possible library consumer compilation settings" - i.e. a person who is essentially 100%
         // guaranteed to be running both an ESM and CJS build. So how can the recommendation to
-        // turn this setting on possible be even remotely sane? Beats me. ¯\_(ツ)_/¯
+        // turn this setting on possibly be even remotely sane? Beats me. ¯\_(ツ)_/¯
         // I've done the best I can by using the @typescript-eslint/consistent-type-imports and
         // @typescript-eslint/consistent-type-exports ESLint rules to enforce SOME of what this
         // setting would have enforced, though I dunno if I'm enforcing the bits that motivated the
