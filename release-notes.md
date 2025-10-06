@@ -1,5 +1,9 @@
 # Release Notes
 
+## Future 8.0.3 release
+
+- [#631](https://github.com/kpdecker/jsdiff/pull/631) - **fix support for using an `Intl.Segmenter` with `diffWords`**. This has been almost completely broken since the feature was added in v6.0.0, since it would outright crash on any text that featured two consecutive newlines between a pair of words (a very common case).
+
 ## 8.0.2
 
 - [#616](https://github.com/kpdecker/jsdiff/pull/616) **Restored compatibility of `diffSentences` with old Safari versions.** This was broken in 8.0.0 by the introduction of a regex with a [lookbehind assertion](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Lookbehind_assertion); these weren't supported in Safari prior to version 16.4.

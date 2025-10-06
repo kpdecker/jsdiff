@@ -284,6 +284,18 @@ describe('WordDiff', function() {
         diffWords('foo', 'bar', {intlSegmenter: segmenter});
       }).to['throw']('The segmenter passed must have a granularity of "word"');
     });
+
+    it("doesn't blow up when using an Intl.Segmenter on a text with a double newline", () => {
+      // Regression test for https://github.com/kpdecker/jsdiff/issues/630
+      const englishSegmenter = new Intl.Segmenter('en', {granularity: 'word'});
+      expect(convertChangesToXML(diffWords(
+        'A\n\nX',
+        'B\n\nX',
+        {intlSegmenter: englishSegmenter}
+      ))).to.equal(
+        '<del>A</del><ins>B</ins>\n\nX'
+      );
+    });
   });
 
   describe('#diffWordsWithSpace', function() {

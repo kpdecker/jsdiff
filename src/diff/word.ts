@@ -67,7 +67,24 @@ class WordDiff extends Diff<string, string> {
       if (segmenter.resolvedOptions().granularity != 'word') {
         throw new Error('The segmenter passed must have a granularity of "word"');
       }
-      parts = Array.from(segmenter.segment(value), segment => segment.segment);
+      // We want `parts` to be an array whose elements alternate between being
+      // pure whitespace and being pure non-whitespace. This is ALMOST what the
+      // segments returned by a word-based Intl.Segmenter already look like,
+      // and therefore we can ALMOST get what we want by simply doing...
+      //     parts = Array.from(segmenter.segment(value), segment => segment.segment);
+      // ... but not QUITE, because there's of one annoying special case: every
+      // newline character gets its own segment, instead of sharing a segment
+      // with other surrounding whitespace. We therefore need to manually merge
+      // consecutive segments of whitespace into a single part:
+      parts = [];
+      for (const segmentObj of Array.from(segmenter.segment(value))) {
+        const segment = segmentObj.segment;
+        if (parts.length && (/\s/).test(parts[parts.length - 1]) && (/\s/).test(segment)) {
+          parts[parts.length - 1] += segment;
+        } else {
+          parts.push(segment);
+        }
+      }
     } else {
       parts = value.match(tokenizeIncludingWhitespace) || [];
     }
