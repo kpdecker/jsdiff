@@ -59,6 +59,89 @@ describe('WordDiff', function() {
         '.'
       ]);
     });
+
+    // Test for various behaviours discussed at
+    // https://github.com/kpdecker/jsdiff/issues/634#issuecomment-3381707327
+    // In particular we are testing that:
+    // 1. single code points representing accented characters (most of range
+    //    U+00C0 thru U+00FF) are treated as word characters
+    // 2. soft hyphens are treated as part of the word they appear in
+    // 3. the multiplication and division signs are punctuation
+    // 4. currency signs are punctuation
+    // 5. section symbol is punctuation
+    // 6. reserved trademark symbol is punctuation
+    // 7. fractions are punctuation
+    // The behaviour being tested for in points 4 thru 7 above is of debatable
+    // correctness; it is not totally obvious whether we SHOULD treat those
+    // things as punctuation characters or as word characters. Nonetheless, we
+    // have this test to help document the current behaviour.
+    it('should handle the 0080-00FF range the way we expect', () => {
+      expect(
+        wordDiff.tokenize(
+          'My daugh\u00adter, Am\u00E9lie, is 1½ years old and works for ' +
+            'Google® for £6 per hour (equivalently £6÷60=£0.10 per minute, or ' +
+            '£6×8=£48 per day), in violation of § 123 of the Child Labour Act.'
+        )
+      ).to.deep.equal([
+        'My ',
+        ' daugh\u00adter',
+        ', ',
+        ' Am\u00E9lie',
+        ', ',
+        ' is ',
+        ' 1',
+        '½ ',
+        ' years ',
+        ' old ',
+        ' and ',
+        ' works ',
+        ' for ',
+        ' Google',
+        '® ',
+        ' for ',
+        ' £',
+        '6 ',
+        ' per ',
+        ' hour ',
+        ' (',
+        'equivalently ',
+        ' £',
+        '6',
+        '÷',
+        '60',
+        '=',
+        '£',
+        '0',
+        '.',
+        '10 ',
+        ' per ',
+        ' minute',
+        ', ',
+        ' or ',
+        ' £',
+        '6',
+        '×',
+        '8',
+        '=',
+        '£',
+        '48 ',
+        ' per ',
+        ' day',
+        ')',
+        ', ',
+        ' in ',
+        ' violation ',
+        ' of ',
+        ' § ',
+        ' 123 ',
+        ' of ',
+        ' the ',
+        ' Child ',
+        ' Labour ',
+        ' Act',
+        '.'
+      ]);
+    });
   });
 
   describe('#diffWords', function() {

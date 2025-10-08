@@ -4,23 +4,25 @@ import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix,
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
-// Ranges and exceptions:
-// Latin-1 Supplement, 0080–00FF
-//  - U+00D7  × Multiplication sign
-//  - U+00F7  ÷ Division sign
-// Latin Extended-A, 0100–017F
-// Latin Extended-B, 0180–024F
-// IPA Extensions, 0250–02AF
-// Spacing Modifier Letters, 02B0–02FF
-//  - U+02C7  ˇ &#711;  Caron
-//  - U+02D8  ˘ &#728;  Breve
-//  - U+02D9  ˙ &#729;  Dot Above
-//  - U+02DA  ˚ &#730;  Ring Above
-//  - U+02DB  ˛ &#731;  Ogonek
-//  - U+02DC  ˜ &#732;  Small Tilde
-//  - U+02DD  ˝ &#733;  Double Acute Accent
-// Latin Extended Additional, 1E00–1EFF
-const extendedWordChars = 'a-zA-Z0-9_\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}';
+// Chars/ranges counted as "word" characters by this regex are as follows:
+//
+// + U+00AD  Soft hyphen
+// + 00C0–00FF (letters with diacritics from the Latin-1 Supplement), except:
+//   - U+00D7  × Multiplication sign
+//   - U+00F7  ÷ Division sign
+// + Latin Extended-A, 0100–017F
+// + Latin Extended-B, 0180–024F
+// + IPA Extensions, 0250–02AF
+// + Spacing Modifier Letters, 02B0–02FF, except:
+//   - U+02C7  ˇ &#711;  Caron
+//   - U+02D8  ˘ &#728;  Breve
+//   - U+02D9  ˙ &#729;  Dot Above
+//   - U+02DA  ˚ &#730;  Ring Above
+//   - U+02DB  ˛ &#731;  Ogonek
+//   - U+02DC  ˜ &#732;  Small Tilde
+//   - U+02DD  ˝ &#733;  Double Acute Accent
+// + Latin Extended Additional, 1E00–1EFF
+const extendedWordChars = 'a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}';
 
 // Each token is one of the following:
 // - A punctuation mark plus the surrounding whitespace
