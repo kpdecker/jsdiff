@@ -42,7 +42,8 @@ import type {
   StructuredPatchOptionsAbortable,
   StructuredPatchOptionsNonabortable,
   CreatePatchOptionsAbortable,
-  CreatePatchOptionsNonabortable
+  CreatePatchOptionsNonabortable,
+  HeaderOptions
 } from './patch/create.js';
 
 import {convertChangesToDMP} from './convert/dmp.js';
@@ -133,5 +134,6 @@ export type {
   StructuredPatchOptionsAbortable,
   StructuredPatchOptionsNonabortable,
   CreatePatchOptionsAbortable,
-  CreatePatchOptionsNonabortable
+  CreatePatchOptionsNonabortable,
+  HeaderOptions
 };
