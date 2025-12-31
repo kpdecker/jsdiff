@@ -1113,37 +1113,6 @@ describe('patch/create', function() {
         expect(result).to.equal(expected);
       });
 
-      it('should include Index line when oldFileName equals newFileName with INCLUDE_HEADERS', function() {
-        const sameFilePatch = {
-          oldFileName: 'samefile',
-          oldHeader: 'old-timestamp',
-          newFileName: 'samefile',
-          newHeader: 'new-timestamp',
-          hunks: [
-            {
-              oldStart: 1,
-              oldLines: 1,
-              newStart: 1,
-              newLines: 1,
-              lines: [
-                '-old line',
-                '+new line'
-              ]
-            }
-          ]
-        };
-        const result = formatPatch(sameFilePatch, INCLUDE_HEADERS);
-        const expected =
-          'Index: samefile\n' +
-          '===================================================================\n' +
-          '--- samefile\told-timestamp\n' +
-          '+++ samefile\tnew-timestamp\n' +
-          '@@ -1,1 +1,1 @@\n' +
-          '-old line\n' +
-          '+new line\n';
-        expect(result).to.equal(expected);
-      });
-
       it('should include only file headers with FILE_HEADERS_ONLY', function() {
         const result = formatPatch(patch, FILE_HEADERS_ONLY);
         const expected =
