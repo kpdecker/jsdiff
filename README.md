@@ -127,7 +127,7 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
         (Note that in the case where `includeIndex` and `includeFileHeaders` are both false, the `oldFileName` and `newFileName` parameters are ignored entirely.)
 
-        The Unix `patch` util will accept patches produced with any configuration of these header options (and refers to patch headers as "leading garbage", which in typical usage it makes no attempt to parse or use in any way). However, other tools for working with unified diff format patches may be less liberal (and are not unambiguously wrong to be so, since the format has no rigorous standard). Tinkering with the `headerOptions` setting thus provides a way to help make patches produced by jsdiff compatible with other tools.
+        The GNU `patch` util will accept patches produced with any configuration of these header options (and refers to patch headers as "leading garbage", which in typical usage it makes no attempt to parse or use in any way). However, other tools for working with unified diff format patches may be less liberal (and are not unambiguously wrong to be so, since the format has no rigorous standard). Tinkering with the `headerOptions` setting thus provides a way to help make patches produced by jsdiff compatible with other tools.
 
 * `createPatch(fileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch.
 
