@@ -1068,6 +1068,39 @@ describe('patch/create', function() {
         ]
       };
 
+      const patchArray = [
+        {
+          oldFileName: 'file1',
+          oldHeader: 'timestamp1',
+          newFileName: 'file1',
+          newHeader: 'timestamp2',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              lines: ['-a', '+b']
+            }
+          ]
+        },
+        {
+          oldFileName: 'file2',
+          oldHeader: 'timestamp3',
+          newFileName: 'file2',
+          newHeader: 'timestamp4',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              lines: ['-x', '+y']
+            }
+          ]
+        }
+      ];
+
       it('should include all headers with INCLUDE_HEADERS', function() {
         const result = formatPatch(patch, INCLUDE_HEADERS);
         const expected =
@@ -1132,39 +1165,7 @@ describe('patch/create', function() {
       });
 
       it('should work with array of patches and INCLUDE_HEADERS', function() {
-        const patches = [
-          {
-            oldFileName: 'file1',
-            oldHeader: 'timestamp1',
-            newFileName: 'file1',
-            newHeader: 'timestamp2',
-            hunks: [
-              {
-                oldStart: 1,
-                oldLines: 1,
-                newStart: 1,
-                newLines: 1,
-                lines: ['-a', '+b']
-              }
-            ]
-          },
-          {
-            oldFileName: 'file2',
-            oldHeader: 'timestamp3',
-            newFileName: 'file2',
-            newHeader: 'timestamp4',
-            hunks: [
-              {
-                oldStart: 1,
-                oldLines: 1,
-                newStart: 1,
-                newLines: 1,
-                lines: ['-x', '+y']
-              }
-            ]
-          }
-        ];
-        const result = formatPatch(patches, INCLUDE_HEADERS);
+        const result = formatPatch(patchArray, INCLUDE_HEADERS);
         const expected =
           'Index: file1\n' +
           '===================================================================\n' +
@@ -1185,39 +1186,7 @@ describe('patch/create', function() {
       });
 
       it('should work with array of patches and FILE_HEADERS_ONLY', function() {
-        const patches = [
-          {
-            oldFileName: 'file1',
-            oldHeader: 'timestamp1',
-            newFileName: 'file1',
-            newHeader: 'timestamp2',
-            hunks: [
-              {
-                oldStart: 1,
-                oldLines: 1,
-                newStart: 1,
-                newLines: 1,
-                lines: ['-a', '+b']
-              }
-            ]
-          },
-          {
-            oldFileName: 'file2',
-            oldHeader: 'timestamp3',
-            newFileName: 'file2',
-            newHeader: 'timestamp4',
-            hunks: [
-              {
-                oldStart: 1,
-                oldLines: 1,
-                newStart: 1,
-                newLines: 1,
-                lines: ['-x', '+y']
-              }
-            ]
-          }
-        ];
-        const result = formatPatch(patches, FILE_HEADERS_ONLY);
+        const result = formatPatch(patchArray, FILE_HEADERS_ONLY);
         const expected =
           '--- file1\ttimestamp1\n' +
           '+++ file1\ttimestamp2\n' +
@@ -1234,39 +1203,7 @@ describe('patch/create', function() {
       });
 
       it('should work with array of patches and OMIT_HEADERS', function() {
-        const patches = [
-          {
-            oldFileName: 'file1',
-            oldHeader: 'timestamp1',
-            newFileName: 'file1',
-            newHeader: 'timestamp2',
-            hunks: [
-              {
-                oldStart: 1,
-                oldLines: 1,
-                newStart: 1,
-                newLines: 1,
-                lines: ['-a', '+b']
-              }
-            ]
-          },
-          {
-            oldFileName: 'file2',
-            oldHeader: 'timestamp3',
-            newFileName: 'file2',
-            newHeader: 'timestamp4',
-            hunks: [
-              {
-                oldStart: 1,
-                oldLines: 1,
-                newStart: 1,
-                newLines: 1,
-                lines: ['-x', '+y']
-              }
-            ]
-          }
-        ];
-        const result = formatPatch(patches, OMIT_HEADERS);
+        const result = formatPatch(patchArray, OMIT_HEADERS);
         const expected =
           '@@ -1,1 +1,1 @@\n' +
           '-a\n' +
