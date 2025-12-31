@@ -121,11 +121,13 @@ jsdiff's diff functions all take an old text and a new text and perform three st
       - `headerOptions`: Configures the format of patch headers in the returned patch. (Note these are distinct from *hunk* headers, which are a mandatory part of the unified diff format and not configurable.) Has three subfields (all default to `true`):
         - `includeIndex`: whether to include a line like `Index: filename.txt` at the start of the patch header. (Even if this is `true`, this line will be omitted if `oldFileName` and `newFileName` are not identical.)
         - `includeUnderline`: whether to include `===================================================================`.
-        - `includeFileHeaders`: whether to include two lines indicating the old and new filename, formatted like `--- old.txt` & `+++ new.txt`.
+        - `includeFileHeaders`: whether to include two lines indicating the old and new filename, formatted like `--- old.txt` and `+++ new.txt`.
 
         Note further that jsdiff exports three top-level constants that can be used as `headerOptions` values, named `INCLUDE_HEADERS` (the default), `FILE_HEADERS_ONLY`, and `OMIT_HEADERS`.
 
-        The Unix `patch` util will accept patches regardless of these header options (and refers to them as "leading garbage", which in typical usage it makes no attempt to parse or use in any way). However, other tools for working with unified diff format patches may be less liberal (and are not unambiguously wrong to be so, since the format has no rigorous standard). Tinkering with the `includeIndex` setting thus provides a way to help make patches produced by jsdiff compatible with other tools.
+        (Note that in the case where `includeIndex` and `includeFileHeaders` are both false, the `oldFileName` and `newFileName` parameters are ignored entirely.)
+
+        The Unix `patch` util will accept patches produced with any configuration of these header options (and refers to patch headers as "leading garbage", which in typical usage it makes no attempt to parse or use in any way). However, other tools for working with unified diff format patches may be less liberal (and are not unambiguously wrong to be so, since the format has no rigorous standard). Tinkering with the `includeIndex` setting thus provides a way to help make patches produced by jsdiff compatible with other tools.
 
 * `createPatch(fileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch.
 
