@@ -133,9 +133,9 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
     Just like createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
-* `formatPatch(patch)` - creates a unified diff patch.
+* `formatPatch(patch[, headerOptions])` - creates a unified diff patch.
 
-    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
+    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
 
 * `structuredPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - returns an object with an array of hunk objects.
 
