@@ -108,14 +108,14 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 * `createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch by first computing a diff with `diffLines` and then serializing it to unified diff format.
 
     Parameters:
-    * `oldFileName` : String to be output in the filename section of the patch for the removals
-    * `newFileName` : String to be output in the filename section of the patch for the additions
-    * `oldStr` : Original string value
-    * `newStr` : New string value
-    * `oldHeader` : Optional additional information to include in the old file header. Default: `undefined`.
-    * `newHeader` : Optional additional information to include in the new file header. Default: `undefined`.
-    * `options` : An object with options. 
-      - `context` describes how many lines of context should be included. You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
+    * `oldFileName`: String to be output in the filename section of the patch for the removals
+    * `newFileName`: String to be output in the filename section of the patch for the additions
+    * `oldStr`: Original string value
+    * `newStr`: New string value
+    * `oldHeader`: Optional additional information to include in the old file header. Default: `undefined`.
+    * `newHeader`: Optional additional information to include in the new file header. Default: `undefined`.
+    * `options`: An object with options.
+      - `context`: describes how many lines of context should be included. You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
       - `ignoreWhitespace`: Same as in `diffLines`. Defaults to `false`.
       - `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
 
