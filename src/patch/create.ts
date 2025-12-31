@@ -281,6 +281,13 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
     headerOptions = INCLUDE_HEADERS;
   }
   if (Array.isArray(patch)) {
+    if (patch.length > 1 && !headerOptions.includeFileHeaders) {
+      throw new Error(
+        'Cannot omit file headers on a multi-file patch. '
+        + '(The result would be unparseable; how would a tool trying to apply '
+        + 'the patch know which changes are to which file?)'
+      );
+    }
     return patch.map(p => formatPatch(p, headerOptions)).join('\n');
   }
 

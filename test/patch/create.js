@@ -1047,5 +1047,134 @@ describe('patch/create', function() {
 
       expect(roundTrippedPatch).to.deep.equal([patchObj]);
     });
+
+    describe('with headerOptions parameter', function() {
+      const patch = {
+        oldFileName: 'oldfile',
+        oldHeader: 'old-timestamp',
+        newFileName: 'newfile',
+        newHeader: 'new-timestamp',
+        hunks: [
+          {
+            oldStart: 1,
+            oldLines: 1,
+            newStart: 1,
+            newLines: 1,
+            lines: [
+              '-old line',
+              '+new line'
+            ]
+          }
+        ]
+      };
+
+      const patchArray = [
+        {
+          oldFileName: 'file1',
+          oldHeader: 'timestamp1',
+          newFileName: 'file1',
+          newHeader: 'timestamp2',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              lines: ['-a', '+b']
+            }
+          ]
+        },
+        {
+          oldFileName: 'file2',
+          oldHeader: 'timestamp3',
+          newFileName: 'file2',
+          newHeader: 'timestamp4',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 1,
+              newStart: 1,
+              newLines: 1,
+              lines: ['-x', '+y']
+            }
+          ]
+        }
+      ];
+
+      it('should include all headers with INCLUDE_HEADERS', function() {
+        const result = formatPatch(patch, INCLUDE_HEADERS);
+        const expected =
+          '===================================================================\n' +
+          '--- oldfile\told-timestamp\n' +
+          '+++ newfile\tnew-timestamp\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-old line\n' +
+          '+new line\n';
+        expect(result).to.equal(expected);
+      });
+
+      it('should include only file headers with FILE_HEADERS_ONLY', function() {
+        const result = formatPatch(patch, FILE_HEADERS_ONLY);
+        const expected =
+          '--- oldfile\told-timestamp\n' +
+          '+++ newfile\tnew-timestamp\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-old line\n' +
+          '+new line\n';
+        expect(result).to.equal(expected);
+      });
+
+      it('should omit all headers with OMIT_HEADERS', function() {
+        const result = formatPatch(patch, OMIT_HEADERS);
+        const expected =
+          '@@ -1,1 +1,1 @@\n' +
+          '-old line\n' +
+          '+new line\n';
+        expect(result).to.equal(expected);
+      });
+
+      it('should work with array of patches and INCLUDE_HEADERS', function() {
+        const result = formatPatch(patchArray, INCLUDE_HEADERS);
+        const expected =
+          'Index: file1\n' +
+          '===================================================================\n' +
+          '--- file1\ttimestamp1\n' +
+          '+++ file1\ttimestamp2\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-a\n' +
+          '+b\n' +
+          '\n' +
+          'Index: file2\n' +
+          '===================================================================\n' +
+          '--- file2\ttimestamp3\n' +
+          '+++ file2\ttimestamp4\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-x\n' +
+          '+y\n';
+        expect(result).to.equal(expected);
+      });
+
+      it('should work with array of patches and FILE_HEADERS_ONLY', function() {
+        const result = formatPatch(patchArray, FILE_HEADERS_ONLY);
+        const expected =
+          '--- file1\ttimestamp1\n' +
+          '+++ file1\ttimestamp2\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-a\n' +
+          '+b\n' +
+          '\n' +
+          '--- file2\ttimestamp3\n' +
+          '+++ file2\ttimestamp4\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-x\n' +
+          '+y\n';
+        expect(result).to.equal(expected);
+      });
+
+      it('should throw an error when given an array of patches and OMIT_HEADERS', function() {
+        // eslint-disable-next-line dot-notation
+        expect(() => formatPatch(patchArray, OMIT_HEADERS)).to.throw();
+      });
+    });
   });
 });
