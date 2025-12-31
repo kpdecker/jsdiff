@@ -1171,17 +1171,9 @@ describe('patch/create', function() {
         expect(result).to.equal(expected);
       });
 
-      it('should work with array of patches and OMIT_HEADERS', function() {
-        const result = formatPatch(patchArray, OMIT_HEADERS);
-        const expected =
-          '@@ -1,1 +1,1 @@\n' +
-          '-a\n' +
-          '+b\n' +
-          '\n' +
-          '@@ -1,1 +1,1 @@\n' +
-          '-x\n' +
-          '+y\n';
-        expect(result).to.equal(expected);
+      it('should throw an error when given an array of patches and OMIT_HEADERS', function() {
+        // eslint-disable-next-line dot-notation
+        expect(() => formatPatch(patchArray, OMIT_HEADERS)).to.throw();
       });
     });
   });
