@@ -4,6 +4,7 @@
 
 - [#631](https://github.com/kpdecker/jsdiff/pull/631) - **fix support for using an `Intl.Segmenter` with `diffWords`**. This has been almost completely broken since the feature was added in v6.0.0, since it would outright crash on any text that featured two consecutive newlines between a pair of words (a very common case).
 - [#635](https://github.com/kpdecker/jsdiff/pull/635) - **small tweaks to tokenization behaviour of `diffWords`** when used *without* an `Intl.Segmenter`. Specifically, the soft hyphen (U+00AD) is no longer considered to be a word break, and the multiplication and division signs (`×` and `÷`) are now treated as punctuation instead of as letters / word characters.
+- [#641](https://github.com/kpdecker/jsdiff/pull/641) - **the format of file headers in `createPatch` etc. patches can now be customised somewhat**. It now takes a `headerOptions` option that can be used to disable the file headers entirely, or omit the `Index:` line and/or the underline.
 
 ## 8.0.2
 
