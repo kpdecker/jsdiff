@@ -1,5 +1,5 @@
 import {diffWords} from 'diff';
-import {createPatch, createTwoFilesPatch, formatPatch, structuredPatch} from '../../libesm/patch/create.js';
+import {createPatch, createTwoFilesPatch, FILE_HEADERS_ONLY, formatPatch, INCLUDE_HEADERS, OMIT_HEADERS, structuredPatch} from '../../libesm/patch/create.js';
 import {parsePatch} from '../../libesm/patch/parse.js';
 
 import {expect} from 'chai';
@@ -628,43 +628,82 @@ describe('patch/create', function() {
       expect(diffResult).to.equal(expectedResult);
     });
 
-    it('should output headers only for identical files', function() {
-      const expectedResult =
-        'Index: testFileName\n'
-        + '===================================================================\n'
-        + '--- testFileName\tOld Header\n'
-        + '+++ testFileName\tNew Header\n';
-      const diffResult = createPatch('testFileName', oldFile, oldFile, 'Old Header', 'New Header');
-      expect(diffResult).to.equal(expectedResult);
-    });
+    describe('headers handling', function() {
+      it('should output headers only for identical files', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\tOld Header\n'
+          + '+++ testFileName\tNew Header\n';
+        const diffResult = createPatch('testFileName', oldFile, oldFile, 'Old Header', 'New Header');
+        expect(diffResult).to.equal(expectedResult);
+      });
 
-    it('should omit headers if undefined', function() {
-      const expectedResult =
-        'Index: testFileName\n'
-        + '===================================================================\n'
-        + '--- testFileName\n'
-        + '+++ testFileName\n';
-      const diffResult = createPatch('testFileName', oldFile, oldFile);
-      expect(diffResult).to.equal(expectedResult);
-    });
+      it('should omit headers if undefined', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n';
+        const diffResult = createPatch('testFileName', oldFile, oldFile);
+        expect(diffResult).to.equal(expectedResult);
+      });
 
-    it('should safely handle empty inputs', function() {
-      const expectedResult =
-        'Index: testFileName\n'
-        + '===================================================================\n'
-        + '--- testFileName\n'
-        + '+++ testFileName\n';
-      const diffResult = createPatch('testFileName', '', '');
-      expect(diffResult).to.equal(expectedResult);
-    });
+      it('should safely handle empty inputs', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n';
+        const diffResult = createPatch('testFileName', '', '');
+        expect(diffResult).to.equal(expectedResult);
+      });
 
-    it('should omit index with multiple file names', function() {
-      const expectedResult =
-        '===================================================================\n'
-        + '--- foo\n'
-        + '+++ bar\n';
-      const diffResult = createTwoFilesPatch('foo', 'bar', '', '');
-      expect(diffResult).to.equal(expectedResult);
+      it('should omit index with multiple file names', function() {
+        const expectedResult =
+          '===================================================================\n'
+          + '--- foo\n'
+          + '+++ bar\n';
+        const diffResult = createTwoFilesPatch('foo', 'bar', '', '');
+        expect(diffResult).to.equal(expectedResult);
+      });
+
+      it('should handle INCLUDE_HEADERS the same as not specifying options regarding headers', function() {
+        const expectedResult =
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n'
+          + '@@ -1,1 +1,1 @@\n'
+          + '-foo\n'
+          + '+bar\n';
+        const diffResult1 = createTwoFilesPatch('testFileName', 'testFileName', 'foo\n', 'bar\n');
+        const diffResult2 = createTwoFilesPatch('testFileName', 'testFileName', 'foo\n', 'bar\n', undefined, undefined, {});
+        const diffResult3 = createTwoFilesPatch('testFileName', 'testFileName', 'foo\n', 'bar\n', undefined, undefined, { headerOptions: INCLUDE_HEADERS });
+        expect(diffResult1).to.equal(expectedResult);
+        expect(diffResult2).to.equal(expectedResult);
+        expect(diffResult3).to.equal(expectedResult);
+      });
+
+      it('should respect FILE_HEADERS_ONLY', function() {
+        const expectedResult =
+          '--- testFileName\n'
+            + '+++ testFileName\n'
+            + '@@ -1,1 +1,1 @@\n'
+            + '-foo\n'
+            + '+bar\n';
+        const diffResult = createTwoFilesPatch('testFileName', 'testFileName', 'foo\n', 'bar\n', undefined, undefined, {headerOptions: FILE_HEADERS_ONLY});
+        expect(diffResult).to.equal(expectedResult);
+      });
+
+      it('should respect OMIT_HEADERS', function() {
+        const expectedResult =
+          '@@ -1,1 +1,1 @@\n'
+            + '-foo\n'
+            + '+bar\n';
+        const diffResult = createTwoFilesPatch('testFileName', 'testFileName', 'foo\n', 'bar\n', undefined, undefined, {headerOptions: OMIT_HEADERS});
+        expect(diffResult).to.equal(expectedResult);
+      });
     });
 
     it('should respect maxEditLength', function() {

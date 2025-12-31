@@ -4,6 +4,28 @@ import type { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabo
 type StructuredPatchCallbackAbortable = (patch: StructuredPatch | undefined) => void;
 type StructuredPatchCallbackNonabortable = (patch: StructuredPatch) => void;
 
+export interface HeaderOptions {
+  includeIndex: boolean;
+  includeUnderline: boolean;
+  includeFileHeaders: boolean;
+}
+
+export const INCLUDE_HEADERS = {
+  includeIndex: true,
+  includeUnderline: true,
+  includeFileHeaders: true
+};
+export const FILE_HEADERS_ONLY = {
+  includeIndex: false,
+  includeUnderline: false,
+  includeFileHeaders: true
+};
+export const OMIT_HEADERS = {
+  includeIndex: false,
+  includeUnderline: false,
+  includeFileHeaders: false
+};
+
 interface _StructuredPatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   /**
    * describes how many lines of context should be included.
@@ -254,18 +276,25 @@ export function structuredPatch(
  * creates a unified diff patch.
  * @param patch either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`)
  */
-export function formatPatch(patch: StructuredPatch | StructuredPatch[]): string {
+export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOptions?: HeaderOptions): string {
+  if (!headerOptions) {
+    headerOptions = INCLUDE_HEADERS;
+  }
   if (Array.isArray(patch)) {
-    return patch.map(formatPatch).join('\n');
+    return patch.map(p => formatPatch(p, headerOptions)).join('\n');
   }
 
   const ret = [];
-  if (patch.oldFileName == patch.newFileName) {
+  if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName) {
     ret.push('Index: ' + patch.oldFileName);
   }
-  ret.push('===================================================================');
-  ret.push('--- ' + patch.oldFileName + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
-  ret.push('+++ ' + patch.newFileName + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
+  if (headerOptions.includeUnderline) {
+    ret.push('===================================================================');
+  }
+  if (headerOptions.includeFileHeaders) {
+    ret.push('--- ' + patch.oldFileName + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
+    ret.push('+++ ' + patch.newFileName + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
+  }
 
   for (let i = 0; i < patch.hunks.length; i++) {
     const hunk = patch.hunks[i];
@@ -297,11 +326,13 @@ type CreatePatchCallbackNonabortable = (patch: string) => void;
 interface _CreatePatchOptionsAbortable extends Pick<DiffLinesOptionsAbortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   context?: number,
   callback?: CreatePatchCallbackAbortable,
+  headerOptions?: HeaderOptions,
 }
 export type CreatePatchOptionsAbortable = _CreatePatchOptionsAbortable & AbortableDiffOptions;
 export interface CreatePatchOptionsNonabortable extends Pick<DiffLinesOptionsNonabortable, 'ignoreWhitespace' | 'stripTrailingCr'> {
   context?: number,
   callback?: CreatePatchCallbackNonabortable,
+  headerOptions?: HeaderOptions,
 }
 interface CreatePatchCallbackOptionAbortable {
   callback: CreatePatchCallbackAbortable;
@@ -382,7 +413,7 @@ export function createTwoFilesPatch(
     if (!patchObj) {
       return;
     }
-    return formatPatch(patchObj);
+    return formatPatch(patchObj, options?.headerOptions);
   } else {
     const {callback} = options;
     structuredPatch(
@@ -398,7 +429,7 @@ export function createTwoFilesPatch(
           if (!patchObj) {
             (callback as CreatePatchCallbackAbortable)(undefined);
           } else {
-            callback(formatPatch(patchObj));
+            callback(formatPatch(patchObj, options.headerOptions));
           }
         }
       }

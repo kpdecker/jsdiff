@@ -33,7 +33,10 @@ import {
   structuredPatch,
   createTwoFilesPatch,
   createPatch,
-  formatPatch
+  formatPatch,
+  INCLUDE_HEADERS,
+  FILE_HEADERS_ONLY,
+  OMIT_HEADERS
 } from './patch/create.js';
 import type {
   StructuredPatchOptionsAbortable,
@@ -91,6 +94,9 @@ export {
   createTwoFilesPatch,
   createPatch,
   formatPatch,
+  INCLUDE_HEADERS,
+  FILE_HEADERS_ONLY,
+  OMIT_HEADERS,
   applyPatch,
   applyPatches,
   parsePatch,
