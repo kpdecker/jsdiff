@@ -33,13 +33,17 @@ import {
   structuredPatch,
   createTwoFilesPatch,
   createPatch,
-  formatPatch
+  formatPatch,
+  INCLUDE_HEADERS,
+  FILE_HEADERS_ONLY,
+  OMIT_HEADERS
 } from './patch/create.js';
 import type {
   StructuredPatchOptionsAbortable,
   StructuredPatchOptionsNonabortable,
   CreatePatchOptionsAbortable,
-  CreatePatchOptionsNonabortable
+  CreatePatchOptionsNonabortable,
+  HeaderOptions
 } from './patch/create.js';
 
 import {convertChangesToDMP} from './convert/dmp.js';
@@ -91,6 +95,9 @@ export {
   createTwoFilesPatch,
   createPatch,
   formatPatch,
+  INCLUDE_HEADERS,
+  FILE_HEADERS_ONLY,
+  OMIT_HEADERS,
   applyPatch,
   applyPatches,
   parsePatch,
@@ -127,5 +134,6 @@ export type {
   StructuredPatchOptionsAbortable,
   StructuredPatchOptionsNonabortable,
   CreatePatchOptionsAbortable,
-  CreatePatchOptionsNonabortable
+  CreatePatchOptionsNonabortable,
+  HeaderOptions
 };
