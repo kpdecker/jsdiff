@@ -108,24 +108,34 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 * `createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch by first computing a diff with `diffLines` and then serializing it to unified diff format.
 
     Parameters:
-    * `oldFileName` : String to be output in the filename section of the patch for the removals
-    * `newFileName` : String to be output in the filename section of the patch for the additions
-    * `oldStr` : Original string value
-    * `newStr` : New string value
-    * `oldHeader` : Optional additional information to include in the old file header. Default: `undefined`.
-    * `newHeader` : Optional additional information to include in the new file header. Default: `undefined`.
-    * `options` : An object with options. 
-      - `context` describes how many lines of context should be included. You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
+    * `oldFileName`: String to be output in the filename section of the patch for the removals
+    * `newFileName`: String to be output in the filename section of the patch for the additions
+    * `oldStr`: Original string value
+    * `newStr`: New string value
+    * `oldHeader`: Optional additional information to include in the old file header. Default: `undefined`.
+    * `newHeader`: Optional additional information to include in the new file header. Default: `undefined`.
+    * `options`: An object with options.
+      - `context`: describes how many lines of context should be included. You can set this to `Number.MAX_SAFE_INTEGER` or `Infinity` to include the entire file content in one hunk.
       - `ignoreWhitespace`: Same as in `diffLines`. Defaults to `false`.
       - `stripTrailingCr`: Same as in `diffLines`. Defaults to `false`.
+      - `headerOptions`: Configures the format of patch headers in the returned patch. (Note these are distinct from *hunk* headers, which are a mandatory part of the unified diff format and not configurable.) Has three subfields (all default to `true`):
+        - `includeIndex`: whether to include a line like `Index: filename.txt` at the start of the patch header. (Even if this is `true`, this line will be omitted if `oldFileName` and `newFileName` are not identical.)
+        - `includeUnderline`: whether to include `===================================================================`.
+        - `includeFileHeaders`: whether to include two lines indicating the old and new filename, formatted like `--- old.txt` and `+++ new.txt`.
+
+        Note further that jsdiff exports three top-level constants that can be used as `headerOptions` values, named `INCLUDE_HEADERS` (the default), `FILE_HEADERS_ONLY`, and `OMIT_HEADERS`.
+
+        (Note that in the case where `includeIndex` and `includeFileHeaders` are both false, the `oldFileName` and `newFileName` parameters are ignored entirely.)
+
+        The GNU `patch` util will accept patches produced with any configuration of these header options (and refers to patch headers as "leading garbage", which in typical usage it makes no attempt to parse or use in any way). However, other tools for working with unified diff format patches may be less liberal (and are not unambiguously wrong to be so, since the format has no real standard). Tinkering with the `headerOptions` setting thus provides a way to help make patches produced by jsdiff compatible with other tools.
 
 * `createPatch(fileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - creates a unified diff patch.
 
     Just like createTwoFilesPatch, but with oldFileName being equal to newFileName.
 
-* `formatPatch(patch)` - creates a unified diff patch.
+* `formatPatch(patch[, headerOptions])` - creates a unified diff patch.
 
-    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
+    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
 
 * `structuredPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - returns an object with an array of hunk objects.
 
