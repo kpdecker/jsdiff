@@ -172,6 +172,133 @@ Index: test2
         }]);
     });
 
+    it('should parse the header format used by Mercurial', function() {
+      // (At least, Mercurial is the only tool I could find that uses this
+      // format. Claude was unable to suggest any other tool that would produce
+      // this format, and I don't know of any either. See
+      // https://claude.ai/share/51e202d0-9da0-4dfa-a4a4-d6c6b476b300.)
+      //
+      // Support for this got added by Kevin in commit:
+      // 0c9dd6d0e622d8a32b441b45baa797a7e86a4c55
+      //
+      // I find it a bit odd that (at the time of adding this test) our header
+      // parsing has special handling for Mercurial's diff format but does not
+      // support Git's format (given Git is much more popular). I also find it
+      // a bit odd that we discard the information in the header about what
+      // revisions are being diffed and preserve only the filename (which is
+      // available anyway via the lines below, and exposed by us in the
+      // oldFileName and newFileName fields). But for now I am just trying to
+      // document and test the current state of things.
+      //
+      // -- ExplodingCabbage
+
+      // (Patch below was produced by running `hg diff -r 0 -r 1` in the
+      // Mercurial repo for Mercurial itself.)
+      const patchStr = `diff -r 9117c6561b0b -r 273ce12ad8f1 .hgignore
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/.hgignore	Tue May 03 13:27:13 2005 -0800
+@@ -0,0 +1,1 @@
++.*~
+diff -r 9117c6561b0b -r 273ce12ad8f1 README
+--- a/README	Tue May 03 13:16:10 2005 -0800
++++ b/README	Tue May 03 13:27:13 2005 -0800
+@@ -69,6 +69,10 @@
+
+ Network support (highly experimental):
+
++ # pull the self-hosting hg repo
++ foo$ hg init
++ foo$ hg merge http://selenic.com/hg/
++
+  # export your .hg directory as a directory on your webserver
+  foo$ ln -s .hg ~/public_html/hg-linux
+
+@@ -76,5 +80,10 @@
+  bar$ hg merge http://foo/~user/hg-linux
+
+  This is just a proof of concept of grabbing byte ranges, and is not
+- expected to perform well.
++ expected to perform well. Fixing this needs some pipelining to reduce
++ the number of round trips. See zsync for a similar approach.
+
++ Another approach which does perform well right now is to use rsync.
++ Simply rsync the remote repo to a read-only local copy and then do a
++ local pull.
++
+`;
+
+      const patchObj = parsePatch(patchStr);
+      expect(patchObj).to.deep.equals([
+        {
+          // Parsed from line `diff -r 9117c6561b0b -r 273ce12ad8f1 .hgignore`:
+          index: '.hgignore',
+          // Parsed from line `--- /dev/null	Thu Jan 01 00:00:00 1970 +0000`:
+          oldFileName: '/dev/null',
+          oldHeader: 'Thu Jan 01 00:00:00 1970 +0000',
+          // Parsed from line `+++ b/.hgignore	Tue May 03 13:27:13 2005 -0800`:
+          newFileName: 'b/.hgignore',
+          newHeader: 'Tue May 03 13:27:13 2005 -0800',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 0,
+              newStart: 1,
+              newLines: 1,
+              lines: [
+                '+.*~'
+              ]
+            }
+          ]
+        },
+        {
+          index: 'README',
+          oldFileName: 'a/README',
+          oldHeader: 'Tue May 03 13:16:10 2005 -0800',
+          newFileName: 'b/README',
+          newHeader: 'Tue May 03 13:27:13 2005 -0800',
+          hunks: [
+            {
+              oldStart: 69,
+              oldLines: 6,
+              newStart: 69,
+              newLines: 10,
+              lines: [
+                '',
+                ' Network support (highly experimental):',
+                '',
+                '+ # pull the self-hosting hg repo',
+                '+ foo$ hg init',
+                '+ foo$ hg merge http://selenic.com/hg/',
+                '+',
+                '  # export your .hg directory as a directory on your webserver',
+                '  foo$ ln -s .hg ~/public_html/hg-linux',
+                ''
+              ]
+            },
+            {
+              oldStart: 76,
+              oldLines: 5,
+              newStart: 80,
+              newLines: 10,
+              lines: [
+                '  bar$ hg merge http://foo/~user/hg-linux',
+                '',
+                '  This is just a proof of concept of grabbing byte ranges, and is not',
+                '- expected to perform well.',
+                '+ expected to perform well. Fixing this needs some pipelining to reduce',
+                '+ the number of round trips. See zsync for a similar approach.',
+                '',
+                '+ Another approach which does perform well right now is to use rsync.',
+                '+ Simply rsync the remote repo to a read-only local copy and then do a',
+                '+ local pull.',
+                '+'
+              ]
+            }
+          ]
+        }
+      ]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1
