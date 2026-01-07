@@ -74,15 +74,16 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
   function parseFileHeader(index: Partial<StructuredPatch>) {
-    const fileHeader = (/^(---|\+\+\+)\s+(.*)\r?$/).exec(diffstr[i]);
-    if (fileHeader) {
-      const data = fileHeader[2].split('\t', 2),
+    const fileHeaderMatch = (/^(---|\+\+\+)\s+/).exec(diffstr[i]);
+    if (fileHeaderMatch) {
+      const prefix = fileHeaderMatch[1],
+            data = diffstr[i].substring(3).trim().split('\t', 2),
             header = (data[1] || '').trim();
       let fileName = data[0].replace(/\\\\/g, '\\');
-      if ((/^".*"$/).test(fileName)) {
+      if (fileName.startsWith('"') && fileName.endsWith('"')) {
         fileName = fileName.substr(1, fileName.length - 2);
       }
-      if (fileHeader[1] === '---') {
+      if (prefix === '---') {
         index.oldFileName = fileName;
         index.oldHeader = header;
       } else {
