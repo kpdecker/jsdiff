@@ -553,6 +553,46 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       ]);
     });
 
+    it('should treat non-ASCII line break characters \\u2028 and \\u2029 like ordinary characters', () => {
+      // Regression test for nasty denial-of-service vulnerability fixed by
+      // https://github.com/kpdecker/jsdiff/pull/649
+      const patch = 'Index: t\u2028e\u2028s\u2028t\n' +
+      '--- f\u2028o\u2028o\t2023-12-20\u202816:11:20.908225554\u2028+0000\u2028\n' +
+      '+++ b\u2028a\u2028r\t2023-12-20\u202816:11:34.391473579\u2028+0000\u2028\n' +
+      '@@ -1,4 +1,4 @@\n' +
+      ' foo\n' +
+      '-bar\u2028bar\n' +
+      '+barry\u2028barry\n' +
+      ' baz\n' +
+      ' qux\n' +
+      '\\ No newline at end of file\n';
+      expect(parsePatch(patch)).to.eql([
+        {
+          oldFileName: 'f\u2028o\u2028o',
+          oldHeader: '2023-12-20\u202816:11:20.908225554\u2028+0000',
+          newFileName: 'b\u2028a\u2028r',
+          newHeader: '2023-12-20\u202816:11:34.391473579\u2028+0000',
+          index: 't\u2028e\u2028s\u2028t',
+          hunks: [
+            {
+              oldStart: 1,
+              oldLines: 4,
+              newStart: 1,
+              newLines: 4,
+              lines: [
+                ' foo',
+                '-bar\u2028bar',
+                '+barry\u2028barry',
+                ' baz',
+                ' qux',
+                '\\ No newline at end of file'
+              ]
+            }
+          ]
+        }
+      ]);
+    });
+
     it('should tolerate patches with extra trailing newlines after hunks', () => {
       // Regression test for https://github.com/kpdecker/jsdiff/issues/524
       // Not only are these considered valid by GNU patch, but jsdiff's own formatPatch method
