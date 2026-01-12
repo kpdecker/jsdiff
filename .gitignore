@@ -4,5 +4,6 @@ libesm
 libcjs
 dist
 yarn-error.log
-.vscode
 .nyc_output
+.vscode
+.zed

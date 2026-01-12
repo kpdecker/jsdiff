@@ -2,8 +2,9 @@
 .eslint.config.mjs
 .gitignore
 .npmignore
-.vscode
 .nyc_output
+.vscode
+.zed
 test-d
 components
 coverage
