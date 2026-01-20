@@ -18,9 +18,9 @@ export function parsePatch(uniDiff, options = {}) {
       }
 
       // Diff index
-      let header = (/^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/).exec(line);
-      if (header) {
-        index.index = header[1];
+      let headerMatch = (/^(?:Index:|diff(?: -r \w+)+)\s+/).exec(line);
+      if (headerMatch) {
+        index.index = line.substring(headerMatch[0].length).trim();
       }
 
       i++;
