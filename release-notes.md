@@ -87,6 +87,14 @@ This is a release containing many, *many* breaking changes. The objective of thi
 - [#535](https://github.com/kpdecker/jsdiff/pull/535) **Passing `newlineIsToken: true` to *patch*-generation functions is no longer allowed.** (Passing it to `diffLines` is still supported - it's only functions like `createPatch` where passing `newlineIsToken` is now an error.) Allowing it to be passed never really made sense, since in cases where the option had any effect on the output at all, the effect tended to be causing a garbled patch to be created that couldn't actually be applied to the source file.
 - [#539](https://github.com/kpdecker/jsdiff/pull/539) **`diffWords` now takes an optional `intlSegmenter` option** which should be an `Intl.Segmenter` with word-level granularity. This provides better tokenization of text into words than the default behaviour, even for English but especially for some other languages for which the default behaviour is poor.
 
+## v5.2.2 - January 2026
+
+Only change from 5.2.0 is a backport of the fix to https://github.com/kpdecker/jsdiff/security/advisories/GHSA-73rr-hh4g-fpgx.
+
+## v5.2.1 (deprecated)
+
+Accidental release - do not use.
+
 ## v5.2.0
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/v5.1.0...v5.2.0)
@@ -113,6 +121,18 @@ This is a release containing many, *many* breaking changes. The objective of thi
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/v4.0.1...v5.0.0)
 
+## v4.0.4 - January 2026
+
+Only change from 4.0.2 is a backport of the fix to https://github.com/kpdecker/jsdiff/security/advisories/GHSA-73rr-hh4g-fpgx.
+
+## v4.0.3 (deprecated)
+
+Accidental release - do not use.
+
+## v4.0.2
+
+No meaningful changes from v4.0.1 - just removed some cruft that shouldn't've been published.
+
 ## v4.0.1 - January 6th, 2019
 
 - Fix main reference path - b826104
@@ -137,6 +157,10 @@ Compatibility notes:
 - Bower and Component packages no longer supported
 
 [Commits](https://github.com/kpdecker/jsdiff/compare/v3.5.0...v4.0.0)
+
+## v3.5.1 - January 2026
+
+Only change from 3.5.0 is a backport of the fix to https://github.com/kpdecker/jsdiff/security/advisories/GHSA-73rr-hh4g-fpgx.
 
 ## v3.5.0 - March 4th, 2018
 
