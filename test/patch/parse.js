@@ -465,6 +465,26 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       }).to['throw'](/Unknown line 3 "blah"/);
     });
 
+    // GitHub #648: "diff " alone must not be treated as a patch header; only
+    // "Index:" or "diff -r <word> -r <word> ..." start a new patch.
+    describe('diff header regex consistency (#648)', function() {
+      const onePatch = 'Index: foo\n--- a/foo\n+++ b/foo\n@@ -1,0 +1,1 @@\n+line\n';
+      const validSecondHeader = 'diff -r rev1 -r rev2 bar\n--- a/bar\n+++ b/bar\n@@ -1,0 +1,1 @@\n+other\n';
+
+      it('treats "diff -r X -r Y path" as start of next patch (2 patches)', function() {
+        const result = parsePatch(onePatch + validSecondHeader);
+        expect(result).to.have.lengthOf(2);
+        expect(result[0].index).to.equal('foo');
+        expect(result[1].index).to.equal('bar');
+      });
+
+      it('does not treat "diff bla" as start of next patch (throws Unknown line)', function() {
+        expect(function() {
+          parsePatch(onePatch + 'diff bla');
+        }).to['throw'](/Unknown line 6 "diff bla"/);
+      });
+    });
+
     it('should handle OOM case', function() {
       parsePatch('Index: \n===================================================================\n--- \n+++ \n@@ -1,1 +1,2 @@\n-1\n\\ No newline at end of file\n+1\n+2\n');
     });

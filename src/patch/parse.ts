@@ -41,7 +41,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       //       it's going to change, it should be done cautiously and in a new
       //       major release, for backwards-compat reasons.
       //       -- ExplodingCabbage
-      const headerMatch = (/^(?:Index:|diff(?: -r \w+)+)\s+/).exec(line);
+      const headerMatch = (/^(?:Index:|diff(?: -r \w+)+|diff --git)\s+/).exec(line);
       if (headerMatch) {
         index.index = line.substring(headerMatch[0].length).trim();
       }
@@ -59,7 +59,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
     while (i < diffstr.length) {
       const line = diffstr[i];
-      if ((/^(Index:\s|diff\s|---\s|\+\+\+\s|===================================================================)/).test(line)) {
+      if ((/^(Index:\s|diff(?: -r \w+)+\s|diff --git\s|---\s|\+\+\+\s|===================================================================)/).test(line)) {
         break;
       } else if ((/^@@/).test(line)) {
         index.hunks.push(parseHunk());
