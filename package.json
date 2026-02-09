@@ -110,8 +110,6 @@
     "webpack": "^5.99.7",
     "webpack-dev-server": "^5.2.1"
   },
-  "optionalDependencies": {},
-  "dependencies": {},
   "nyc": {
     "require": [
       "@babel/register"
@@ -128,5 +126,5 @@
     "functions": 100,
     "statements": 100
   },
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  "packageManager": "yarn@4.12.0"
 }
