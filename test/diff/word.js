@@ -6,11 +6,8 @@ import {expect} from 'chai';
 describe('WordDiff', function() {
   describe('#tokenize', function() {
     it('should give each word & punctuation mark its own token, including leading and trailing whitespace', function() {
-      expect(
-        wordDiff.tokenize(
-          'foo bar baz jurídica wir üben    bla\t\t \txyzáxyz  \n\n\n  animá-los\r\n\r\n(wibbly wobbly)().'
-        )
-      ).to.deep.equal([
+      const string = 'foo bar baz jurídica wir üben    bla\t\t \txyzáxyz  \n\n\n  animá-los\r\n\r\n(wibbly wobbly)().';
+      const expectedResult = [
         'foo ',
         ' bar ',
         ' baz ',
@@ -29,7 +26,9 @@ describe('WordDiff', function() {
         '(',
         ')',
         '.'
-      ]);
+      ];
+      expect(wordDiff.tokenize(string)).to.deep.equal(expectedResult);
+      expect(wordDiff.tokenize(string, new Intl.Segmenter({granularity: 'word'}))).to.deep.equal(expectedResult);
     });
 
     // Test for bug reported at https://github.com/kpdecker/jsdiff/issues/553
@@ -378,6 +377,56 @@ describe('WordDiff', function() {
       ))).to.equal(
         '<del>A</del><ins>B</ins>\n\nX'
       );
+    });
+
+    it('handles diacritics on whitespace differently in Segmenter mode vs normal mode', () => {
+      // Regression test for https://github.com/kpdecker/jsdiff/issues/664
+      const oldString = 'abc \u0300X def';
+      const newString = 'abc \u0300Y ghi';
+
+      expect(diffWords(oldString, newString)).to.deep.equal([
+        {
+          count: 2,
+          added: false,
+          removed: false,
+          value: 'abc \u0300'
+        },
+        {
+          count: 2,
+          added: false,
+          removed: true,
+          value: 'X def'
+        },
+        {
+          count: 2,
+          added: true,
+          removed: false,
+          value: 'Y ghi'
+        }
+      ]);
+
+      expect(diffWords(oldString, newString, { intlSegmenter: new Intl.Segmenter('en', { granularity: 'word' }) })).to.deep.equal([
+        {
+          // Note this is ONE token in segmenter mode, because ' \u0300' is
+          // considered pure whitespace
+          count: 1,
+          added: false,
+          removed: false,
+          value: 'abc \u0300'
+        },
+        {
+          count: 2,
+          added: false,
+          removed: true,
+          value: 'X def'
+        },
+        {
+          count: 2,
+          added: true,
+          removed: false,
+          value: 'Y ghi'
+        }
+      ]);
     });
   });
 
