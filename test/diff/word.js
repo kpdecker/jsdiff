@@ -28,7 +28,10 @@ describe('WordDiff', function() {
         '.'
       ];
       expect(wordDiff.tokenize(string)).to.deep.equal(expectedResult);
-      expect(wordDiff.tokenize(string, new Intl.Segmenter({granularity: 'word'}))).to.deep.equal(expectedResult);
+      expect(wordDiff.tokenize(
+        string,
+        { intlSegmenter: new Intl.Segmenter({ granularity: 'word' }) }
+      )).to.deep.equal(expectedResult);
     });
 
     // Test for bug reported at https://github.com/kpdecker/jsdiff/issues/553
