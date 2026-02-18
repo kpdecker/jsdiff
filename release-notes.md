@@ -1,5 +1,9 @@
 # Release Notes
 
+## 8.0.4 (prerelease)
+
+- [#667](https://github.com/kpdecker/jsdiff/pull/667) - **fix another bug in `diffWords` when used with an `Intl.Segmenter`**. If the text to be diffed included a combining mark after a whitespace character (i.e. roughly speaking, an accented space), `diffWords` would previously crash. Now this case is handled correctly.
+
 ## 8.0.3
 
 - [#631](https://github.com/kpdecker/jsdiff/pull/631) - **fix support for using an `Intl.Segmenter` with `diffWords`**. This has been almost completely broken since the feature was added in v6.0.0, since it would outright crash on any text that featured two consecutive newlines between a pair of words (a very common case).
