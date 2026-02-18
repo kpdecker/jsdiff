@@ -428,6 +428,28 @@ describe('WordDiff', function() {
         }
       ]);
     });
+
+    it('handles orphaned diacritics after newlines acceptably', () => {
+      // Oddly enough, an Intl.Segmenter in word mode seems to think that
+      // diacritics can modify spaces, but not newlines. So a diacritic
+      // modifier character after a newline is always a standalone segment.
+      // This test sanity-checks that we behave reasonably when encountering
+      // such segments.
+      expect(
+        diffWords(
+          'abc \n\u0300 X \n\u0300def',
+          'abc \n\u0300 Y def',
+          { intlSegmenter: new Intl.Segmenter('en', { granularity: 'word' }) }
+        )
+      ).to.deep.equal(
+        [
+          { count: 2, added: false, removed: false, value: 'abc \ǹ ' },
+          { count: 2, added: false, removed: true, value: 'X \ǹ' },
+          { count: 1, added: true, removed: false, value: 'Y ' },
+          { count: 1, added: false, removed: false, value: 'def' }
+        ]
+      );
+    });
   });
 
   describe('#diffWordsWithSpace', function() {
