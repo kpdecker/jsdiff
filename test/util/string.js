@@ -1,4 +1,4 @@
-import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap} from '../../libesm/util/string.js';
+import {longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs} from '../../libesm/util/string.js';
 import {expect} from 'chai';
 
 describe('#longestCommonPrefix', function() {
@@ -86,5 +86,16 @@ describe('#maximumOverlap', function() {
     expect(maximumOverlap('uiopasdfgh', 'qwertyuiop')).to.equal('');
     expect(maximumOverlap('x   ', '  x')).to.equal('  ');
     expect(maximumOverlap('', '')).to.equal('');
+  });
+});
+
+describe('leadingWs & trailingWs', function() {
+  it('returns leading/trailing whitespace (with diacritics on whitespace considered part of the whitespace iff we are in segmenter mode)', () => {
+    const segmenter = new Intl.Segmenter('en', { granularity: 'word' });
+    const text = '\t\u0300  foo bar\n baz qux\t \u0300 ';
+    expect(leadingWs(text)).to.equal('\t');
+    expect(leadingWs(text, segmenter)).to.equal('\t\u0300  ');
+    expect(trailingWs(text)).to.equal(' ');
+    expect(trailingWs(text, segmenter)).to.equal('\t \u0300 ');
   });
 });

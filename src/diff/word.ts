@@ -1,6 +1,6 @@
 import Diff from './base.js';
 import type { ChangeObject, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackNonabortable, DiffWordsOptionsAbortable, DiffWordsOptionsNonabortable} from '../types.js';
-import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs } from '../util/string.js';
+import { longestCommonPrefix, longestCommonSuffix, replacePrefix, replaceSuffix, removePrefix, removeSuffix, maximumOverlap, leadingWs, trailingWs, leadingAndTrailingWs, segment } from '../util/string.js';
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -72,21 +72,9 @@ class WordDiff extends Diff<string, string> {
       // We want `parts` to be an array whose elements alternate between being
       // pure whitespace and being pure non-whitespace. This is ALMOST what the
       // segments returned by a word-based Intl.Segmenter already look like,
-      // and therefore we can ALMOST get what we want by simply doing...
-      //     parts = Array.from(segmenter.segment(value), segment => segment.segment);
-      // ... but not QUITE, because there's of one annoying special case: every
-      // newline character gets its own segment, instead of sharing a segment
-      // with other surrounding whitespace. We therefore need to manually merge
-      // consecutive segments of whitespace into a single part:
-      parts = [];
-      for (const segmentObj of Array.from(segmenter.segment(value))) {
-        const segment = segmentObj.segment;
-        if (parts.length && (/\s/).test(parts[parts.length - 1]) && (/\s/).test(segment)) {
-          parts[parts.length - 1] += segment;
-        } else {
-          parts.push(segment);
-        }
-      }
+      // but not quite - see explanation in the docs of our custom segment()
+      // function.
+      parts = segment(value, segmenter);
     } else {
       parts = value.match(tokenizeIncludingWhitespace) || [];
     }
@@ -146,7 +134,7 @@ class WordDiff extends Diff<string, string> {
         deletion = change;
       } else {
         if (insertion || deletion) { // May be false at start of text
-          dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change);
+          dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change, options.intlSegmenter);
         }
         lastKeep = change;
         insertion = null;
@@ -154,7 +142,7 @@ class WordDiff extends Diff<string, string> {
       }
     });
     if (insertion || deletion) {
-      dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
+      dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null, options.intlSegmenter);
     }
     return changes;
   }
@@ -209,7 +197,8 @@ function dedupeWhitespaceInChangeObjects(
   startKeep: ChangeObject<string> | null,
   deletion: ChangeObject<string> | null,
   insertion: ChangeObject<string> | null,
-  endKeep: ChangeObject<string> | null
+  endKeep: ChangeObject<string> | null,
+  segmenter?: Intl.Segmenter
 ) {
   // Before returning, we tidy up the leading and trailing whitespace of the
   // change objects to eliminate cases where trailing whitespace in one object
@@ -254,10 +243,8 @@ function dedupeWhitespaceInChangeObjects(
   // * Just a "delete"
   // We handle the three cases separately.
   if (deletion && insertion) {
-    const oldWsPrefix = leadingWs(deletion.value);
-    const oldWsSuffix = trailingWs(deletion.value);
-    const newWsPrefix = leadingWs(insertion.value);
-    const newWsSuffix = trailingWs(insertion.value);
+    const [oldWsPrefix, oldWsSuffix] = leadingAndTrailingWs(deletion.value, segmenter);
+    const [newWsPrefix, newWsSuffix] = leadingAndTrailingWs(insertion.value, segmenter);
 
     if (startKeep) {
       const commonWsPrefix = longestCommonPrefix(oldWsPrefix, newWsPrefix);
@@ -279,18 +266,17 @@ function dedupeWhitespaceInChangeObjects(
     // whitespace and deleting duplicate leading whitespace where
     // present.
     if (startKeep) {
-      const ws = leadingWs(insertion.value);
+      const ws = leadingWs(insertion.value, segmenter);
       insertion.value = insertion.value.substring(ws.length);
     }
     if (endKeep) {
-      const ws = leadingWs(endKeep.value);
+      const ws = leadingWs(endKeep.value, segmenter);
       endKeep.value = endKeep.value.substring(ws.length);
     }
   // otherwise we've got a deletion and no insertion
   } else if (startKeep && endKeep) {
-    const newWsFull = leadingWs(endKeep.value),
-        delWsStart = leadingWs(deletion!.value),
-        delWsEnd = trailingWs(deletion!.value);
+    const newWsFull = leadingWs(endKeep.value, segmenter),
+        [delWsStart, delWsEnd] = leadingAndTrailingWs(deletion!.value, segmenter);
 
     // Any whitespace that comes straight after startKeep in both the old and
     // new texts, assign to startKeep and remove from the deletion.
@@ -318,16 +304,16 @@ function dedupeWhitespaceInChangeObjects(
     // We are at the start of the text. Preserve all the whitespace on
     // endKeep, and just remove whitespace from the end of deletion to the
     // extent that it overlaps with the start of endKeep.
-    const endKeepWsPrefix = leadingWs(endKeep.value);
-    const deletionWsSuffix = trailingWs(deletion!.value);
+    const endKeepWsPrefix = leadingWs(endKeep.value, segmenter);
+    const deletionWsSuffix = trailingWs(deletion!.value, segmenter);
     const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
     deletion!.value = removeSuffix(deletion!.value, overlap);
   } else if (startKeep) {
     // We are at the END of the text. Preserve all the whitespace on
     // startKeep, and just remove whitespace from the start of deletion to
     // the extent that it overlaps with the end of startKeep.
-    const startKeepWsSuffix = trailingWs(startKeep.value);
-    const deletionWsPrefix = leadingWs(deletion!.value);
+    const startKeepWsSuffix = trailingWs(startKeep.value, segmenter);
+    const deletionWsPrefix = leadingWs(deletion!.value, segmenter);
     const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
     deletion!.value = removePrefix(deletion!.value, overlap);
   }
