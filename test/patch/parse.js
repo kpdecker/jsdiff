@@ -299,6 +299,122 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       ]);
     });
 
+    it('should parse generic diff headers', function() {
+      const patchStr = `diff --git a/foo b/foo
+--- a/foo
++++ b/foo
+@@ -1 +1 @@
+-old
++new`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'foo',
+        oldFileName: 'a/foo',
+        oldHeader: '',
+        newFileName: 'b/foo',
+        newHeader: '',
+        hunks: [
+          { oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-old', '+new'] }
+        ]
+      }]);
+    });
+
+    it('should parse Git rename-only patches', function() {
+      const patchStr = `diff --git a/README.md b/README-2.md
+similarity index 100%
+rename from README.md
+rename to README-2.md`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'README-2.md',
+        oldFileName: 'README.md',
+        newFileName: 'README-2.md',
+        hunks: []
+      }]);
+    });
+
+    it('should parse Git C-quoted paths in headers', function() {
+      const patchStr = `diff --git "a/old\\040name\\tfile" "b/new\\x20name\\"file"
+rename from "old\\040name\\tfile"
+rename to "new\\x20name\\"file"`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'new name"file',
+        oldFileName: 'old name\tfile',
+        newFileName: 'new name"file',
+        hunks: []
+      }]);
+    });
+
+    it('should handle edge cases in Git C-quoted escapes', function() {
+      const patchStr = `diff --git "a/odd\\qpath\\7" "b/new\\xZZname\\077"
+rename from "odd\\qpath\\7"
+rename to "new\\xZZname\\077"`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'newxZZname?',
+        oldFileName: 'oddqpath\u0007',
+        newFileName: 'newxZZname?',
+        hunks: []
+      }]);
+    });
+
+    it('should parse Git diff headers with unquoted spaces', function() {
+      const patchStr = `diff --git a/foo b/x b/foo b/x
+new file mode 100644
+index 0000000..e69de29
+diff --git a/name with spaces in it b/name with spaces in it
+new file mode 100644
+index 0000000..e69de29`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'foo b/x',
+        oldFileName: 'foo b/x',
+        newFileName: 'foo b/x',
+        hunks: []
+      }, {
+        index: 'name with spaces in it',
+        oldFileName: 'name with spaces in it',
+        newFileName: 'name with spaces in it',
+        hunks: []
+      }]);
+    });
+
+    it('should parse Git diff headers with mixed quoting', function() {
+      const patchStr = `diff --git "a/old name.txt" b/new name.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/simple.txt "b/new name.txt"
+new file mode 100644
+index 0000000..e69de29`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'new name.txt',
+        oldFileName: 'old name.txt',
+        newFileName: 'new name.txt',
+        hunks: []
+      }, {
+        index: 'new name.txt',
+        oldFileName: 'simple.txt',
+        newFileName: 'new name.txt',
+        hunks: []
+      }]);
+    });
+
+    it('should parse unquoted rename-from with spaces', function() {
+      const patchStr = `diff --git a/foo bar "b/baz\\t"
+similarity index 100%
+rename from foo bar
+rename to "baz\\t"`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'baz\t',
+        oldFileName: 'foo bar',
+        newFileName: 'baz\t',
+        hunks: []
+      }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1
