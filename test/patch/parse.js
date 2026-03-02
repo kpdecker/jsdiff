@@ -401,6 +401,20 @@ index 0000000..e69de29`;
       }]);
     });
 
+    it('should parse unquoted rename-from with spaces', function() {
+      const patchStr = `diff --git a/foo bar "b/baz\\t"
+similarity index 100%
+rename from foo bar
+rename to "baz\\t"`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'baz\t',
+        oldFileName: 'foo bar',
+        newFileName: 'baz\t',
+        hunks: []
+      }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1

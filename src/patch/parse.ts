@@ -216,8 +216,15 @@ function parseGitExtendedPath(line: string, prefix: string): string | null {
   if (!line.startsWith(prefix)) {
     return null;
   }
-  const token = parseGitPathToken(line, prefix.length);
-  return token ? token.value : null;
+  const remainder = line.substring(prefix.length).trimStart();
+  if (!remainder.length) {
+    return null;
+  }
+  if (remainder.startsWith('"')) {
+    const token = parseGitPathToken(remainder, 0);
+    return token ? token.value : null;
+  }
+  return remainder;
 }
 
 /**
