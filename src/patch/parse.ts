@@ -1,8 +1,8 @@
 import type { StructuredPatch } from '../types.js';
 
 /**
- * Parse a single git path token starting at the provided index.
- * Supports C-style quoted paths used by git when `core.quotePath` is enabled.
+ * Parse a single Git path token starting at the provided index.
+ * Supports C-style quoted paths used by Git when `core.quotePath` is enabled.
  */
 function parseGitPathToken(input: string, startIndex: number): { value: string; nextIndex: number } | null {
   let i = startIndex;
@@ -99,7 +99,7 @@ function parseGitPathToken(input: string, startIndex: number): { value: string; 
 }
 
 /**
- * Parse a fixed number of git path tokens from a string.
+ * Parse a fixed number of Git path tokens from a string.
  */
 function parseGitPathTokens(input: string, count: number): string[] | null {
   let index = 0;
@@ -116,7 +116,7 @@ function parseGitPathTokens(input: string, count: number): string[] | null {
 }
 
 /**
- * Parse a git `diff --git a/... b/...` header into old/new file names.
+ * Parse a Git `diff --git a/... b/...` header into old/new file names.
  */
 function parseGitDiffHeader(line: string): { oldFileName?: string; newFileName?: string } | null {
   const prefix = 'diff --git ';
@@ -138,7 +138,7 @@ function parseGitDiffHeader(line: string): { oldFileName?: string; newFileName?:
 }
 
 /**
- * Parse extended git headers like `rename from`, `rename to`, `copy from`, and `copy to`.
+ * Parse extended Git headers like `rename from`, `rename to`, `copy from`, and `copy to`.
  */
 function parseGitExtendedPath(line: string, prefix: string): string | null {
   if (!line.startsWith(prefix)) {

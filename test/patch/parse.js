@@ -319,7 +319,7 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       }]);
     });
 
-    it('should parse git rename-only patches', function() {
+    it('should parse Git rename-only patches', function() {
       const patchStr = `diff --git a/README.md b/README-2.md
 similarity index 100%
 rename from README.md
@@ -333,7 +333,7 @@ rename to README-2.md`;
       }]);
     });
 
-    it('should parse git C-quoted paths in headers', function() {
+    it('should parse Git C-quoted paths in headers', function() {
       const patchStr = `diff --git "a/old\\040name\\tfile" "b/new\\x20name\\"file"
 rename from "old\\040name\\tfile"
 rename to "new\\x20name\\"file"`;
@@ -346,7 +346,7 @@ rename to "new\\x20name\\"file"`;
       }]);
     });
 
-    it('should handle edge cases in git C-quoted escapes', function() {
+    it('should handle edge cases in Git C-quoted escapes', function() {
       const patchStr = `diff --git "a/odd\\qpath\\7" "b/new\\xZZname\\077"
 rename from "odd\\qpath\\7"
 rename to "new\\xZZname\\077"`;
