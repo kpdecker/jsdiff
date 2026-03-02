@@ -359,6 +359,27 @@ rename to "new\\xZZname\\077"`;
       }]);
     });
 
+    it('should parse Git diff headers with unquoted spaces', function() {
+      const patchStr = `diff --git a/foo b/x b/foo b/x
+new file mode 100644
+index 0000000..e69de29
+diff --git a/name with spaces in it b/name with spaces in it
+new file mode 100644
+index 0000000..e69de29`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'foo b/x',
+        oldFileName: 'foo b/x',
+        newFileName: 'foo b/x',
+        hunks: []
+      }, {
+        index: 'name with spaces in it',
+        oldFileName: 'name with spaces in it',
+        newFileName: 'name with spaces in it',
+        hunks: []
+      }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1

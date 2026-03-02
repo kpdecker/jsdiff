@@ -115,6 +115,54 @@ function parseGitPathTokens(input: string, count: number): string[] | null {
   return paths;
 }
 
+function scoreGitDiffCandidate(oldPath: string, newPath: string): number {
+  const oldValue = oldPath.substring(2);
+  const newValue = newPath.substring(2);
+  let score = Math.abs(oldValue.length - newValue.length);
+  if (oldValue === newValue) {
+    score -= 1000;
+  }
+  return score;
+}
+
+/**
+ * Parse unquoted Git diff paths separated by the ` b/` marker.
+ * If multiple splits are possible, prefer paths with similar length and exact matches.
+ */
+function parseGitUnquotedDiffPaths(input: string): { oldPath: string; newPath: string } | null {
+  if (!input.startsWith('a/')) {
+    return null;
+  }
+  const candidates: Array<{ oldPath: string; newPath: string }> = [];
+  let searchIndex = 0;
+  while (searchIndex < input.length) {
+    const separatorIndex = input.indexOf(' b/', searchIndex);
+    if (separatorIndex === -1) {
+      break;
+    }
+    const oldPath = input.substring(0, separatorIndex);
+    const newPath = input.substring(separatorIndex + 1);
+    if (oldPath.startsWith('a/') && newPath.startsWith('b/')) {
+      candidates.push({ oldPath, newPath });
+    }
+    searchIndex = separatorIndex + 1;
+  }
+  if (!candidates.length) {
+    return null;
+  }
+  let best = candidates[0];
+  let bestScore = scoreGitDiffCandidate(best.oldPath, best.newPath);
+  for (let i = 1; i < candidates.length; i++) {
+    const candidate = candidates[i];
+    const score = scoreGitDiffCandidate(candidate.oldPath, candidate.newPath);
+    if (score < bestScore) {
+      best = candidate;
+      bestScore = score;
+    }
+  }
+  return { oldPath: best.oldPath, newPath: best.newPath };
+}
+
 /**
  * Parse a Git `diff --git a/... b/...` header into old/new file names.
  */
@@ -123,11 +171,30 @@ function parseGitDiffHeader(line: string): { oldFileName?: string; newFileName?:
   if (!line.startsWith(prefix)) {
     return null;
   }
-  const paths = parseGitPathTokens(line.substring(prefix.length), 2);
-  if (!paths) {
-    return null;
+  const rawPaths = line.substring(prefix.length);
+  let oldFileName: string | undefined;
+  let newFileName: string | undefined;
+
+  if (rawPaths.startsWith('"')) {
+    const paths = parseGitPathTokens(rawPaths, 2);
+    if (!paths) {
+      return null;
+    }
+    [oldFileName, newFileName] = paths;
+  } else {
+    const unquoted = parseGitUnquotedDiffPaths(rawPaths);
+    if (unquoted) {
+      oldFileName = unquoted.oldPath;
+      newFileName = unquoted.newPath;
+    } else {
+      const paths = parseGitPathTokens(rawPaths, 2);
+      if (!paths) {
+        return null;
+      }
+      [oldFileName, newFileName] = paths;
+    }
   }
-  let [oldFileName, newFileName] = paths;
+
   if (oldFileName.startsWith('a/')) {
     oldFileName = oldFileName.substring(2);
   }
