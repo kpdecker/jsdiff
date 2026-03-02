@@ -168,11 +168,24 @@ function parseGitDiffHeader(line: string): { oldFileName?: string; newFileName?:
   let newFileName: string | undefined;
 
   if (rawPaths.startsWith('"')) {
-    const paths = parseGitPathTokens(rawPaths, 2);
-    if (!paths) {
+    const firstToken = parseGitPathToken(rawPaths, 0);
+    if (!firstToken) {
       return null;
     }
-    [oldFileName, newFileName] = paths;
+    oldFileName = firstToken.value;
+    const remainder = rawPaths.substring(firstToken.nextIndex).trimStart();
+    if (!remainder.length) {
+      return null;
+    }
+    if (remainder.startsWith('"')) {
+      const secondToken = parseGitPathToken(remainder, 0);
+      if (!secondToken) {
+        return null;
+      }
+      newFileName = secondToken.value;
+    } else {
+      newFileName = remainder;
+    }
   } else {
     const unquoted = parseGitUnquotedDiffPaths(rawPaths);
     if (unquoted) {

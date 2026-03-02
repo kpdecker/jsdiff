@@ -380,6 +380,27 @@ index 0000000..e69de29`;
       }]);
     });
 
+    it('should parse Git diff headers with mixed quoting', function() {
+      const patchStr = `diff --git "a/old name.txt" b/new name.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/simple.txt "b/new name.txt"
+new file mode 100644
+index 0000000..e69de29`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'new name.txt',
+        oldFileName: 'old name.txt',
+        newFileName: 'new name.txt',
+        hunks: []
+      }, {
+        index: 'new name.txt',
+        oldFileName: 'simple.txt',
+        newFileName: 'new name.txt',
+        hunks: []
+      }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1
