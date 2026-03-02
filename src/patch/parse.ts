@@ -1,6 +1,154 @@
 import type { StructuredPatch } from '../types.js';
 
 /**
+ * Parse a single git path token starting at the provided index.
+ * Supports C-style quoted paths used by git when `core.quotePath` is enabled.
+ */
+function parseGitPathToken(input: string, startIndex: number): { value: string; nextIndex: number } | null {
+  let i = startIndex;
+  while (i < input.length && input[i] === ' ') {
+    i++;
+  }
+  if (i >= input.length) {
+    return null;
+  }
+  if (input[i] === '"') {
+    i++;
+    let value = '';
+    while (i < input.length) {
+      const ch = input[i];
+      if (ch === '"') {
+        return { value, nextIndex: i + 1 };
+      }
+      if (ch === '\\') {
+        i++;
+        if (i >= input.length) {
+          return null;
+        }
+        const esc = input[i];
+        if (esc >= '0' && esc <= '7') {
+          let octal = esc;
+          for (let count = 0; count < 2; count++) {
+            const next = input[i + 1];
+            if (next >= '0' && next <= '7') {
+              i++;
+              octal += next;
+            } else {
+              break;
+            }
+          }
+          value += String.fromCharCode(parseInt(octal, 8));
+          i++;
+          continue;
+        }
+        if (esc === 'x') {
+          const hex = input.substring(i + 1, i + 3);
+          if (/^[0-9a-fA-F]{2}$/.test(hex)) {
+            value += String.fromCharCode(parseInt(hex, 16));
+            i += 3;
+            continue;
+          }
+          value += 'x';
+          i++;
+          continue;
+        }
+        switch (esc) {
+          case 'n':
+            value += '\n';
+            break;
+          case 't':
+            value += '\t';
+            break;
+          case 'r':
+            value += '\r';
+            break;
+          case 'b':
+            value += '\b';
+            break;
+          case 'f':
+            value += '\f';
+            break;
+          case 'a':
+            value += '\u0007';
+            break;
+          case 'v':
+            value += '\u000b';
+            break;
+          case '\\':
+            value += '\\';
+            break;
+          case '"':
+            value += '"';
+            break;
+          default:
+            value += esc;
+        }
+        i++;
+        continue;
+      }
+      value += ch;
+      i++;
+    }
+    return null;
+  }
+  const start = i;
+  while (i < input.length && input[i] !== ' ') {
+    i++;
+  }
+  return { value: input.substring(start, i), nextIndex: i };
+}
+
+/**
+ * Parse a fixed number of git path tokens from a string.
+ */
+function parseGitPathTokens(input: string, count: number): string[] | null {
+  let index = 0;
+  const paths: string[] = [];
+  for (let parsed = 0; parsed < count; parsed++) {
+    const token = parseGitPathToken(input, index);
+    if (!token) {
+      return null;
+    }
+    paths.push(token.value);
+    index = token.nextIndex;
+  }
+  return paths;
+}
+
+/**
+ * Parse a git `diff --git a/... b/...` header into old/new file names.
+ */
+function parseGitDiffHeader(line: string): { oldFileName?: string; newFileName?: string } | null {
+  const prefix = 'diff --git ';
+  if (!line.startsWith(prefix)) {
+    return null;
+  }
+  const paths = parseGitPathTokens(line.substring(prefix.length), 2);
+  if (!paths) {
+    return null;
+  }
+  let [oldFileName, newFileName] = paths;
+  if (oldFileName.startsWith('a/')) {
+    oldFileName = oldFileName.substring(2);
+  }
+  if (newFileName.startsWith('b/')) {
+    newFileName = newFileName.substring(2);
+  }
+  return { oldFileName, newFileName };
+}
+
+/**
+ * Parse extended git headers like `rename from`, `rename to`, `copy from`, and `copy to`.
+ */
+function parseGitExtendedPath(line: string, prefix: string): string | null {
+  if (!line.startsWith(prefix)) {
+    return null;
+  }
+  const token = parseGitPathToken(line, prefix.length);
+  return token ? token.value : null;
+}
+
+/**
  * Parses a patch into structured data, in the same structure returned by `structuredPatch`.
  *
  * @return a JSON object representation of the a patch, suitable for use with the `applyPatch` method.
@@ -9,141 +157,6 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
   const diffstr = uniDiff.split(/\n/),
         list: Partial<StructuredPatch>[] = [];
   let i = 0;
-
-  function parseGitPathToken(input: string, startIndex: number): { value: string; nextIndex: number } | null {
-    let i = startIndex;
-    while (i < input.length && input[i] === ' ') {
-      i++;
-    }
-    if (i >= input.length) {
-      return null;
-    }
-    if (input[i] === '"') {
-      i++;
-      let value = '';
-      while (i < input.length) {
-        const ch = input[i];
-        if (ch === '"') {
-          return { value, nextIndex: i + 1 };
-        }
-        if (ch === '\\') {
-          i++;
-          if (i >= input.length) {
-            return null;
-          }
-          const esc = input[i];
-          if (esc >= '0' && esc <= '7') {
-            let octal = esc;
-            for (let count = 0; count < 2; count++) {
-              const next = input[i + 1];
-              if (next >= '0' && next <= '7') {
-                i++;
-                octal += next;
-              } else {
-                break;
-              }
-            }
-            value += String.fromCharCode(parseInt(octal, 8));
-            i++;
-            continue;
-          }
-          if (esc === 'x') {
-            const hex = input.substring(i + 1, i + 3);
-            if (/^[0-9a-fA-F]{2}$/.test(hex)) {
-              value += String.fromCharCode(parseInt(hex, 16));
-              i += 3;
-              continue;
-            }
-            value += 'x';
-            i++;
-            continue;
-          }
-          switch (esc) {
-            case 'n':
-              value += '\n';
-              break;
-            case 't':
-              value += '\t';
-              break;
-            case 'r':
-              value += '\r';
-              break;
-            case 'b':
-              value += '\b';
-              break;
-            case 'f':
-              value += '\f';
-              break;
-            case 'a':
-              value += '\u0007';
-              break;
-            case 'v':
-              value += '\u000b';
-              break;
-            case '\\':
-              value += '\\';
-              break;
-            case '"':
-              value += '"';
-              break;
-            default:
-              value += esc;
-          }
-          i++;
-          continue;
-        }
-        value += ch;
-        i++;
-      }
-      return null;
-    }
-    const start = i;
-    while (i < input.length && input[i] !== ' ') {
-      i++;
-    }
-    return { value: input.substring(start, i), nextIndex: i };
-  }
-
-  function parseGitPathTokens(input: string, count: number): string[] | null {
-    let index = 0;
-    const paths: string[] = [];
-    for (let parsed = 0; parsed < count; parsed++) {
-      const token = parseGitPathToken(input, index);
-      if (!token) {
-        return null;
-      }
-      paths.push(token.value);
-      index = token.nextIndex;
-    }
-    return paths;
-  }
-
-  function parseGitDiffHeader(line: string): { oldFileName?: string; newFileName?: string } | null {
-    const prefix = 'diff --git ';
-    if (!line.startsWith(prefix)) {
-      return null;
-    }
-    const paths = parseGitPathTokens(line.substring(prefix.length), 2);
-    if (!paths) {
-      return null;
-    }
-    let [oldFileName, newFileName] = paths;
-    if (oldFileName.startsWith('a/')) {
-      oldFileName = oldFileName.substring(2);
-    }
-    if (newFileName.startsWith('b/')) {
-      newFileName = newFileName.substring(2);
-    }
-    return { oldFileName, newFileName };
-  }
-
-  function parseGitExtendedPath(line: string, prefix: string): string | null {
-    if (!line.startsWith(prefix)) {
-      return null;
-    }
-    const token = parseGitPathToken(line, prefix.length);
-    return token ? token.value : null;
-  }
 
   function parseIndex() {
     const index: Partial<StructuredPatch> = {};

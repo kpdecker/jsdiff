@@ -333,6 +333,32 @@ rename to README-2.md`;
       }]);
     });
 
+    it('should parse git C-quoted paths in headers', function() {
+      const patchStr = `diff --git "a/old\\040name\\tfile" "b/new\\x20name\\"file"
+rename from "old\\040name\\tfile"
+rename to "new\\x20name\\"file"`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'new name"file',
+        oldFileName: 'old name\tfile',
+        newFileName: 'new name"file',
+        hunks: []
+      }]);
+    });
+
+    it('should handle edge cases in git C-quoted escapes', function() {
+      const patchStr = `diff --git "a/odd\\qpath\\7" "b/new\\xZZname\\077"
+rename from "odd\\qpath\\7"
+rename to "new\\xZZname\\077"`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'newxZZname?',
+        oldFileName: 'oddqpath\u0007',
+        newFileName: 'newxZZname?',
+        hunks: []
+      }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1
