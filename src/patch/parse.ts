@@ -115,25 +115,17 @@ function parseGitPathTokens(input: string, count: number): string[] | null {
   return paths;
 }
 
-function scoreGitDiffCandidate(oldPath: string, newPath: string): number {
-  const oldValue = oldPath.substring(2);
-  const newValue = newPath.substring(2);
-  let score = Math.abs(oldValue.length - newValue.length);
-  if (oldValue === newValue) {
-    score -= 1000;
-  }
-  return score;
-}
-
 /**
  * Parse unquoted Git diff paths separated by the ` b/` marker.
- * If multiple splits are possible, prefer paths with similar length and exact matches.
+ * If multiple splits are possible, prefer a split where old and new paths match.
+ * If no matching split exists, use the last possible split.
  */
 function parseGitUnquotedDiffPaths(input: string): { oldPath: string; newPath: string } | null {
   if (!input.startsWith('a/')) {
     return null;
   }
   const candidates: Array<{ oldPath: string; newPath: string }> = [];
+  const matchingCandidates: Array<{ oldPath: string; newPath: string }> = [];
   let searchIndex = 0;
   while (searchIndex < input.length) {
     const separatorIndex = input.indexOf(' b/', searchIndex);
@@ -143,24 +135,24 @@ function parseGitUnquotedDiffPaths(input: string): { oldPath: string; newPath: s
     const oldPath = input.substring(0, separatorIndex);
     const newPath = input.substring(separatorIndex + 1);
     if (oldPath.startsWith('a/') && newPath.startsWith('b/')) {
-      candidates.push({ oldPath, newPath });
+      const candidate = { oldPath, newPath };
+      candidates.push(candidate);
+      if (oldPath.substring(2) === newPath.substring(2)) {
+        matchingCandidates.push(candidate);
+      }
     }
     searchIndex = separatorIndex + 1;
   }
-  if (!candidates.length) {
-    return null;
+  if (matchingCandidates.length === 1) {
+    return matchingCandidates[0];
   }
-  let best = candidates[0];
-  let bestScore = scoreGitDiffCandidate(best.oldPath, best.newPath);
-  for (let i = 1; i < candidates.length; i++) {
-    const candidate = candidates[i];
-    const score = scoreGitDiffCandidate(candidate.oldPath, candidate.newPath);
-    if (score < bestScore) {
-      best = candidate;
-      bestScore = score;
-    }
+  if (matchingCandidates.length > 1) {
+    return matchingCandidates[matchingCandidates.length - 1];
   }
-  return { oldPath: best.oldPath, newPath: best.newPath };
+  if (candidates.length) {
+    return candidates[candidates.length - 1];
+  }
+  return null;
 }
 
 /**
