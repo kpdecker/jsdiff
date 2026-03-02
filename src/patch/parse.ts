@@ -41,7 +41,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       //       it's going to change, it should be done cautiously and in a new
       //       major release, for backwards-compat reasons.
       //       -- ExplodingCabbage
-      const headerMatch = (/^(?:Index:|diff(?: -r \w+)+)\s+/).exec(line);
+      const headerMatch = (/^(?:Index:|diff(?: -r \w+)+|diff)\s+/).exec(line);
       if (headerMatch) {
         index.index = line.substring(headerMatch[0].length).trim();
       }

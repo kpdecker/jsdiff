@@ -299,6 +299,26 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       ]);
     });
 
+    it('should parse generic diff headers', function() {
+      const patchStr = `diff --git a/foo b/foo
+--- a/foo
++++ b/foo
+@@ -1 +1 @@
+-old
++new`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: '--git a/foo b/foo',
+        oldFileName: 'a/foo',
+        oldHeader: '',
+        newFileName: 'b/foo',
+        newHeader: '',
+        hunks: [
+          { oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-old', '+new'] }
+        ]
+      }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1
