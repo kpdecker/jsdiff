@@ -308,7 +308,7 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
 +new`;
 
       expect(parsePatch(patchStr)).to.eql([{
-        index: '--git a/foo b/foo',
+        index: 'foo',
         oldFileName: 'a/foo',
         oldHeader: '',
         newFileName: 'b/foo',
@@ -316,6 +316,20 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
         hunks: [
           { oldStart: 1, oldLines: 1, newStart: 1, newLines: 1, lines: ['-old', '+new'] }
         ]
+      }]);
+    });
+
+    it('should parse git rename-only patches', function() {
+      const patchStr = `diff --git a/README.md b/README-2.md
+similarity index 100%
+rename from README.md
+rename to README-2.md`;
+
+      expect(parsePatch(patchStr)).to.eql([{
+        index: 'README-2.md',
+        oldFileName: 'README.md',
+        newFileName: 'README-2.md',
+        hunks: []
       }]);
     });
 

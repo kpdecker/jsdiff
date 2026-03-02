@@ -10,8 +10,144 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         list: Partial<StructuredPatch>[] = [];
   let i = 0;
 
+  function parseGitPathToken(input: string, startIndex: number): { value: string; nextIndex: number } | null {
+    let i = startIndex;
+    while (i < input.length && input[i] === ' ') {
+      i++;
+    }
+    if (i >= input.length) {
+      return null;
+    }
+    if (input[i] === '"') {
+      i++;
+      let value = '';
+      while (i < input.length) {
+        const ch = input[i];
+        if (ch === '"') {
+          return { value, nextIndex: i + 1 };
+        }
+        if (ch === '\\') {
+          i++;
+          if (i >= input.length) {
+            return null;
+          }
+          const esc = input[i];
+          if (esc >= '0' && esc <= '7') {
+            let octal = esc;
+            for (let count = 0; count < 2; count++) {
+              const next = input[i + 1];
+              if (next >= '0' && next <= '7') {
+                i++;
+                octal += next;
+              } else {
+                break;
+              }
+            }
+            value += String.fromCharCode(parseInt(octal, 8));
+            i++;
+            continue;
+          }
+          if (esc === 'x') {
+            const hex = input.substring(i + 1, i + 3);
+            if (/^[0-9a-fA-F]{2}$/.test(hex)) {
+              value += String.fromCharCode(parseInt(hex, 16));
+              i += 3;
+              continue;
+            }
+            value += 'x';
+            i++;
+            continue;
+          }
+          switch (esc) {
+            case 'n':
+              value += '\n';
+              break;
+            case 't':
+              value += '\t';
+              break;
+            case 'r':
+              value += '\r';
+              break;
+            case 'b':
+              value += '\b';
+              break;
+            case 'f':
+              value += '\f';
+              break;
+            case 'a':
+              value += '\u0007';
+              break;
+            case 'v':
+              value += '\u000b';
+              break;
+            case '\\':
+              value += '\\';
+              break;
+            case '"':
+              value += '"';
+              break;
+            default:
+              value += esc;
+          }
+          i++;
+          continue;
+        }
+        value += ch;
+        i++;
+      }
+      return null;
+    }
+    const start = i;
+    while (i < input.length && input[i] !== ' ') {
+      i++;
+    }
+    return { value: input.substring(start, i), nextIndex: i };
+  }
+
+  function parseGitPathTokens(input: string, count: number): string[] | null {
+    let index = 0;
+    const paths: string[] = [];
+    for (let parsed = 0; parsed < count; parsed++) {
+      const token = parseGitPathToken(input, index);
+      if (!token) {
+        return null;
+      }
+      paths.push(token.value);
+      index = token.nextIndex;
+    }
+    return paths;
+  }
+
+  function parseGitDiffHeader(line: string): { oldFileName?: string; newFileName?: string } | null {
+    const prefix = 'diff --git ';
+    if (!line.startsWith(prefix)) {
+      return null;
+    }
+    const paths = parseGitPathTokens(line.substring(prefix.length), 2);
+    if (!paths) {
+      return null;
+    }
+    let [oldFileName, newFileName] = paths;
+    if (oldFileName.startsWith('a/')) {
+      oldFileName = oldFileName.substring(2);
+    }
+    if (newFileName.startsWith('b/')) {
+      newFileName = newFileName.substring(2);
+    }
+    return { oldFileName, newFileName };
+  }
+
+  function parseGitExtendedPath(line: string, prefix: string): string | null {
+    if (!line.startsWith(prefix)) {
+      return null;
+    }
+    const token = parseGitPathToken(line, prefix.length);
+    return token ? token.value : null;
+  }
+
   function parseIndex() {
     const index: Partial<StructuredPatch> = {};
+    let seenGitHeader = false;
     list.push(index);
 
     // Parse diff metadata
@@ -21,6 +157,56 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       // File header found, end parsing diff metadata
       if ((/^(---|\+\+\+|@@)\s/).test(line)) {
         break;
+      }
+
+      const gitHeader = parseGitDiffHeader(line);
+      if (gitHeader) {
+        if (seenGitHeader || index.index || index.oldFileName || index.newFileName) {
+          break;
+        }
+        seenGitHeader = true;
+        if (gitHeader.oldFileName) {
+          index.oldFileName = gitHeader.oldFileName;
+        }
+        if (gitHeader.newFileName) {
+          index.newFileName = gitHeader.newFileName;
+          if (!index.index) {
+            index.index = gitHeader.newFileName;
+          }
+        }
+        i++;
+        continue;
+      }
+
+      const renameFrom = parseGitExtendedPath(line, 'rename from ');
+      if (renameFrom) {
+        index.oldFileName = renameFrom;
+        i++;
+        continue;
+      }
+      const renameTo = parseGitExtendedPath(line, 'rename to ');
+      if (renameTo) {
+        index.newFileName = renameTo;
+        if (!index.index) {
+          index.index = renameTo;
+        }
+        i++;
+        continue;
+      }
+      const copyFrom = parseGitExtendedPath(line, 'copy from ');
+      if (copyFrom) {
+        index.oldFileName = copyFrom;
+        i++;
+        continue;
+      }
+      const copyTo = parseGitExtendedPath(line, 'copy to ');
+      if (copyTo) {
+        index.newFileName = copyTo;
+        if (!index.index) {
+          index.index = copyTo;
+        }
+        i++;
+        continue;
       }
 
       // Try to parse the line as a diff header, like
@@ -41,7 +227,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       //       it's going to change, it should be done cautiously and in a new
       //       major release, for backwards-compat reasons.
       //       -- ExplodingCabbage
-      const headerMatch = (/^(?:Index:|diff(?: -r \w+)+|diff)\s+/).exec(line);
+      const headerMatch = (/^(?:Index:|diff(?: -r \w+)+)\s+/).exec(line);
       if (headerMatch) {
         index.index = line.substring(headerMatch[0].length).trim();
       }
