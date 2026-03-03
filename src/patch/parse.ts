@@ -46,10 +46,11 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
         // Parse the old and new filenames from the diff --git header and
         // tentatively set oldFileName and newFileName from them. These may
-        // be overridden by the --- and +++ lines below if they are
-        // present, but for git diffs that lack --- and +++ lines (e.g.
-        // renames, mode-only changes, binary files), these are the only
-        // filenames we get.
+        // be overridden below by rename from / rename to or copy from /
+        // copy to extended headers, or by --- and +++ lines. But for git
+        // diffs that lack all of those (e.g. mode-only changes, binary
+        // file changes without rename), these are the only filenames we
+        // get.
         const paths = parseGitDiffHeader(line);
         if (paths) {
           index.oldFileName = paths.oldFileName;
