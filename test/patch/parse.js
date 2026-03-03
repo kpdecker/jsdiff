@@ -1149,5 +1149,46 @@ new mode 100755`))
           hunks: []
         }]);
     });
+
+    it('should handle diff --git rename where filenames contain " b/"', function() {
+      // rename from / rename to lines are unambiguous (one filename per
+      // line) so " b/" in the name is not a problem for them. The
+      // diff --git header IS ambiguous, but rename from/to override it.
+      expect(parsePatch(
+`diff --git a/x b/old.txt b/x b/new.txt
+similarity index 100%
+rename from x b/old.txt
+rename to x b/new.txt`))
+        .to.eql([{
+          oldFileName: 'a/x b/old.txt',
+          newFileName: 'b/x b/new.txt',
+          hunks: []
+        }]);
+    });
+
+    it('should handle diff --git rename where filenames contain " b/", without rename from/to', function() {
+      // Without rename from/to, the diff --git header is ambiguous when
+      // filenames contain " b/". But --- and +++ lines resolve it.
+      expect(parsePatch(
+`diff --git a/x b/old.txt b/x b/new.txt
+--- a/x b/old.txt
++++ b/x b/new.txt
+@@ -1 +1 @@
+-hello
++world`))
+        .to.eql([{
+          oldFileName: 'a/x b/old.txt',
+          oldHeader: '',
+          newFileName: 'b/x b/new.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-hello', '+world']
+            }
+          ]
+        }]);
+    });
   });
 });
