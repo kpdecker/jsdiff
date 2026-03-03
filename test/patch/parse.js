@@ -852,8 +852,8 @@ index abc1234..def5678 100644
 old mode 100644
 new mode 100755`))
         .to.eql([{
-          oldFileName: 'script.sh',
-          newFileName: 'script.sh',
+          oldFileName: 'a/script.sh',
+          newFileName: 'b/script.sh',
           hunks: []
         }]);
     });
@@ -864,8 +864,8 @@ new mode 100755`))
 index abc1234..def5678 100644
 Binary files a/image.png and b/image.png differ`))
         .to.eql([{
-          oldFileName: 'image.png',
-          newFileName: 'image.png',
+          oldFileName: 'a/image.png',
+          newFileName: 'b/image.png',
           hunks: []
         }]);
     });
@@ -899,8 +899,8 @@ diff --git a/file3.txt b/file3.txt
             }
           ]
         }, {
-          oldFileName: 'image.png',
-          newFileName: 'image.png',
+          oldFileName: 'a/image.png',
+          newFileName: 'b/image.png',
           hunks: []
         }, {
           oldFileName: 'a/file3.txt',
@@ -955,8 +955,8 @@ diff --git a/file3.txt b/file3.txt
             }
           ]
         }, {
-          oldFileName: 'script.sh',
-          newFileName: 'script.sh',
+          oldFileName: 'a/script.sh',
+          newFileName: 'b/script.sh',
           hunks: []
         }, {
           oldFileName: 'a/file3.txt',
@@ -1114,8 +1114,8 @@ diff --git a/other.txt b/other.txt
 old mode 100644
 new mode 100755`))
         .to.eql([{
-          oldFileName: 'file with spaces.txt',
-          newFileName: 'file with spaces.txt',
+          oldFileName: 'a/file with spaces.txt',
+          newFileName: 'b/file with spaces.txt',
           hunks: []
         }]);
     });
@@ -1144,8 +1144,8 @@ rename to another file with spaces.txt`))
 old mode 100644
 new mode 100755`))
         .to.eql([{
-          oldFileName: 'x b/y.txt',
-          newFileName: 'x b/y.txt',
+          oldFileName: 'a/x b/y.txt',
+          newFileName: 'b/x b/y.txt',
           hunks: []
         }]);
     });

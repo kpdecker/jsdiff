@@ -159,7 +159,8 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    *     diff --git "a/file with spaces.txt" "b/file with spaces.txt"
    *
    * When filenames don't contain special characters and the old and new names
-   * are the same, we can unambiguously split on ` b/` by finding the midpoint.
+   * are the same, we can unambiguously split on ` b/` by finding where the
+   * two halves (including their a/ and b/ prefixes) yield matching bare names.
    * When they differ AND contain spaces AND aren't quoted, parsing is
    * inherently ambiguous, so we do our best.
    */
@@ -177,12 +178,12 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       if (afterOld.startsWith('"')) {
         const newPath = parseQuotedFileName(afterOld);
         if (newPath === null) { return null; }
-        newFileName = stripPrefix(newPath.fileName, 'b/');
+        newFileName = newPath.fileName;
       } else {
-        newFileName = stripPrefix(afterOld, 'b/');
+        newFileName = afterOld;
       }
       return {
-        oldFileName: stripPrefix(oldPath.fileName, 'a/'),
+        oldFileName: oldPath.fileName,
         newFileName
       };
     }
@@ -191,12 +192,12 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     // e.g. diff --git a/simple "b/complex name"
     const quoteIdx = rest.indexOf('"');
     if (quoteIdx > 0) {
-      const oldFileName = stripPrefix(rest.substring(0, quoteIdx - 1), 'a/');
+      const oldFileName = rest.substring(0, quoteIdx - 1);
       const newPath = parseQuotedFileName(rest.substring(quoteIdx));
       if (newPath === null) { return null; }
       return {
         oldFileName,
-        newFileName: stripPrefix(newPath.fileName, 'b/')
+        newFileName: newPath.fileName
       };
     }
 
@@ -205,8 +206,9 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     //
     // Strategy: if the path starts with a/ and contains " b/", we try
     // to find where to split. When old and new names are the same, there's
-    // a unique split where the two halves (minus prefixes) match. When
-    // they differ, we try the split closest to the middle.
+    // a unique split where both halves (after stripping their respective
+    // a/ and b/ prefixes) match. When they differ, we try the last split.
+    // The returned filenames include the a/ and b/ prefixes.
     if (rest.startsWith('a/')) {
       // Try to find a " b/" separator. If the filename itself contains " b/",
       // there could be multiple candidates. We try each one and pick the
@@ -217,19 +219,19 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         const idx = rest.indexOf(' b/', searchFrom);
         if (idx === -1) { break; }
         // Candidate: old = rest[0..idx), new = rest[idx+1..)
-        const candidateOld = rest.substring(2, idx); // strip "a/"
-        const candidateNew = rest.substring(idx + 3); // strip " b/"
-        if (candidateOld === candidateNew) {
+        const candidateOldBare = rest.substring(2, idx); // strip "a/" for comparison
+        const candidateNewBare = rest.substring(idx + 3); // strip " b/" for comparison
+        if (candidateOldBare === candidateNewBare) {
           // Perfect match - unambiguous
-          return { oldFileName: candidateOld, newFileName: candidateNew };
+          return { oldFileName: rest.substring(0, idx), newFileName: rest.substring(idx + 1) };
         }
         bestSplit = idx;
         searchFrom = idx + 3;
       }
       if (bestSplit !== -1) {
         return {
-          oldFileName: rest.substring(2, bestSplit),
-          newFileName: rest.substring(bestSplit + 3)
+          oldFileName: rest.substring(0, bestSplit),
+          newFileName: rest.substring(bestSplit + 1)
         };
       }
     }
@@ -266,13 +268,6 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     }
     // Unterminated quote
     return null;
-  }
-
-  function stripPrefix(s: string, prefix: string): string {
-    if (s.startsWith(prefix)) {
-      return s.substring(prefix.length);
-    }
-    return s;
   }
 
   // Parses the --- and +++ headers, if none are found, no lines
