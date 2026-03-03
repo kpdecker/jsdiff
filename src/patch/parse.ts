@@ -10,21 +10,39 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         list: Partial<StructuredPatch>[] = [];
   let i = 0;
 
+  // These helper functions identify line types that can appear between files
+  // in a multi-file patch. Keeping them in one place avoids subtle
+  // inconsistencies from having the same regexes duplicated in multiple places.
+
+  // Matches lines that denote the start of a new diff's section in a
+  // multi-file patch: `diff --git ...`, `Index: ...`, or `diff -r ...`.
+  function isDiffHeader(line: string): boolean {
+    return (/^diff --git /).test(line)
+        || (/^Index:\s/).test(line)
+        || (/^diff(?: -r \w+)+\s/).test(line);
+  }
+
+  // Matches `--- ...` and `+++ ...` (file headers) and `@@ ...` (hunk
+  // headers). Any of these indicate the end of diff/file metadata.
+  function isFileHeader(line: string): boolean {
+    return (/^(---|\+\+\+|@@)\s/).test(line);
+  }
+
   function parseIndex() {
     const index: Partial<StructuredPatch> = {};
     list.push(index);
 
     // Parse diff metadata
-    let seenFileHeader = false;
+    let seenDiffHeader = false;
     while (i < diffstr.length) {
       const line = diffstr[i];
 
-      // File header found, end parsing diff metadata
-      if ((/^(---|\+\+\+|@@)\s/).test(line)) {
+      // File header (---, +++) or hunk header (@@) found, end parsing diff metadata
+      if (isFileHeader(line)) {
         break;
       }
 
-      // Check if this line is a recognized file-level header:
+      // Check if this line is a recognized diff header:
       //   - diff --git a/... b/...
       //   - Index: ...
       //   - diff -r <rev> [-r <rev>] <filename>  (Mercurial)
@@ -35,14 +53,14 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       // header section, after an `Index:` line. See the diffx
       // documentation (https://diffx.org) for examples.
       //
-      // If we've already seen a recognized file header for *this* file
+      // If we've already seen a recognized diff header for *this* file
       // and now we encounter another one, it must belong to the next
       // file, so break.
       if ((/^diff --git /).test(line)) {
-        if (seenFileHeader) {
+        if (seenDiffHeader) {
           break;
         }
-        seenFileHeader = true;
+        seenDiffHeader = true;
 
         // Parse the old and new filenames from the diff --git header and
         // tentatively set oldFileName and newFileName from them. These may
@@ -64,12 +82,10 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         while (i < diffstr.length) {
           const extLine = diffstr[i];
 
-          // If we hit ---, +++, @@, or another recognized file header,
-          // stop consuming extended headers.
-          if ((/^(---|\+\+\+|@@)\s/).test(extLine)
-              || (/^diff --git /).test(extLine)
-              || (/^Index:\s/).test(extLine)
-              || (/^diff(?: -r \w+)+\s/).test(extLine)) {
+          // If we hit a file header (---, +++), hunk header (@@), or another
+          // diff header (diff --git, Index:, diff -r), stop consuming
+          // extended headers.
+          if (isFileHeader(extLine) || isDiffHeader(extLine)) {
             break;
           }
 
@@ -99,11 +115,11 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           i++;
         }
         continue;
-      } else if ((/^(Index:\s|diff(?: -r \w+)+\s)/).test(line)) {
-        if (seenFileHeader) {
+      } else if ((/^Index:\s/).test(line) || (/^diff(?: -r \w+)+\s/).test(line)) {
+        if (seenDiffHeader) {
           break;
         }
-        seenFileHeader = true;
+        seenDiffHeader = true;
 
         // For Mercurial-style headers like
         //     diff -r 9117c6561b0b -r 273ce12ad8f1 .hgignore
@@ -139,7 +155,9 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
     while (i < diffstr.length) {
       const line = diffstr[i];
-      if ((/^(Index:\s|diff --git\s|diff(?: -r \w+)+\s|---\s|\+\+\+\s|===================================================================)/).test(line)) {
+      // Note: we intentionally don't break on `@@` here — those lines
+      // should be parsed as hunks (below), not trigger a break.
+      if (isDiffHeader(line) || (/^(---|\+\+\+)\s/).test(line) || (/^===================================================================/).test(line)) {
         break;
       } else if ((/^@@/).test(line)) {
         index.hunks.push(parseHunk());
