@@ -73,24 +73,26 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           }
 
           // Parse rename from / rename to lines - these give us
-          // unambiguous filenames without a/ b/ prefixes
+          // unambiguous filenames. These lines don't include the
+          // a/ and b/ prefixes that appear in the diff --git header
+          // and --- / +++ lines, so we add them for consistency.
           const renameFromMatch = (/^rename from (.*)/).exec(extLine);
           if (renameFromMatch) {
-            index.oldFileName = renameFromMatch[1];
+            index.oldFileName = 'a/' + renameFromMatch[1];
           }
           const renameToMatch = (/^rename to (.*)/).exec(extLine);
           if (renameToMatch) {
-            index.newFileName = renameToMatch[1];
+            index.newFileName = 'b/' + renameToMatch[1];
           }
 
           // Parse copy from / copy to lines similarly
           const copyFromMatch = (/^copy from (.*)/).exec(extLine);
           if (copyFromMatch) {
-            index.oldFileName = copyFromMatch[1];
+            index.oldFileName = 'a/' + copyFromMatch[1];
           }
           const copyToMatch = (/^copy to (.*)/).exec(extLine);
           if (copyToMatch) {
-            index.newFileName = copyToMatch[1];
+            index.newFileName = 'b/' + copyToMatch[1];
           }
 
           i++;

@@ -806,8 +806,8 @@ similarity index 100%
 rename from README.md
 rename to README-2.md`))
         .to.eql([{
-          oldFileName: 'README.md',
-          newFileName: 'README-2.md',
+          oldFileName: 'a/README.md',
+          newFileName: 'b/README-2.md',
           hunks: []
         }]);
     });
@@ -984,8 +984,8 @@ similarity index 100%
 copy from original.txt
 copy to copy.txt`))
         .to.eql([{
-          oldFileName: 'original.txt',
-          newFileName: 'copy.txt',
+          oldFileName: 'a/original.txt',
+          newFileName: 'b/copy.txt',
           hunks: []
         }]);
     });
@@ -1046,8 +1046,8 @@ similarity index 100%
 rename from old name.txt
 rename to new name.txt`))
         .to.eql([{
-          oldFileName: 'old name.txt',
-          newFileName: 'new name.txt',
+          oldFileName: 'a/old name.txt',
+          newFileName: 'b/new name.txt',
           hunks: []
         }]);
     });
@@ -1090,8 +1090,8 @@ diff --git a/other.txt b/other.txt
 -aaa
 +bbb`))
         .to.eql([{
-          oldFileName: 'old.txt',
-          newFileName: 'new.txt',
+          oldFileName: 'a/old.txt',
+          newFileName: 'b/new.txt',
           hunks: []
         }, {
           oldFileName: 'a/other.txt',
@@ -1129,8 +1129,8 @@ similarity index 100%
 rename from file with spaces.txt
 rename to another file with spaces.txt`))
         .to.eql([{
-          oldFileName: 'file with spaces.txt',
-          newFileName: 'another file with spaces.txt',
+          oldFileName: 'a/file with spaces.txt',
+          newFileName: 'b/another file with spaces.txt',
           hunks: []
         }]);
     });
