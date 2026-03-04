@@ -710,5 +710,485 @@ line3
       // eslint-disable-next-line dot-notation
       expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
     });
+
+    it('should parse a single-file diff --git patch', function() {
+      expect(parsePatch(
+`diff --git a/file.txt b/file.txt
+index abc1234..def5678 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1,3 +1,4 @@
+ line1
+ line2
++line3
+ line4`))
+        .to.eql([{
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: 'b/file.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a multi-file diff --git patch', function() {
+      expect(parsePatch(
+`diff --git a/file1.txt b/file1.txt
+index abc1234..def5678 100644
+--- a/file1.txt
++++ b/file1.txt
+@@ -1,3 +1,4 @@
+ line1
+ line2
++line3
+ line4
+diff --git a/file2.txt b/file2.txt
+index 1234567..abcdef0 100644
+--- a/file2.txt
++++ b/file2.txt
+@@ -1,3 +1,4 @@
+ lineA
+ lineB
++lineC
+ lineD`))
+        .to.eql([{
+          oldFileName: 'a/file1.txt',
+          oldHeader: '',
+          newFileName: 'b/file1.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }, {
+          oldFileName: 'a/file2.txt',
+          oldHeader: '',
+          newFileName: 'b/file2.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' lineA',
+                ' lineB',
+                '+lineC',
+                ' lineD'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a diff --git rename with no content change', function() {
+      expect(parsePatch(
+`diff --git a/README.md b/README-2.md
+similarity index 100%
+rename from README.md
+rename to README-2.md`))
+        .to.eql([{
+          oldFileName: 'a/README.md',
+          newFileName: 'b/README-2.md',
+          hunks: []
+        }]);
+    });
+
+    it('should parse a diff --git rename with content change', function() {
+      expect(parsePatch(
+`diff --git a/old-name.txt b/new-name.txt
+similarity index 85%
+rename from old-name.txt
+rename to new-name.txt
+index abc1234..def5678 100644
+--- a/old-name.txt
++++ b/new-name.txt
+@@ -1,3 +1,4 @@
+ line1
+ line2
++line3
+ line4`))
+        .to.eql([{
+          oldFileName: 'a/old-name.txt',
+          oldHeader: '',
+          newFileName: 'b/new-name.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a diff --git mode-only change', function() {
+      expect(parsePatch(
+`diff --git a/script.sh b/script.sh
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/script.sh',
+          newFileName: 'b/script.sh',
+          hunks: []
+        }]);
+    });
+
+    it('should parse a diff --git binary file change', function() {
+      expect(parsePatch(
+`diff --git a/image.png b/image.png
+index abc1234..def5678 100644
+Binary files a/image.png and b/image.png differ`))
+        .to.eql([{
+          oldFileName: 'a/image.png',
+          newFileName: 'b/image.png',
+          hunks: []
+        }]);
+    });
+
+    it('should not lose files when a diff --git binary change is followed by a text change', function() {
+      expect(parsePatch(
+`diff --git a/file1.txt b/file1.txt
+--- a/file1.txt
++++ b/file1.txt
+@@ -1 +1 @@
+-old
++new
+diff --git a/image.png b/image.png
+Binary files a/image.png and b/image.png differ
+diff --git a/file3.txt b/file3.txt
+--- a/file3.txt
++++ b/file3.txt
+@@ -1 +1 @@
+-foo
++bar`))
+        .to.eql([{
+          oldFileName: 'a/file1.txt',
+          oldHeader: '',
+          newFileName: 'b/file1.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-old', '+new']
+            }
+          ]
+        }, {
+          oldFileName: 'a/image.png',
+          newFileName: 'b/image.png',
+          hunks: []
+        }, {
+          oldFileName: 'a/file3.txt',
+          oldHeader: '',
+          newFileName: 'b/file3.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-foo', '+bar']
+            }
+          ]
+        }]);
+    });
+
+    it('should not lose files when a diff --git mode-only change is in the middle', function() {
+      expect(parsePatch(
+`diff --git a/file1.txt b/file1.txt
+--- a/file1.txt
++++ b/file1.txt
+@@ -1,3 +1,4 @@
+ line1
+ line2
++line3
+ line4
+diff --git a/script.sh b/script.sh
+old mode 100644
+new mode 100755
+diff --git a/file3.txt b/file3.txt
+--- a/file3.txt
++++ b/file3.txt
+@@ -1,2 +1,3 @@
+ aaa
++bbb
+ ccc`))
+        .to.eql([{
+          oldFileName: 'a/file1.txt',
+          oldHeader: '',
+          newFileName: 'b/file1.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }, {
+          oldFileName: 'a/script.sh',
+          newFileName: 'b/script.sh',
+          hunks: []
+        }, {
+          oldFileName: 'a/file3.txt',
+          oldHeader: '',
+          newFileName: 'b/file3.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 2,
+              newStart: 1, newLines: 3,
+              lines: [
+                ' aaa',
+                '+bbb',
+                ' ccc'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a diff --git copy', function() {
+      expect(parsePatch(
+`diff --git a/original.txt b/copy.txt
+similarity index 100%
+copy from original.txt
+copy to copy.txt`))
+        .to.eql([{
+          oldFileName: 'a/original.txt',
+          newFileName: 'b/copy.txt',
+          hunks: []
+        }]);
+    });
+
+    it('should parse a diff --git new file', function() {
+      expect(parsePatch(
+`diff --git a/newfile.txt b/newfile.txt
+new file mode 100644
+index 0000000..abc1234
+--- /dev/null
++++ b/newfile.txt
+@@ -0,0 +1,2 @@
++hello
++world`))
+        .to.eql([{
+          oldFileName: '/dev/null',
+          oldHeader: '',
+          newFileName: 'b/newfile.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 0,
+              newStart: 1, newLines: 2,
+              lines: ['+hello', '+world']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse diff --git with quoted filenames containing spaces', function() {
+      expect(parsePatch(
+`diff --git "a/file with spaces.txt" "b/file with spaces.txt"
+index abc1234..def5678 100644
+--- "a/file with spaces.txt"
++++ "b/file with spaces.txt"
+@@ -1 +1 @@
+-old
++new`))
+        .to.eql([{
+          oldFileName: 'a/file with spaces.txt',
+          oldHeader: '',
+          newFileName: 'b/file with spaces.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-old', '+new']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse diff --git rename with quoted filenames', function() {
+      expect(parsePatch(
+`diff --git "a/old name.txt" "b/new name.txt"
+similarity index 100%
+rename from old name.txt
+rename to new name.txt`))
+        .to.eql([{
+          oldFileName: 'a/old name.txt',
+          newFileName: 'b/new name.txt',
+          hunks: []
+        }]);
+    });
+
+    it('should let --- and +++ lines override filenames from diff --git header', function() {
+      // When --- and +++ are present, they should take precedence over
+      // the filenames parsed from the diff --git header line.
+      expect(parsePatch(
+`diff --git a/file.txt b/file.txt
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new`))
+        .to.eql([{
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: 'b/file.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-old', '+new']
+            }
+          ]
+        }]);
+    });
+
+    it('should not be confused by a diff --git rename followed by files with hunks', function() {
+      expect(parsePatch(
+`diff --git a/old.txt b/new.txt
+similarity index 100%
+rename from old.txt
+rename to new.txt
+diff --git a/other.txt b/other.txt
+--- a/other.txt
++++ b/other.txt
+@@ -1 +1 @@
+-aaa
++bbb`))
+        .to.eql([{
+          oldFileName: 'a/old.txt',
+          newFileName: 'b/new.txt',
+          hunks: []
+        }, {
+          oldFileName: 'a/other.txt',
+          oldHeader: '',
+          newFileName: 'b/other.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-aaa', '+bbb']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse diff --git with unquoted filenames containing spaces (same old and new)', function() {
+      expect(parsePatch(
+`diff --git a/file with spaces.txt b/file with spaces.txt
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/file with spaces.txt',
+          newFileName: 'b/file with spaces.txt',
+          hunks: []
+        }]);
+    });
+
+    it('should parse diff --git rename with unquoted filenames containing spaces', function() {
+      // The diff --git line alone is ambiguous when filenames contain spaces
+      // and old != new, but rename from / rename to resolve the ambiguity.
+      expect(parsePatch(
+`diff --git a/file with spaces.txt b/another file with spaces.txt
+similarity index 100%
+rename from file with spaces.txt
+rename to another file with spaces.txt`))
+        .to.eql([{
+          oldFileName: 'a/file with spaces.txt',
+          newFileName: 'b/another file with spaces.txt',
+          hunks: []
+        }]);
+    });
+
+    it('should handle diff --git with a filename containing " b/"', function() {
+      // The filename literally contains " b/" which is also the separator
+      // between the old and new paths. Since old === new, the parser can
+      // find the unique split where both halves match.
+      expect(parsePatch(
+`diff --git a/x b/y.txt b/x b/y.txt
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/x b/y.txt',
+          newFileName: 'b/x b/y.txt',
+          hunks: []
+        }]);
+    });
+
+    it('should handle diff --git rename where filenames contain " b/"', function() {
+      // rename from / rename to lines are unambiguous (one filename per
+      // line) so " b/" in the name is not a problem for them. The
+      // diff --git header IS ambiguous, but rename from/to override it.
+      expect(parsePatch(
+`diff --git a/x b/old.txt b/x b/new.txt
+similarity index 100%
+rename from x b/old.txt
+rename to x b/new.txt`))
+        .to.eql([{
+          oldFileName: 'a/x b/old.txt',
+          newFileName: 'b/x b/new.txt',
+          hunks: []
+        }]);
+    });
+
+    it('should handle diff --git rename where filenames contain " b/", without rename from/to', function() {
+      // Without rename from/to, the diff --git header is ambiguous when
+      // filenames contain " b/". But --- and +++ lines resolve it.
+      expect(parsePatch(
+`diff --git a/x b/old.txt b/x b/new.txt
+--- a/x b/old.txt
++++ b/x b/new.txt
+@@ -1 +1 @@
+-hello
++world`))
+        .to.eql([{
+          oldFileName: 'a/x b/old.txt',
+          oldHeader: '',
+          newFileName: 'b/x b/new.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-hello', '+world']
+            }
+          ]
+        }]);
+    });
   });
 });
