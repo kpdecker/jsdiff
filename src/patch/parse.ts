@@ -75,6 +75,10 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         // diffs that lack all of those (e.g. mode-only changes, binary
         // file changes without rename), these are the only filenames we
         // get.
+        // parseGitDiffHeader returns null if the header can't be parsed
+        // (e.g. unterminated quoted filename, or unexpected format). In
+        // that case we skip setting filenames here; they may still be
+        // set from --- / +++ or rename from / rename to lines below.
         const paths = parseGitDiffHeader(line);
         if (paths) {
           index.oldFileName = paths.oldFileName;
@@ -187,6 +191,14 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * two halves (including their a/ and b/ prefixes) yield matching bare names.
    * When they differ AND contain spaces AND aren't quoted, parsing is
    * inherently ambiguous, so we do our best.
+   *
+   * Returns null if the header can't be parsed — e.g. if a quoted filename
+   * has an unterminated quote, or if the unquoted header doesn't match the
+   * expected `a/... b/...` format. In that case, the caller (parseIndex)
+   * skips setting oldFileName/newFileName from this header, but they may
+   * still be set later from `---`/`+++` lines or `rename from`/`rename to`
+   * extended headers; if none of those are present either, they'll remain
+   * undefined in the output.
    */
   function parseGitDiffHeader(line: string): { oldFileName: string, newFileName: string } | null {
     // Strip the "diff --git " prefix

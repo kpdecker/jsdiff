@@ -1189,6 +1189,69 @@ rename to x b/new.txt`))
             }
           ]
         }]);
-    });
+      });
+
+      // So far as we know, Git never actually produces diff --git headers that
+      // can't be parsed (e.g. with unterminated quotes or missing a/b prefixes).
+      // But we test these cases to confirm parsePatch doesn't crash and instead
+      // gracefully falls back to getting filenames from --- / +++ lines.
+
+      it('should handle an unparseable diff --git header with unterminated quote', function() {
+        expect(parsePatch(
+`diff --git "a/unterminated
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new`))
+          .to.eql([{
+            oldFileName: 'a/file.txt',
+            oldHeader: '',
+            newFileName: 'b/file.txt',
+            newHeader: '',
+            hunks: [
+              {
+                oldStart: 1, oldLines: 1,
+                newStart: 1, newLines: 1,
+                lines: ['-old', '+new']
+              }
+            ]
+          }]);
+      });
+
+      it('should handle an unparseable diff --git header with no a/b prefixes', function() {
+        expect(parsePatch(
+`diff --git file.txt file.txt
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new`))
+          .to.eql([{
+            oldFileName: 'a/file.txt',
+            oldHeader: '',
+            newFileName: 'b/file.txt',
+            newHeader: '',
+            hunks: [
+              {
+                oldStart: 1, oldLines: 1,
+                newStart: 1, newLines: 1,
+                lines: ['-old', '+new']
+              }
+            ]
+          }]);
+      });
+
+      it('should handle an unparseable diff --git header with no --- or +++ fallback', function() {
+        // When both the diff --git header is unparseable AND there are no
+        // --- / +++ lines, filenames remain undefined.
+        expect(parsePatch(
+`diff --git file.txt file.txt
+old mode 100644
+new mode 100755`))
+          .to.eql([{
+            hunks: []
+          }]);
+      });
   });
 });
