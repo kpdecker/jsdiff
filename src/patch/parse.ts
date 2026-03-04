@@ -51,20 +51,17 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         break;
       }
 
-      // Check if this line is a recognized diff header:
-      //   - diff --git a/... b/...
-      //   - Index: ...
-      //   - diff -r <rev> [-r <rev>] <filename>  (Mercurial)
+      // The next two branches handle recognized diff headers. Note that
+      // isDiffHeader deliberately does NOT match arbitrary `diff`
+      // commands like `diff -u -p -r1.1 -r1.2`, because in some
+      // formats (e.g. CVS diffs) such lines appear as metadata within
+      // a single file's header section, after an `Index:` line. See the
+      // diffx documentation (https://diffx.org) for examples.
       //
-      // We specifically do NOT match arbitrary `diff` commands like
-      // `diff -u -p -r1.1 -r1.2` here, because in some formats (e.g.
-      // CVS diffs) such lines appear as metadata within a single file's
-      // header section, after an `Index:` line. See the diffx
-      // documentation (https://diffx.org) for examples.
-      //
-      // If we've already seen a recognized diff header for *this* file
-      // and now we encounter another one, it must belong to the next
-      // file, so break.
+      // In both branches: if we've already seen a diff header for *this*
+      // file and now we encounter another one, it must belong to the
+      // next file, so break.
+
       if (isGitDiffHeader(line)) {
         if (seenDiffHeader) {
           break;
@@ -91,9 +88,8 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         while (i < diffstr.length) {
           const extLine = diffstr[i];
 
-          // If we hit a file header (---, +++), hunk header (@@), or another
-          // diff header (diff --git, Index:, diff -r), stop consuming
-          // extended headers.
+          // Stop consuming extended headers if we hit a file header,
+          // hunk header, or another diff header.
           if (isFileHeader(extLine) || isHunkHeader(extLine) || isDiffHeader(extLine)) {
             break;
           }
