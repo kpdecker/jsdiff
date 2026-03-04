@@ -186,7 +186,7 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
 * `parsePatch(diffStr)` - Parses a patch into structured data
 
-    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`.
+    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers, or a `diff --git` header that couldn't be parsed and has no `---`/`+++` lines to fall back on).
 
 * `reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
 

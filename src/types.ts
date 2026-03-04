@@ -225,8 +225,8 @@ export type AllDiffOptions =
   DiffJsonOptions;
 
 export interface StructuredPatch {
-  oldFileName: string,
-  newFileName: string,
+  oldFileName: string | undefined,
+  newFileName: string | undefined,
   oldHeader: string | undefined,
   newHeader: string | undefined,
   hunks: StructuredPatchHunk[],
