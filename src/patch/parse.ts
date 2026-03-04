@@ -71,7 +71,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         // Parse the old and new filenames from the diff --git header and
         // tentatively set oldFileName and newFileName from them. These may
         // be overridden below by rename from / rename to or copy from /
-        // copy to extended headers, or by --- and +++ lines. But for git
+        // copy to extended headers, or by --- and +++ lines. But for Git
         // diffs that lack all of those (e.g. mode-only changes, binary
         // file changes without rename), these are the only filenames we
         // get.
@@ -81,7 +81,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           index.newFileName = paths.newFileName;
         }
 
-        // Consume git extended headers (old mode, new mode, rename from,
+        // Consume Git extended headers (old mode, new mode, rename from,
         // rename to, similarity index, index, Binary files ... differ,
         // etc.)
         i++;
@@ -178,9 +178,9 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * The format is:
    *     diff --git a/<old-path> b/<new-path>
    *
-   * When filenames contain special characters, git quotes them with C-style
-   * escaping:
-   *     diff --git "a/file with spaces.txt" "b/file with spaces.txt"
+   * When filenames contain characters like newlines, tabs, backslashes, or
+   * double quotes, Git quotes them with C-style escaping:
+   *     diff --git "a/file\twith\ttabs.txt" "b/file\twith\ttabs.txt"
    *
    * When filenames don't contain special characters and the old and new names
    * are the same, we can unambiguously split on ` b/` by finding where the
@@ -193,7 +193,8 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     const rest = line.substring('diff --git '.length);
 
     // Handle quoted paths: "a/path" "b/path"
-    // Git quotes paths when they contain special characters.
+    // Git quotes paths when they contain characters like newlines, tabs,
+    // backslashes, or double quotes (but notably not spaces).
     if (rest.startsWith('"')) {
       const oldPath = parseQuotedFileName(rest);
       if (oldPath === null) { return null; }
@@ -213,7 +214,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     }
 
     // Check if the second path is quoted
-    // e.g. diff --git a/simple "b/complex name"
+    // e.g. diff --git a/simple "b/renamed\nnewline.txt"
     const quoteIdx = rest.indexOf('"');
     if (quoteIdx > 0) {
       const oldFileName = rest.substring(0, quoteIdx - 1);
