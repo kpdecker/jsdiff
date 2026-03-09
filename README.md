@@ -395,7 +395,9 @@ applyPatches(patch, {
         const newPath = patch.newFileName.replace(/^b\//, '');
         // Git uses /dev/null as the new name when a file is deleted
         if (patch.newFileName === '/dev/null') {
-            pendingWrites.set(oldPath, DELETE);
+            if (!pendingWrites.has(oldPath)) {
+                pendingWrites.set(oldPath, DELETE);
+            }
         } else {
             pendingWrites.set(newPath, patchedContent);
             if (oldPath !== newPath && patch.oldFileName !== '/dev/null'
