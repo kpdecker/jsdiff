@@ -1175,6 +1175,42 @@ describe('patch/create', function() {
         // eslint-disable-next-line dot-notation
         expect(() => formatPatch(patchArray, OMIT_HEADERS)).to.throw();
       });
+
+      it('should silently skip headers when filenames are undefined', function() {
+        const patchWithNoFilenames = {
+          oldFileName: undefined,
+          newFileName: undefined,
+          oldHeader: undefined,
+          newHeader: undefined,
+          hunks: [{
+            oldStart: 1, oldLines: 1,
+            newStart: 1, newLines: 1,
+            lines: ['-old', '+new']
+          }]
+        };
+        // All header options should silently skip headers when filenames
+        // are undefined, rather than emitting "--- undefined" etc.
+        const expectedOutput =
+          '@@ -1,1 +1,1 @@\n' +
+          '-old\n' +
+          '+new\n';
+        const expectedWithUnderline =
+          '===================================================================\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-old\n' +
+          '+new\n';
+        expect(formatPatch(patchWithNoFilenames, OMIT_HEADERS)).to.equal(expectedOutput);
+        expect(formatPatch(patchWithNoFilenames, FILE_HEADERS_ONLY)).to.equal(expectedOutput);
+        // INCLUDE_HEADERS still emits the underline, just skips Index and file headers
+        expect(formatPatch(patchWithNoFilenames, INCLUDE_HEADERS)).to.equal(expectedWithUnderline);
+        expect(formatPatch(patchWithNoFilenames)).to.equal(expectedWithUnderline);
+        // includeIndex: true with undefined filenames should also skip silently
+        expect(formatPatch(patchWithNoFilenames, {
+          includeIndex: true,
+          includeUnderline: false,
+          includeFileHeaders: false
+        })).to.equal(expectedOutput);
+      });
     });
   });
 });

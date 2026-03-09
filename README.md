@@ -184,9 +184,11 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
     Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
 
-* `parsePatch(diffStr)` - Parses a patch into structured data
+* `parsePatch(diffStr)` - Parses a unified diff format patch into a structured patch object.
 
-    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers, or a `diff --git` header that couldn't be parsed and has no `---`/`+++` lines to fall back on).
+    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers).
+
+    `parsePatch` has some understanding of [Git's particular dialect of unified diff format](https://git-scm.com/docs/git-diff#generate_patch_text_with_p). In particular, it can extract filenames from the patch headers or extended headers of Git patches that contain no hunks and no file headers, including ones representing a file being renamed without changes. (However, it ignores many extended headers that describe things irrelevant to jsdiff's patch representation, like mode changes.)
 
 * `reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
 
@@ -355,6 +357,70 @@ applyPatches(patch, {
     complete: (err) => {
         if (err) {
             console.log("Failed with error:", err);
+        }
+    }
+});
+```
+
+##### Applying a multi-file Git patch that may include renames
+
+Git diffs can include file renames (with or without content changes). `applyPatches` doesn't perform renames automatically, but you can handle them by collecting rename operations during patching and applying them at the end.
+
+**Important:** Git patches describe the state of files *before* the commit, and [the Git docs note](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) that it is incorrect to apply each change sequentially. For example, a patch that swaps two files (`a → b` and `b → a`) would break if you renamed `a` to `b` before processing the second entry. The example below avoids this by writing patched content to temporary files, then moving them all into place at the end:
+
+```
+const {applyPatches} = require('diff');
+const patch = fs.readFileSync("git-diff.patch").toString();
+const pendingWrites = []; // collect writes, apply them all at the end
+let nextTmpId = 0;
+applyPatches(patch, {
+    loadFile: (patch, callback) => {
+        let fileContents;
+        try {
+            // Git diffs use a/ and b/ prefixes; strip them to get the real path
+            const filePath = patch.oldFileName.replace(/^a\//, '');
+            fileContents = fs.readFileSync(filePath).toString();
+        } catch (e) {
+            callback(`No such file: ${patch.oldFileName}`);
+            return;
+        }
+        callback(undefined, fileContents);
+    },
+    patched: (patch, patchedContent, callback) => {
+        if (patchedContent === false) {
+            callback(`Failed to apply patch to ${patch.oldFileName}`);
+            return;
+        }
+        const oldPath = patch.oldFileName.replace(/^a\//, '');
+        const newPath = patch.newFileName.replace(/^b\//, '');
+        // Write to a temporary file so we don't clobber files that
+        // later patches may still need to read from their old paths
+        // (e.g. when two files are being swapped)
+        const tmpPath = `.tmp-patch-${nextTmpId++}`;
+        fs.writeFileSync(tmpPath, patchedContent);
+        if (oldPath !== newPath) {
+            pendingWrites.push({tmpPath, oldPath, newPath});
+        } else {
+            pendingWrites.push({tmpPath, oldPath, newPath: oldPath});
+        }
+        callback();
+    },
+    complete: (err) => {
+        if (err) {
+            console.log("Failed with error:", err);
+            return;
+        }
+        // First, delete all old files that are being renamed away.
+        // We must do all deletes before any renames, so that e.g. a
+        // swap (a→b, b→a) doesn't delete a file we just renamed.
+        for (const {oldPath, newPath} of pendingWrites) {
+            if (oldPath !== newPath) {
+                fs.unlinkSync(oldPath);
+            }
+        }
+        // Then move all temp files into their final destinations
+        for (const {tmpPath, newPath} of pendingWrites) {
+            fs.renameSync(tmpPath, newPath);
         }
     }
 });

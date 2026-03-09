@@ -292,13 +292,13 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
   }
 
   const ret = [];
-  if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName) {
+  if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName && patch.oldFileName !== undefined) {
     ret.push('Index: ' + patch.oldFileName);
   }
   if (headerOptions.includeUnderline) {
     ret.push('===================================================================');
   }
-  if (headerOptions.includeFileHeaders) {
+  if (headerOptions.includeFileHeaders && patch.oldFileName !== undefined && patch.newFileName !== undefined) {
     ret.push('--- ' + patch.oldFileName + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
     ret.push('+++ ' + patch.newFileName + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
   }
