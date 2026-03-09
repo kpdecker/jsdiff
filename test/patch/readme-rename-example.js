@@ -162,4 +162,38 @@ rename to a.txt
     expect(fs.readFileSync('b.txt', 'utf-8')).to.equal('content of a\n');
     expect(fs.readFileSync('c.txt', 'utf-8')).to.equal('content of b\n');
   });
+
+  it('should handle a file deletion', function() {
+    fs.writeFileSync('doomed.txt', 'goodbye\n');
+
+    const patch =
+`diff --git a/doomed.txt b/doomed.txt
+deleted file mode 100644
+index 2b31011..0000000
+--- a/doomed.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-goodbye
+`;
+
+    getReadmeExampleFn()(applyPatches, patch, fs, path);
+
+    expect(fs.existsSync('doomed.txt')).to.equal(false);
+  });
+
+  it('should handle a file creation', function() {
+    const patch =
+`diff --git a/brand-new.txt b/brand-new.txt
+new file mode 100644
+index 0000000..fa49b07
+--- /dev/null
++++ b/brand-new.txt
+@@ -0,0 +1 @@
++hello world
+`;
+
+    getReadmeExampleFn()(applyPatches, patch, fs, path);
+
+    expect(fs.readFileSync('brand-new.txt', 'utf-8')).to.equal('hello world\n');
+  });
 });

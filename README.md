@@ -364,27 +364,29 @@ applyPatches(patch, {
 
 ##### Applying a multi-file Git patch that may include renames
 
-Git diffs can include file renames (with or without content changes). `applyPatches` doesn't perform renames automatically, but you can handle them by collecting rename operations during patching and applying them at the end.
+Git diffs can include file renames (with or without content changes). `applyPatches` doesn't perform renames automatically, but you can handle them in the callbacks.
 
-**Important:** Git patches describe the state of files *before* the commit, and [the Git docs note](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) that it is incorrect to apply each change sequentially. For example, a patch that swaps two files (`a → b` and `b → a`) would break if you renamed `a` to `b` before processing the second entry. The example below avoids this by writing patched content to temporary files, then moving them all into place at the end:
+**Important:** Git patches describe the state of files *before* the commit, and [the Git docs note](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) that it is incorrect to apply each change sequentially. For example, a patch that swaps two files (`a → b` and `b → a`) would break if you wrote `a`'s content to `b` before reading `b`'s original content. The example below avoids this by collecting all writes in a `Map` and applying them all at the end in `complete`:
 
 ```
 const {applyPatches} = require('diff');
 const patch = fs.readFileSync("git-diff.patch").toString();
-const pendingWrites = []; // collect writes, apply them all at the end
-let nextTmpId = 0;
+const DELETE = Symbol('delete');
+const pendingWrites = new Map(); // newPath → content (or DELETE sentinel)
 applyPatches(patch, {
     loadFile: (patch, callback) => {
-        let fileContents;
+        // Git uses /dev/null as the old name when a file is newly created
+        if (patch.oldFileName === '/dev/null') {
+            callback(undefined, '');
+            return;
+        }
         try {
             // Git diffs use a/ and b/ prefixes; strip them to get the real path
             const filePath = patch.oldFileName.replace(/^a\//, '');
-            fileContents = fs.readFileSync(filePath).toString();
+            callback(undefined, fs.readFileSync(filePath).toString());
         } catch (e) {
             callback(`No such file: ${patch.oldFileName}`);
-            return;
         }
-        callback(undefined, fileContents);
     },
     patched: (patch, patchedContent, callback) => {
         if (patchedContent === false) {
@@ -393,15 +395,15 @@ applyPatches(patch, {
         }
         const oldPath = patch.oldFileName.replace(/^a\//, '');
         const newPath = patch.newFileName.replace(/^b\//, '');
-        // Write to a temporary file so we don't clobber files that
-        // later patches may still need to read from their old paths
-        // (e.g. when two files are being swapped)
-        const tmpPath = `.tmp-patch-${nextTmpId++}`;
-        fs.writeFileSync(tmpPath, patchedContent);
-        if (oldPath !== newPath) {
-            pendingWrites.push({tmpPath, oldPath, newPath});
+        // Git uses /dev/null as the new name when a file is deleted
+        if (patch.newFileName === '/dev/null') {
+            pendingWrites.set(oldPath, DELETE);
         } else {
-            pendingWrites.push({tmpPath, oldPath, newPath: oldPath});
+            pendingWrites.set(newPath, patchedContent);
+            if (oldPath !== newPath && patch.oldFileName !== '/dev/null'
+                && !pendingWrites.has(oldPath)) {
+                pendingWrites.set(oldPath, DELETE);
+            }
         }
         callback();
     },
@@ -410,17 +412,12 @@ applyPatches(patch, {
             console.log("Failed with error:", err);
             return;
         }
-        // First, delete all old files that are being renamed away.
-        // We must do all deletes before any renames, so that e.g. a
-        // swap (a→b, b→a) doesn't delete a file we just renamed.
-        for (const {oldPath, newPath} of pendingWrites) {
-            if (oldPath !== newPath) {
-                fs.unlinkSync(oldPath);
+        for (const [filePath, content] of pendingWrites) {
+            if (content === DELETE) {
+                fs.unlinkSync(filePath);
+            } else {
+                fs.writeFileSync(filePath, content);
             }
-        }
-        // Then move all temp files into their final destinations
-        for (const {tmpPath, newPath} of pendingWrites) {
-            fs.renameSync(tmpPath, newPath);
         }
     }
 });
