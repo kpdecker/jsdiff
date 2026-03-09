@@ -364,9 +364,7 @@ applyPatches(patch, {
 
 ##### Applying a multi-file Git patch that may include renames
 
-Git diffs can include file renames (with or without content changes). `applyPatches` doesn't perform renames automatically, but you can handle them in the callbacks.
-
-**Important:** Git patches describe the state of files *before* the commit, and [the Git docs note](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) that it is incorrect to apply each change sequentially. For example, a patch that swaps two files (`a → b` and `b → a`) would break if you wrote `a`'s content to `b` before reading `b`'s original content. The example below avoids this by collecting all writes in a `Map` and applying them all at the end in `complete`:
+[Git patches](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) can include file renames (with or without content changes), which need to be handled in the callbacks you provide to `applyPatches`. They can also potentially include file *swaps* (renaming `a → b` and `b → a`), in which case it is incorrect to simply apply each change atomically in sequence. The pattern with the `pendingWrites` Map below handles this nuance:
 
 ```
 const {applyPatches} = require('diff');
