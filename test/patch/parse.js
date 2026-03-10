@@ -1066,6 +1066,36 @@ index ce01362..0000000
         }]);
     });
 
+    it('should parse a diff --git empty file creation (no --- / +++ or hunks)', function() {
+      expect(parsePatch(
+`diff --git a/empty.txt b/empty.txt
+new file mode 100644
+index 0000000..e69de29`))
+        .to.eql([{
+          oldFileName: 'a/empty.txt',
+          newFileName: 'b/empty.txt',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
+          hunks: []
+        }]);
+    });
+
+    it('should parse a diff --git empty file deletion (no --- / +++ or hunks)', function() {
+      expect(parsePatch(
+`diff --git a/empty.txt b/empty.txt
+deleted file mode 100644
+index e69de29..0000000`))
+        .to.eql([{
+          oldFileName: 'a/empty.txt',
+          newFileName: 'b/empty.txt',
+          isGit: true,
+          isDelete: true,
+          oldMode: '100644',
+          hunks: []
+        }]);
+    });
+
     it('should parse diff --git with quoted filenames containing spaces', function() {
       expect(parsePatch(
 `diff --git "a/file with spaces.txt" "b/file with spaces.txt"
