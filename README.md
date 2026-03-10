@@ -373,8 +373,8 @@ const DELETE = Symbol('delete');
 const pendingWrites = new Map(); // filePath → content (or DELETE sentinel)
 applyPatches(patch, {
     loadFile: (patch, callback) => {
-        // Git uses /dev/null as the old name when a file is newly created
-        if (patch.oldFileName === '/dev/null') {
+        if (patch.isCreate) {
+            // Newly created file — no old content to load
             callback(undefined, '');
             return;
         }
@@ -393,8 +393,7 @@ applyPatches(patch, {
         }
         const oldPath = patch.oldFileName.replace(/^a\//, '');
         const newPath = patch.newFileName.replace(/^b\//, '');
-        // Git uses /dev/null as the new name when a file is deleted
-        if (patch.newFileName === '/dev/null') {
+        if (patch.isDelete) {
             if (!pendingWrites.has(oldPath)) {
                 pendingWrites.set(oldPath, DELETE);
             }
