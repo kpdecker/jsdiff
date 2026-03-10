@@ -324,7 +324,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
   }
 
   /**
-   * Parses a C-style quoted filename as used by Git.
+   * Parses a C-style quoted filename as used by Git or GNU `diff -u`.
    * Returns the unescaped filename and the raw length consumed (including quotes).
    */
   function parseQuotedFileName(s: string): { fileName: string, rawLength: number } | null {
@@ -367,7 +367,14 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
             result += new TextDecoder('utf-8').decode(new Uint8Array(bytes));
             continue; // j already points at the next character
           }
-          default: result += '\\' + s[j]; break;
+          // Note that in C, there are also three kinds of hex escape sequences:
+          // - \xhh
+          // - \uhhhh
+          // - \Uhhhhhhhh
+          // We do not bother to parse them here because, so far as we know,
+          // they are never emitted by any tools that generate unified diff
+          // format diffs, and so for now jsdiff does not consider them legal.
+          default: return null;
         }
       } else {
         result += s[j];
