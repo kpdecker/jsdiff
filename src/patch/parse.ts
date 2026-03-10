@@ -280,34 +280,28 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     // Unquoted paths. Try to find the split point.
     // The format is: a/<old-path> b/<new-path>
     //
-    // Strategy: if the path starts with a/ and contains " b/", we try
-    // to find where to split. When old and new names are the same, there's
-    // a unique split where both halves (after stripping their respective
-    // a/ and b/ prefixes) match. When they differ, we try the last split.
-    // The returned filenames include the a/ and b/ prefixes.
+    // Note the potential ambiguity caused by the possibility of the file paths
+    // themselves containing the substring ` b/`, plus the pathological case
+    // described in the comment above.
+    //
+    // Strategy: find all occurrences of " b/" and split on the middle
+    // one. When old and new names are the same (which is the only case where
+    // we can't rely on extended headers later in the patch so HAVE to get
+    // this right), this will always be the correct split.
     if (rest.startsWith('a/')) {
-      // Try to find a " b/" separator. If the filename itself contains " b/",
-      // there could be multiple candidates. We try each one and pick the
-      // split where both halves look like valid prefixed paths.
+      const splits = [];
       let searchFrom = 2; // skip past initial "a/"
-      let bestSplit = -1;
       while (true) {
         const idx = rest.indexOf(' b/', searchFrom);
         if (idx === -1) { break; }
-        // Candidate: old = rest[0..idx), new = rest[idx+1..)
-        const candidateOldBare = rest.substring(2, idx); // strip "a/" for comparison
-        const candidateNewBare = rest.substring(idx + 3); // strip " b/" for comparison
-        if (candidateOldBare === candidateNewBare) {
-          // Perfect match - unambiguous
-          return { oldFileName: rest.substring(0, idx), newFileName: rest.substring(idx + 1) };
-        }
-        bestSplit = idx;
+        splits.push(idx);
         searchFrom = idx + 3;
       }
-      if (bestSplit !== -1) {
+      if (splits.length > 0) {
+        const mid = splits[Math.floor(splits.length / 2)];
         return {
-          oldFileName: rest.substring(0, bestSplit),
-          newFileName: rest.substring(bestSplit + 1)
+          oldFileName: rest.substring(0, mid),
+          newFileName: rest.substring(mid + 1)
         };
       }
     }
