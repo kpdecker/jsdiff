@@ -727,6 +727,7 @@ index abc1234..def5678 100644
           oldHeader: '',
           newFileName: 'b/file.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -767,6 +768,7 @@ index 1234567..abcdef0 100644
           oldHeader: '',
           newFileName: 'b/file1.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -784,6 +786,7 @@ index 1234567..abcdef0 100644
           oldHeader: '',
           newFileName: 'b/file2.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -808,7 +811,9 @@ rename to README-2.md`))
         .to.eql([{
           oldFileName: 'a/README.md',
           newFileName: 'b/README-2.md',
-          hunks: []
+          isGit: true,
+          hunks: [],
+          isRename: true
         }]);
     });
 
@@ -831,6 +836,8 @@ index abc1234..def5678 100644
           oldHeader: '',
           newFileName: 'b/new-name.txt',
           newHeader: '',
+          isGit: true,
+          isRename: true,
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -854,6 +861,9 @@ new mode 100755`))
         .to.eql([{
           oldFileName: 'a/script.sh',
           newFileName: 'b/script.sh',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
           hunks: []
         }]);
     });
@@ -866,6 +876,7 @@ Binary files a/image.png and b/image.png differ`))
         .to.eql([{
           oldFileName: 'a/image.png',
           newFileName: 'b/image.png',
+          isGit: true,
           hunks: []
         }]);
     });
@@ -891,6 +902,7 @@ diff --git a/file3.txt b/file3.txt
           oldHeader: '',
           newFileName: 'b/file1.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -901,12 +913,14 @@ diff --git a/file3.txt b/file3.txt
         }, {
           oldFileName: 'a/image.png',
           newFileName: 'b/image.png',
+          isGit: true,
           hunks: []
         }, {
           oldFileName: 'a/file3.txt',
           oldHeader: '',
           newFileName: 'b/file3.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -942,6 +956,7 @@ diff --git a/file3.txt b/file3.txt
           oldHeader: '',
           newFileName: 'b/file1.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 3,
@@ -957,12 +972,16 @@ diff --git a/file3.txt b/file3.txt
         }, {
           oldFileName: 'a/script.sh',
           newFileName: 'b/script.sh',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
           hunks: []
         }, {
           oldFileName: 'a/file3.txt',
           oldHeader: '',
           newFileName: 'b/file3.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 2,
@@ -986,7 +1005,9 @@ copy to copy.txt`))
         .to.eql([{
           oldFileName: 'a/original.txt',
           newFileName: 'b/copy.txt',
-          hunks: []
+          isGit: true,
+          hunks: [],
+          isCopy: true
         }]);
     });
 
@@ -1005,11 +1026,41 @@ index 0000000..abc1234
           oldHeader: '',
           newFileName: 'b/newfile.txt',
           newHeader: '',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
           hunks: [
             {
               oldStart: 1, oldLines: 0,
               newStart: 1, newLines: 2,
               lines: ['+hello', '+world']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a diff --git deleted file', function() {
+      expect(parsePatch(
+`diff --git a/old.txt b/old.txt
+deleted file mode 100644
+index ce01362..0000000
+--- a/old.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-goodbye`))
+        .to.eql([{
+          oldFileName: 'a/old.txt',
+          oldHeader: '',
+          newFileName: '/dev/null',
+          newHeader: '',
+          isGit: true,
+          isDelete: true,
+          oldMode: '100644',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 0,
+              lines: ['-goodbye']
             }
           ]
         }]);
@@ -1029,6 +1080,7 @@ index abc1234..def5678 100644
           oldHeader: '',
           newFileName: 'b/file with spaces.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -1048,7 +1100,9 @@ rename to new name.txt`))
         .to.eql([{
           oldFileName: 'a/old name.txt',
           newFileName: 'b/new name.txt',
-          hunks: []
+          isGit: true,
+          hunks: [],
+          isRename: true
         }]);
     });
 
@@ -1067,6 +1121,7 @@ rename to new name.txt`))
           oldHeader: '',
           newFileName: 'b/file.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -1092,12 +1147,15 @@ diff --git a/other.txt b/other.txt
         .to.eql([{
           oldFileName: 'a/old.txt',
           newFileName: 'b/new.txt',
-          hunks: []
+          isGit: true,
+          hunks: [],
+          isRename: true
         }, {
           oldFileName: 'a/other.txt',
           oldHeader: '',
           newFileName: 'b/other.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -1116,6 +1174,9 @@ new mode 100755`))
         .to.eql([{
           oldFileName: 'a/file with spaces.txt',
           newFileName: 'b/file with spaces.txt',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
           hunks: []
         }]);
     });
@@ -1131,7 +1192,9 @@ rename to another file with spaces.txt`))
         .to.eql([{
           oldFileName: 'a/file with spaces.txt',
           newFileName: 'b/another file with spaces.txt',
-          hunks: []
+          isGit: true,
+          hunks: [],
+          isRename: true
         }]);
     });
 
@@ -1146,6 +1209,9 @@ new mode 100755`))
         .to.eql([{
           oldFileName: 'a/x b/y.txt',
           newFileName: 'b/x b/y.txt',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
           hunks: []
         }]);
     });
@@ -1162,7 +1228,9 @@ rename to x b/new.txt`))
         .to.eql([{
           oldFileName: 'a/x b/old.txt',
           newFileName: 'b/x b/new.txt',
-          hunks: []
+          isGit: true,
+          hunks: [],
+          isRename: true
         }]);
     });
 
@@ -1181,6 +1249,7 @@ rename to x b/new.txt`))
           oldHeader: '',
           newFileName: 'b/x b/new.txt',
           newHeader: '',
+          isGit: true,
           hunks: [
             {
               oldStart: 1, oldLines: 1,
@@ -1209,6 +1278,7 @@ rename to x b/new.txt`))
             oldHeader: '',
             newFileName: 'b/file.txt',
             newHeader: '',
+            isGit: true,
             hunks: [
               {
                 oldStart: 1, oldLines: 1,
@@ -1232,6 +1302,7 @@ rename to x b/new.txt`))
             oldHeader: '',
             newFileName: 'b/file.txt',
             newHeader: '',
+            isGit: true,
             hunks: [
               {
                 oldStart: 1, oldLines: 1,
@@ -1250,6 +1321,9 @@ rename to x b/new.txt`))
 old mode 100644
 new mode 100755`))
           .to.eql([{
+            isGit: true,
+            oldMode: '100644',
+            newMode: '100755',
             hunks: []
           }]);
       });

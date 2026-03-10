@@ -364,13 +364,13 @@ applyPatches(patch, {
 
 ##### Applying a multi-file Git patch that may include renames
 
-[Git patches](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) can include file renames (with or without content changes), which need to be handled in the callbacks you provide to `applyPatches`. They can also potentially include file *swaps* (renaming `a → b` and `b → a`), in which case it is incorrect to simply apply each change atomically in sequence. The pattern with the `pendingWrites` Map below handles this nuance:
+[Git patches](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) can include file renames and copies (with or without content changes), which need to be handled in the callbacks you provide to `applyPatches`. `parsePatch` sets `isRename` or `isCopy` on the structured patch object so you can distinguish these cases. Patches can also potentially include file *swaps* (renaming `a → b` and `b → a`), in which case it is incorrect to simply apply each change atomically in sequence. The pattern with the `pendingWrites` Map below handles all of these nuances:
 
 ```
 const {applyPatches} = require('diff');
 const patch = fs.readFileSync("git-diff.patch").toString();
 const DELETE = Symbol('delete');
-const pendingWrites = new Map(); // newPath → content (or DELETE sentinel)
+const pendingWrites = new Map(); // filePath → content (or DELETE sentinel)
 applyPatches(patch, {
     loadFile: (patch, callback) => {
         // Git uses /dev/null as the old name when a file is newly created
@@ -400,8 +400,9 @@ applyPatches(patch, {
             }
         } else {
             pendingWrites.set(newPath, patchedContent);
-            if (oldPath !== newPath && patch.oldFileName !== '/dev/null'
-                && !pendingWrites.has(oldPath)) {
+            // For renames, delete the old file (but not for copies,
+            // where the old file should be kept)
+            if (patch.isRename && !pendingWrites.has(oldPath)) {
                 pendingWrites.set(oldPath, DELETE);
             }
         }

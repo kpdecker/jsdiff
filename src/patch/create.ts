@@ -292,13 +292,42 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
   }
 
   const ret = [];
-  if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName && patch.oldFileName !== undefined) {
-    ret.push('Index: ' + patch.oldFileName);
+
+  if (patch.isGit) {
+    // Emit Git-style diff --git header and extended headers
+    ret.push('diff --git ' + (patch.oldFileName ?? '') + ' ' + (patch.newFileName ?? ''));
+    if (patch.isDelete) {
+      ret.push('deleted file mode ' + (patch.oldMode ?? '100644'));
+    }
+    if (patch.isCreate) {
+      ret.push('new file mode ' + (patch.newMode ?? '100644'));
+    }
+    if (patch.oldMode && patch.newMode && !patch.isDelete && !patch.isCreate) {
+      ret.push('old mode ' + patch.oldMode);
+      ret.push('new mode ' + patch.newMode);
+    }
+    if (patch.isRename) {
+      ret.push('rename from ' + (patch.oldFileName ?? '').replace(/^a\//, ''));
+      ret.push('rename to ' + (patch.newFileName ?? '').replace(/^b\//, ''));
+    }
+    if (patch.isCopy) {
+      ret.push('copy from ' + (patch.oldFileName ?? '').replace(/^a\//, ''));
+      ret.push('copy to ' + (patch.newFileName ?? '').replace(/^b\//, ''));
+    }
+  } else {
+    if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName && patch.oldFileName !== undefined) {
+      ret.push('Index: ' + patch.oldFileName);
+    }
+    if (headerOptions.includeUnderline) {
+      ret.push('===================================================================');
+    }
   }
-  if (headerOptions.includeUnderline) {
-    ret.push('===================================================================');
-  }
-  if (headerOptions.includeFileHeaders && patch.oldFileName !== undefined && patch.newFileName !== undefined) {
+
+  // Emit --- / +++ file headers. For Git patches with no hunks (e.g.
+  // pure renames, mode-only changes), Git omits these, so we do too.
+  const hasHunks = patch.hunks.length > 0;
+  if (headerOptions.includeFileHeaders && patch.oldFileName !== undefined && patch.newFileName !== undefined
+      && (!patch.isGit || hasHunks)) {
     ret.push('--- ' + patch.oldFileName + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
     ret.push('+++ ' + patch.newFileName + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
   }

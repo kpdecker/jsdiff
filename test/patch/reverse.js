@@ -61,7 +61,7 @@ describe('patch/reverse', function() {
         '+bar\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        '===================================================================\n' +
+        'diff --git b/README.md a/README.md\n' +
         '--- b/README.md\t\n' +
         '+++ a/README.md\t\n' +
         '@@ -1,7 +1,5 @@\n' +
@@ -79,7 +79,7 @@ describe('patch/reverse', function() {
         '-\n' +
         '-bar\n' +
         '\n' +
-        '===================================================================\n' +
+        'diff --git b/CONTRIBUTING.md a/CONTRIBUTING.md\n' +
         '--- b/CONTRIBUTING.md\t\n' +
         '+++ a/CONTRIBUTING.md\t\n' +
         '@@ -2,8 +2,6 @@\n' +
@@ -92,6 +92,91 @@ describe('patch/reverse', function() {
         ' \n' +
         ' Generally we like to see pull requests that\n'
       );
+    });
+
+    it('should reverse a rename patch into a rename in the opposite direction', function() {
+      const patch = parsePatch(
+        'diff --git a/old.txt b/new.txt\n' +
+        'similarity index 85%\n' +
+        'rename from old.txt\n' +
+        'rename to new.txt\n' +
+        '--- a/old.txt\n' +
+        '+++ b/new.txt\n' +
+        '@@ -1,3 +1,3 @@\n' +
+        ' line1\n' +
+        '-line2\n' +
+        '+line2modified\n' +
+        ' line3\n'
+      );
+      const reversed = reversePatch(patch);
+      expect(reversed).to.have.length(1);
+      expect(reversed[0].oldFileName).to.equal('b/new.txt');
+      expect(reversed[0].newFileName).to.equal('a/old.txt');
+      expect(reversed[0].isRename).to.equal(true);
+      expect(reversed[0].isCopy).to.equal(undefined);
+      expect(reversed[0].hunks).to.have.length(1);
+      expect(reversed[0].hunks[0].lines).to.eql([
+        ' line1',
+        '+line2',
+        '-line2modified',
+        ' line3'
+      ]);
+    });
+
+    it('should reverse a copy patch into a deletion', function() {
+      const patch = parsePatch(
+        'diff --git a/original.txt b/copy.txt\n' +
+        'similarity index 85%\n' +
+        'copy from original.txt\n' +
+        'copy to copy.txt\n' +
+        '--- a/original.txt\n' +
+        '+++ b/copy.txt\n' +
+        '@@ -1,3 +1,3 @@\n' +
+        ' line1\n' +
+        '-line2\n' +
+        '+line2modified\n' +
+        ' line3\n'
+      );
+      const reversed = reversePatch(patch);
+      expect(reversed).to.have.length(1);
+      // Reversing a copy means deleting the copy destination
+      expect(reversed[0].oldFileName).to.equal('b/copy.txt');
+      expect(reversed[0].newFileName).to.equal('/dev/null');
+      expect(reversed[0].newHeader).to.equal(undefined);
+      expect(reversed[0].isRename).to.equal(undefined);
+      expect(reversed[0].isCopy).to.equal(undefined);
+    });
+
+    it('should reverse a hunk-less copy into a deletion', function() {
+      const patch = parsePatch(
+        'diff --git a/original.txt b/copy.txt\n' +
+        'similarity index 100%\n' +
+        'copy from original.txt\n' +
+        'copy to copy.txt\n'
+      );
+      const reversed = reversePatch(patch);
+      expect(reversed).to.have.length(1);
+      expect(reversed[0].oldFileName).to.equal('b/copy.txt');
+      expect(reversed[0].newFileName).to.equal('/dev/null');
+      expect(reversed[0].isRename).to.equal(undefined);
+      expect(reversed[0].isCopy).to.equal(undefined);
+      expect(reversed[0].hunks).to.eql([]);
+    });
+
+    it('should reverse a hunk-less rename', function() {
+      const patch = parsePatch(
+        'diff --git a/old.txt b/new.txt\n' +
+        'similarity index 100%\n' +
+        'rename from old.txt\n' +
+        'rename to new.txt\n'
+      );
+      const reversed = reversePatch(patch);
+      expect(reversed).to.have.length(1);
+      expect(reversed[0].oldFileName).to.equal('b/new.txt');
+      expect(reversed[0].newFileName).to.equal('a/old.txt');
+      expect(reversed[0].isRename).to.equal(true);
+      expect(reversed[0].isCopy).to.equal(undefined);
+      expect(reversed[0].hunks).to.eql([]);
     });
   });
 });

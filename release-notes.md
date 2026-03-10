@@ -1,5 +1,33 @@
 # Release Notes
 
+## 9.0.0 (prerelease)
+
+- **`parsePatch` now robustly handles Git-style diffs.** Previously, `parsePatch` had inconsistent regex usage that caused several bugs when parsing `diff --git` output:
+  * Multi-file Git diffs containing hunk-less entries (e.g. mode-only changes, binary files, rename-only entries without content changes) could cause file entries to be merged together or lost entirely.
+  * Git extended headers (`rename from`/`rename to`, `copy from`/`copy to`, `old mode`/`new mode`, `index`, etc.) were not parsed and could cause parse errors.
+  * `diff --git` was not consistently recognized as a diff header, leading to missing `index` entries and other subtle issues.
+
+  The parser now:
+  * Correctly recognizes `diff --git` headers and parses filenames from them, including C-style quoted filenames (used by Git when paths contain tabs, newlines, backslashes, or double quotes).
+  * Consumes Git extended headers (`rename from`/`rename to`, `copy from`/`copy to`, mode changes, similarity index, etc.) without choking.
+  * Handles hunk-less entries (rename-only, mode-only, binary) as distinct file entries rather than merging them into adjacent entries.
+  * Sets metadata flags on the resulting `StructuredPatch`: `isGit` (always, for Git diffs), `isRename`, `isCopy`, `isCreate`, `isDelete` (when the corresponding extended headers are present), and `oldMode`/`newMode` (parsed from `old mode`, `new mode`, `deleted file mode`, or `new file mode` headers). This lets consumers distinguish renames (where the old file should be deleted) from copies (where it should be kept), detect file creations and deletions, and preserve file mode information.
+  * Uses consistent, centralized helper functions for header detection instead of duplicated regexes.
+
+- **`reversePatch` now correctly reverses copy patches.** Reversing a copy produces a deletion (the reversed patch has `newFileName` set to `'/dev/null'` and `isCopy`/`isRename` unset), since undoing a copy means deleting the file that was created. Reversing a rename still produces a rename in the opposite direction, as before.
+
+- **`formatPatch` now supports Git-style patches.** When a `StructuredPatch` has `isGit: true`, `formatPatch` emits a `diff --git` header (instead of `Index:` / underline) and the appropriate Git extended headers (`rename from`/`rename to`, `copy from`/`copy to`, `deleted file mode`, `new file mode`, `old mode`/`new mode`) based on the patch's metadata flags. File headers (`---`/`+++`) are omitted on hunk-less Git patches (e.g. pure renames, mode-only changes), matching Git's own output. This means `parsePatch` output can be round-tripped through `formatPatch`.
+
+- **`formatPatch` now gracefully handles patches with undefined filenames** instead of emitting nonsensical headers like `--- undefined`. If `oldFileName` or `newFileName` is `undefined`, the `---`/`+++` file headers and the `Index:` line are silently omitted. This is consistent with how such patches can arise from parsing Git diffs that lack `---`/`+++` lines.
+
+- **README: added documentation and example for applying Git patches that include renames, copies, deletions, and file creations** using `applyPatches`.
+
+### Breaking changes
+
+- **The `oldFileName` and `newFileName` fields of `StructuredPatch` are now typed as `string | undefined` instead of `string`.** This reflects the reality that `parsePatch` can produce patches without filenames (e.g. when parsing a Git diff with an unparseable `diff --git` header and no `---`/`+++` fallback). TypeScript users who access these fields without null checks will see type errors and should update their code to handle the `undefined` case.
+
+- **`StructuredPatch` has new optional fields for Git metadata:** `isGit`, `isRename`, `isCopy`, `isCreate`, `isDelete`, `oldMode`, and `newMode`. These are set by `parsePatch` when parsing Git diffs. Code that does exact deep-equality checks (e.g. `assert.deepEqual`) against `StructuredPatch` objects from `parsePatch` may need updating to account for the new fields.
+
 ## 8.0.4 (prerelease)
 
 - [#667](https://github.com/kpdecker/jsdiff/pull/667) - **fix another bug in `diffWords` when used with an `Intl.Segmenter`**. If the text to be diffed included a combining mark after a whitespace character (i.e. roughly speaking, an accented space), `diffWords` would previously crash. Now this case is handled correctly.

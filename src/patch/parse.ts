@@ -67,6 +67,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           break;
         }
         seenDiffHeader = true;
+        index.isGit = true;
 
         // Parse the old and new filenames from the diff --git header and
         // tentatively set oldFileName and newFileName from them. These may
@@ -105,20 +106,43 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           const renameFromMatch = (/^rename from (.*)/).exec(extLine);
           if (renameFromMatch) {
             index.oldFileName = 'a/' + renameFromMatch[1];
+            index.isRename = true;
           }
           const renameToMatch = (/^rename to (.*)/).exec(extLine);
           if (renameToMatch) {
             index.newFileName = 'b/' + renameToMatch[1];
+            index.isRename = true;
           }
 
           // Parse copy from / copy to lines similarly
           const copyFromMatch = (/^copy from (.*)/).exec(extLine);
           if (copyFromMatch) {
             index.oldFileName = 'a/' + copyFromMatch[1];
+            index.isCopy = true;
           }
           const copyToMatch = (/^copy to (.*)/).exec(extLine);
           if (copyToMatch) {
             index.newFileName = 'b/' + copyToMatch[1];
+            index.isCopy = true;
+          }
+
+          const newFileModeMatch = (/^new file mode (\d+)/).exec(extLine);
+          if (newFileModeMatch) {
+            index.isCreate = true;
+            index.newMode = newFileModeMatch[1];
+          }
+          const deletedFileModeMatch = (/^deleted file mode (\d+)/).exec(extLine);
+          if (deletedFileModeMatch) {
+            index.isDelete = true;
+            index.oldMode = deletedFileModeMatch[1];
+          }
+          const oldModeMatch = (/^old mode (\d+)/).exec(extLine);
+          if (oldModeMatch) {
+            index.oldMode = oldModeMatch[1];
+          }
+          const newModeMatch = (/^new mode (\d+)/).exec(extLine);
+          if (newModeMatch) {
+            index.newMode = newModeMatch[1];
           }
 
           i++;
