@@ -349,11 +349,8 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           case '"': result += '"'; break;
           case '0': case '1': case '2': case '3':
           case '4': case '5': case '6': case '7': {
-            // Octal escapes in Git represent raw bytes, not Unicode
-            // code points. Multi-byte UTF-8 characters are emitted as
-            // multiple consecutive octal escapes (e.g. 🎉 =
-            // \360\237\216\211). Collect all consecutive octal-escaped
-            // bytes and decode them together as UTF-8.
+            // C-style octal escapes represent raw bytes. Collect
+            // consecutive octal-escaped bytes and decode as UTF-8.
             // Validate that we have a full 3-digit octal escape
             if (j + 2 >= s.length || s[j + 1] < '0' || s[j + 1] > '7' || s[j + 2] < '0' || s[j + 2] > '7') {
               return null;
