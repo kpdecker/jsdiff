@@ -338,10 +338,38 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       if (s[j] === '\\' && j + 1 < s.length) {
         j++;
         switch (s[j]) {
+          case 'a': result += '\x07'; break;
+          case 'b': result += '\b'; break;
+          case 'f': result += '\f'; break;
           case 'n': result += '\n'; break;
+          case 'r': result += '\r'; break;
           case 't': result += '\t'; break;
+          case 'v': result += '\v'; break;
           case '\\': result += '\\'; break;
           case '"': result += '"'; break;
+          case '0': case '1': case '2': case '3':
+          case '4': case '5': case '6': case '7': {
+            // Octal escapes in Git represent raw bytes, not Unicode
+            // code points. Multi-byte UTF-8 characters are emitted as
+            // multiple consecutive octal escapes (e.g. 🎉 =
+            // \360\237\216\211). Collect all consecutive octal-escaped
+            // bytes and decode them together as UTF-8.
+            // Validate that we have a full 3-digit octal escape
+            if (j + 2 >= s.length || s[j + 1] < '0' || s[j + 1] > '7' || s[j + 2] < '0' || s[j + 2] > '7') {
+              return null;
+            }
+            const bytes = [parseInt(s.substring(j, j + 3), 8)];
+            j += 3;
+            while (s[j] === '\\' && s[j + 1] >= '0' && s[j + 1] <= '7') {
+              if (j + 3 >= s.length || s[j + 2] < '0' || s[j + 2] > '7' || s[j + 3] < '0' || s[j + 3] > '7') {
+                return null;
+              }
+              bytes.push(parseInt(s.substring(j + 1, j + 4), 8));
+              j += 4;
+            }
+            result += new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+            continue; // j already points at the next character
+          }
           default: result += '\\' + s[j]; break;
         }
       } else {
@@ -361,9 +389,11 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       const prefix = fileHeaderMatch[1],
             data = diffstr[i].substring(3).trim().split('\t', 2),
             header = (data[1] || '').trim();
-      let fileName = data[0].replace(/\\\\/g, '\\');
-      if (fileName.startsWith('"') && fileName.endsWith('"')) {
-        fileName = fileName.substr(1, fileName.length - 2);
+      let fileName = data[0];
+      if (fileName.startsWith('"')) {
+        fileName = unquoteIfQuoted(fileName);
+      } else {
+        fileName = fileName.replace(/\\\\/g, '\\');
       }
       if (prefix === '---') {
         index.oldFileName = fileName;

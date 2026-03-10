@@ -1151,6 +1151,65 @@ rename to normal.txt`))
         }]);
     });
 
+    it('should handle all Git C-style escape sequences in quoted filenames', function() {
+      expect(parsePatch(
+`diff --git "a/\\a\\b\\f\\r\\v\\001file.txt" "b/\\a\\b\\f\\r\\v\\001file.txt"
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/\x07\b\f\r\v\x01file.txt',
+          newFileName: 'b/\x07\b\f\r\v\x01file.txt',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }]);
+    });
+
+    it('should handle multi-byte UTF-8 octal escapes in quoted filenames (emoji)', function() {
+      // 🎉 is U+1F389, UTF-8 bytes F0 9F 8E 89 = octal 360 237 216 211
+      expect(parsePatch(
+`diff --git "a/file\\360\\237\\216\\211.txt" "b/file\\360\\237\\216\\211.txt"
+new file mode 100644
+index 0000000..ce01362
+--- /dev/null
++++ "b/file\\360\\237\\216\\211.txt"
+@@ -0,0 +1 @@
++hello`))
+        .to.eql([{
+          oldFileName: '/dev/null',
+          oldHeader: '',
+          newFileName: 'b/file🎉.txt',
+          newHeader: '',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 0,
+              newStart: 1, newLines: 1,
+              lines: ['+hello']
+            }
+          ]
+        }]);
+    });
+
+    it('should handle multi-byte UTF-8 octal escapes in quoted filenames (accented latin)', function() {
+      // é is U+00E9, UTF-8 bytes C3 A9 = octal 303 251
+      expect(parsePatch(
+`diff --git "a/caf\\303\\251.txt" "b/caf\\303\\251.txt"
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/café.txt',
+          newFileName: 'b/café.txt',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }]);
+    });
+
     it('should unquote C-style quoted filenames in copy from/to', function() {
       expect(parsePatch(
 `diff --git a/original.txt "b/copy\\nwith\\nnewlines.txt"
@@ -1352,6 +1411,33 @@ rename to x b/new.txt`))
       it('should handle an unparseable diff --git header with no a/b prefixes', function() {
         expect(parsePatch(
 `diff --git file.txt file.txt
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new`))
+          .to.eql([{
+            oldFileName: 'a/file.txt',
+            oldHeader: '',
+            newFileName: 'b/file.txt',
+            newHeader: '',
+            isGit: true,
+            hunks: [
+              {
+                oldStart: 1, oldLines: 1,
+                newStart: 1, newLines: 1,
+                lines: ['-old', '+new']
+              }
+            ]
+          }]);
+      });
+
+      it('should handle an incomplete octal escape in a quoted filename', function() {
+        // The quoted filename has a truncated octal escape (\36 instead of \360).
+        // parseQuotedFileName should return null, so parseGitDiffHeader returns
+        // null and we fall back to --- / +++ lines for filenames.
+        expect(parsePatch(
+`diff --git "a/file\\36" "b/file\\36"
 --- a/file.txt
 +++ b/file.txt
 @@ -1 +1 @@

@@ -2,6 +2,14 @@
 
 ## 9.0.0 (prerelease)
 
+TODO:
+- Tidy up AI slop below the ---
+- Note support for parsing quoted filenames in +++ and --- headers (even outside Git patches as `diff -u` outputs these)
+- Note fixes to #640 and #648
+
+---
+
+
 - **`parsePatch` now robustly handles Git-style diffs.** Previously, `parsePatch` had inconsistent regex usage that caused several bugs when parsing `diff --git` output:
   * Multi-file Git diffs containing hunk-less entries (e.g. mode-only changes, binary files, rename-only entries without content changes) could cause file entries to be merged together or lost entirely.
   * Git extended headers (`rename from`/`rename to`, `copy from`/`copy to`, `old mode`/`new mode`, `index`, etc.) were not parsed and could cause parse errors.
