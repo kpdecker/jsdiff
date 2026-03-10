@@ -207,8 +207,8 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * The format is:
    *     diff --git a/<old-path> b/<new-path>
    *
-   * When filenames contain characters like newlines, tabs, backslashes, or
-   * double quotes, Git quotes them with C-style escaping:
+   * When filenames contain special characters (including newlines, tabs,
+   * backslashes, or double quotes), Git quotes them with C-style escaping:
    *     diff --git "a/file\twith\ttabs.txt" "b/file\twith\ttabs.txt"
    *
    * When filenames don't contain special characters and the old and new names
