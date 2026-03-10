@@ -69,10 +69,10 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         seenDiffHeader = true;
         index.isGit = true;
 
-        // Parse the old and new filenames from the diff --git header and
+        // Parse the old and new filenames from the `diff --git` header and
         // tentatively set oldFileName and newFileName from them. These may
-        // be overridden below by rename from / rename to or copy from /
-        // copy to extended headers, or by --- and +++ lines. But for Git
+        // be overridden below by `rename from` / `rename to` or `copy from` /
+        // `copy to` extended headers, or by --- and +++ lines. But for Git
         // diffs that lack all of those (e.g. mode-only changes, binary
         // file changes without rename), these are the only filenames we
         // get.
@@ -86,8 +86,8 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           index.newFileName = paths.newFileName;
         }
 
-        // Consume Git extended headers (old mode, new mode, rename from,
-        // rename to, similarity index, index, Binary files ... differ,
+        // Consume Git extended headers (`old mode`, `new mode`, `rename from`,
+        // `rename to`, `similarity index`, `index`, `Binary files ... differ`,
         // etc.)
         i++;
         while (i < diffstr.length) {
@@ -99,9 +99,9 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
             break;
           }
 
-          // Parse rename from / rename to lines - these give us
+          // Parse `rename from` / `rename to` lines - these give us
           // unambiguous filenames. These lines don't include the
-          // a/ and b/ prefixes that appear in the diff --git header
+          // a/ and b/ prefixes that appear in the `diff --git` header
           // and --- / +++ lines, so we add them for consistency.
           const renameFromMatch = (/^rename from (.*)/).exec(extLine);
           if (renameFromMatch) {
