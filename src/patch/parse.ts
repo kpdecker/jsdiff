@@ -216,7 +216,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * two halves (including their a/ and b/ prefixes) yield matching bare names.
    *
    * A pathological case exists in which we cannot reliably determine the paths
-   * from the `git --diff` header. This case is when the following are true:
+   * from the `diff --git` header. This case is when the following are true:
    * - the old and new file paths differ
    * - they are both unquoted (i.e. contain no special characters)
    * - at least one of the underlying file paths includes the substring ` b/`
@@ -227,7 +227,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * Fortunately, this ambiguity should never matter, because in any patch
    * genuinely output by Git in which this pathological scenario occurs, there
    * must also be `rename from`/`rename to` or `copy from`/`copy to` extended
-   * headers present below the `git --diff` header. `parseIndex` will parse
+   * headers present below the `diff --git` header. `parseIndex` will parse
    * THOSE headers, from which we CAN unambiguously determine the filenames,
    * and will discard the result returned by this function.
    *
@@ -324,7 +324,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
   }
 
   /**
-   * Parses a C-style quoted filename as used by git.
+   * Parses a C-style quoted filename as used by Git.
    * Returns the unescaped filename and the raw length consumed (including quotes).
    */
   function parseQuotedFileName(s: string): { fileName: string, rawLength: number } | null {
