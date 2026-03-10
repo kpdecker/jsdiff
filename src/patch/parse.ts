@@ -39,6 +39,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
   function parseIndex() {
     const index: Partial<StructuredPatch> = {};
+    index.hunks = [];
     list.push(index);
 
     // Parse diff metadata
@@ -64,7 +65,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
       if (isGitDiffHeader(line)) {
         if (seenDiffHeader) {
-          break;
+          return;
         }
         seenDiffHeader = true;
         index.isGit = true;
@@ -153,7 +154,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
         continue;
       } else if (isDiffHeader(line)) {
         if (seenDiffHeader) {
-          break;
+          return;
         }
         seenDiffHeader = true;
 
@@ -185,9 +186,6 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     // there's no technical issues to have an isolated hunk without file header
     parseFileHeader(index);
     parseFileHeader(index);
-
-    // Parse hunks
-    index.hunks = [];
 
     while (i < diffstr.length) {
       const line = diffstr[i];
