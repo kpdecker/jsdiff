@@ -290,12 +290,11 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     // this right), this will always be the correct split.
     if (rest.startsWith('a/')) {
       const splits = [];
-      let searchFrom = 2; // skip past initial "a/"
+      let idx = 0;
       while (true) {
-        const idx = rest.indexOf(' b/', searchFrom);
+        idx = rest.indexOf(' b/', idx + 1);
         if (idx === -1) { break; }
         splits.push(idx);
-        searchFrom = idx + 3;
       }
       if (splits.length > 0) {
         const mid = splits[Math.floor(splits.length / 2)];
