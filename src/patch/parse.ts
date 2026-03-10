@@ -214,10 +214,24 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * When filenames don't contain special characters and the old and new names
    * are the same, we can unambiguously split on ` b/` by finding where the
    * two halves (including their a/ and b/ prefixes) yield matching bare names.
-   * When they differ AND contain spaces AND aren't quoted, parsing is
-   * inherently ambiguous, so we do our best.
    *
-   * Returns null if the header can't be parsed — e.g. if a quoted filename
+   * A pathological case exists in which we cannot reliably determine the paths
+   * from the `git --diff` header. This case is when the following are true:
+   * - the old and new file paths differ
+   * - they are both unquoted (i.e. contain no special characters)
+   * - at least one of the underlying file paths includes the substring ` b/`
+   * In this scenario, we do not know which occurrence of ` b/` indicates the
+   * start of the new file path, so the header is inherently ambiguous. We thus
+   * select a possible interpretation arbitrarily and return that.
+   *
+   * Fortunately, this ambiguity should never matter, because in any patch
+   * genuinely output by Git in which this pathological scenario occurs, there
+   * must also be `rename from`/`rename to` or `copy from`/`copy to` extended
+   * headers present below the `git --diff` header. `parseIndex` will parse
+   * THOSE headers, from which we CAN unambiguously determine the filenames,
+   * and will discard the result returned by this function.
+   *
+   * Returns null if the header can't be parsed at all — e.g. a quoted filename
    * has an unterminated quote, or if the unquoted header doesn't match the
    * expected `a/... b/...` format. In that case, the caller (parseIndex)
    * skips setting oldFileName/newFileName from this header, but they may
