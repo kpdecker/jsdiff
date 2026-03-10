@@ -196,4 +196,45 @@ index 0000000..fa49b07
 
     expect(fs.readFileSync('brand-new.txt', 'utf-8')).to.equal('hello world\n');
   });
+
+  it('should create a new executable file with correct mode', function() {
+    const patch =
+`diff --git a/run.sh b/run.sh
+new file mode 100755
+index 0000000..abc1234
+--- /dev/null
++++ b/run.sh
+@@ -0,0 +1,2 @@
++#!/bin/bash
++echo hello
+`;
+
+    getReadmeExampleFn()(applyPatches, patch, fs, path);
+
+    expect(fs.readFileSync('run.sh', 'utf-8')).to.equal('#!/bin/bash\necho hello\n');
+    const mode = fs.statSync('run.sh').mode & 0o777;
+    expect(mode).to.equal(0o755);
+  });
+
+  it('should set the mode when a file is modified with a mode change', function() {
+    fs.writeFileSync('script.sh', 'echo old\n');
+    fs.chmodSync('script.sh', 0o644);
+
+    const patch =
+`diff --git a/script.sh b/script.sh
+old mode 100644
+new mode 100755
+--- a/script.sh
++++ b/script.sh
+@@ -1 +1 @@
+-echo old
++echo new
+`;
+
+    getReadmeExampleFn()(applyPatches, patch, fs, path);
+
+    expect(fs.readFileSync('script.sh', 'utf-8')).to.equal('echo new\n');
+    const mode = fs.statSync('script.sh').mode & 0o777;
+    expect(mode).to.equal(0o755);
+  });
 });

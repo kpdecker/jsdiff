@@ -370,7 +370,7 @@ applyPatches(patch, {
 const {applyPatches} = require('diff');
 const patch = fs.readFileSync("git-diff.patch").toString();
 const DELETE = Symbol('delete');
-const pendingWrites = new Map(); // filePath → content (or DELETE sentinel)
+const pendingWrites = new Map(); // filePath → {content, mode} or DELETE sentinel
 applyPatches(patch, {
     loadFile: (patch, callback) => {
         if (patch.isCreate) {
@@ -398,7 +398,7 @@ applyPatches(patch, {
                 pendingWrites.set(oldPath, DELETE);
             }
         } else {
-            pendingWrites.set(newPath, patchedContent);
+            pendingWrites.set(newPath, {content: patchedContent, mode: patch.newMode});
             // For renames, delete the old file (but not for copies,
             // where the old file should be kept)
             if (patch.isRename && !pendingWrites.has(oldPath)) {
@@ -412,11 +412,14 @@ applyPatches(patch, {
             console.log("Failed with error:", err);
             return;
         }
-        for (const [filePath, content] of pendingWrites) {
-            if (content === DELETE) {
+        for (const [filePath, entry] of pendingWrites) {
+            if (entry === DELETE) {
                 fs.unlinkSync(filePath);
             } else {
-                fs.writeFileSync(filePath, content);
+                fs.writeFileSync(filePath, entry.content);
+                if (entry.mode) {
+                    fs.chmodSync(filePath, parseInt(entry.mode, 8) & 0o777);
+                }
             }
         }
     }
