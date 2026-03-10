@@ -103,26 +103,29 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           // unambiguous filenames. These lines don't include the
           // a/ and b/ prefixes that appear in the `diff --git` header
           // and --- / +++ lines, so we add them for consistency.
+          // Git C-style quotes filenames containing special characters
+          // (tabs, newlines, backslashes, double quotes), so we must
+          // unquote them when present.
           const renameFromMatch = (/^rename from (.*)/).exec(extLine);
           if (renameFromMatch) {
-            index.oldFileName = 'a/' + renameFromMatch[1];
+            index.oldFileName = 'a/' + unquoteIfQuoted(renameFromMatch[1]);
             index.isRename = true;
           }
           const renameToMatch = (/^rename to (.*)/).exec(extLine);
           if (renameToMatch) {
-            index.newFileName = 'b/' + renameToMatch[1];
+            index.newFileName = 'b/' + unquoteIfQuoted(renameToMatch[1]);
             index.isRename = true;
           }
 
           // Parse copy from / copy to lines similarly
           const copyFromMatch = (/^copy from (.*)/).exec(extLine);
           if (copyFromMatch) {
-            index.oldFileName = 'a/' + copyFromMatch[1];
+            index.oldFileName = 'a/' + unquoteIfQuoted(copyFromMatch[1]);
             index.isCopy = true;
           }
           const copyToMatch = (/^copy to (.*)/).exec(extLine);
           if (copyToMatch) {
-            index.newFileName = 'b/' + copyToMatch[1];
+            index.newFileName = 'b/' + unquoteIfQuoted(copyToMatch[1]);
             index.isCopy = true;
           }
 
@@ -299,6 +302,20 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
     // Fallback: can't parse, return null
     return null;
+  }
+
+  /**
+   * If `s` starts with a double quote, unquotes it using C-style escape
+   * rules (as used by Git). Otherwise returns `s` as-is.
+   */
+  function unquoteIfQuoted(s: string): string {
+    if (s.startsWith('"')) {
+      const parsed = parseQuotedFileName(s);
+      if (parsed) {
+        return parsed.fileName;
+      }
+    }
+    return s;
   }
 
   /**

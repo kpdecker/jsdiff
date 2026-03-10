@@ -1106,6 +1106,36 @@ rename to new name.txt`))
         }]);
     });
 
+    it('should unquote C-style quoted filenames in rename from/to', function() {
+      expect(parsePatch(
+`diff --git "a/file\\twith\\ttabs.txt" b/normal.txt
+similarity index 100%
+rename from "file\\twith\\ttabs.txt"
+rename to normal.txt`))
+        .to.eql([{
+          oldFileName: 'a/file\twith\ttabs.txt',
+          newFileName: 'b/normal.txt',
+          isGit: true,
+          hunks: [],
+          isRename: true
+        }]);
+    });
+
+    it('should unquote C-style quoted filenames in copy from/to', function() {
+      expect(parsePatch(
+`diff --git a/original.txt "b/copy\\nwith\\nnewlines.txt"
+similarity index 100%
+copy from original.txt
+copy to "copy\\nwith\\nnewlines.txt"`))
+        .to.eql([{
+          oldFileName: 'a/original.txt',
+          newFileName: 'b/copy\nwith\nnewlines.txt',
+          isGit: true,
+          hunks: [],
+          isCopy: true
+        }]);
+    });
+
     it('should let --- and +++ lines override filenames from diff --git header', function() {
       // When --- and +++ are present, they should take precedence over
       // the filenames parsed from the diff --git header line.
