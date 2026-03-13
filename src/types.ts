@@ -225,12 +225,50 @@ export type AllDiffOptions =
   DiffJsonOptions;
 
 export interface StructuredPatch {
-  oldFileName: string,
-  newFileName: string,
+  oldFileName: string | undefined,
+  newFileName: string | undefined,
   oldHeader: string | undefined,
   newHeader: string | undefined,
   hunks: StructuredPatchHunk[],
   index?: string,
+  /**
+   * Set to true when the patch was parsed from a Git-style diff (one with a
+   * `diff --git` header). Controls whether `formatPatch` emits a `diff --git`
+   * header (instead of `Index:` / underline headers) when formatting the patch.
+   */
+  isGit?: boolean,
+  /**
+   * Set to true when parsing a Git diff that includes `rename from`/`rename to`
+   * extended headers, indicating the file was renamed (and the old file no
+   * longer exists). Consumers applying the patch should delete the old file.
+   */
+  isRename?: boolean,
+  /**
+   * Set to true when parsing a Git diff that includes `copy from`/`copy to`
+   * extended headers, indicating the file was copied (and the old file still
+   * exists). Consumers applying the patch should NOT delete the old file.
+   */
+  isCopy?: boolean,
+  /**
+   * Set to true when parsing a Git diff that includes a `new file mode` extended
+   * header, indicating the file was newly created.
+   */
+  isCreate?: boolean,
+  /**
+   * Set to true when parsing a Git diff that includes a `deleted file mode`
+   * extended header, indicating the file was deleted.
+   */
+  isDelete?: boolean,
+  /**
+   * The file mode (e.g. `'100644'`, `'100755'`) of the old file, parsed from
+   * Git extended headers (`old mode` or `deleted file mode`).
+   */
+  oldMode?: string,
+  /**
+   * The file mode (e.g. `'100644'`, `'100755'`) of the new file, parsed from
+   * Git extended headers (`new mode` or `new file mode`).
+   */
+  newMode?: string,
 }
 
 export interface StructuredPatchHunk {

@@ -13,7 +13,7 @@ export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[
     return structuredPatch.map(patch => reversePatch(patch)).reverse();
   }
 
-  return {
+  const reversed: StructuredPatch = {
     ...structuredPatch,
     oldFileName: structuredPatch.newFileName,
     oldHeader: structuredPatch.newHeader,
@@ -33,4 +33,18 @@ export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[
       };
     })
   };
+
+  if (structuredPatch.isCopy) {
+    // Reversing a copy means deleting the file that was created by the copy.
+    // The "old" file in the reversed patch is the copy destination (which
+    // exists and should be removed), and the "new" file is /dev/null.
+    reversed.newFileName = '/dev/null';
+    reversed.newHeader = undefined;
+    delete reversed.isCopy;
+    delete reversed.isRename;
+  }
+  // Reversing a rename is just a rename in the opposite direction;
+  // isRename stays set and the filenames are already swapped above.
+
+  return reversed;
 }

@@ -184,9 +184,11 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
     Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
 
-* `parsePatch(diffStr)` - Parses a patch into structured data
+* `parsePatch(diffStr)` - Parses a unified diff format patch into a structured patch object.
 
-    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`.
+    Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers).
+
+    `parsePatch` has some understanding of [Git's particular dialect of unified diff format](https://git-scm.com/docs/git-diff#generate_patch_text_with_p). In particular, it can extract filenames from the patch headers or extended headers of Git patches that contain no hunks and no file headers, including ones representing a file being renamed without changes. (However, it ignores many extended headers that describe things irrelevant to jsdiff's patch representation, like mode changes.)
 
 * `reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
 
@@ -355,6 +357,70 @@ applyPatches(patch, {
     complete: (err) => {
         if (err) {
             console.log("Failed with error:", err);
+        }
+    }
+});
+```
+
+##### Applying a multi-file Git patch that may include renames
+
+[Git patches](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) can include file renames and copies (with or without content changes), which need to be handled in the callbacks you provide to `applyPatches`. `parsePatch` sets `isRename` or `isCopy` on the structured patch object so you can distinguish these cases. Patches can also potentially include file *swaps* (renaming `a → b` and `b → a`), in which case it is incorrect to simply apply each change atomically in sequence. The pattern with the `pendingWrites` Map below handles all of these nuances:
+
+```
+const {applyPatches} = require('diff');
+const patch = fs.readFileSync("git-diff.patch").toString();
+const DELETE = Symbol('delete');
+const pendingWrites = new Map(); // filePath → {content, mode} or DELETE sentinel
+applyPatches(patch, {
+    loadFile: (patch, callback) => {
+        if (patch.isCreate) {
+            // Newly created file — no old content to load
+            callback(undefined, '');
+            return;
+        }
+        try {
+            // Git diffs use a/ and b/ prefixes; strip them to get the real path
+            const filePath = patch.oldFileName.replace(/^a\//, '');
+            callback(undefined, fs.readFileSync(filePath).toString());
+        } catch (e) {
+            callback(`No such file: ${patch.oldFileName}`);
+        }
+    },
+    patched: (patch, patchedContent, callback) => {
+        if (patchedContent === false) {
+            callback(`Failed to apply patch to ${patch.oldFileName}`);
+            return;
+        }
+        const oldPath = patch.oldFileName.replace(/^a\//, '');
+        const newPath = patch.newFileName.replace(/^b\//, '');
+        if (patch.isDelete) {
+            if (!pendingWrites.has(oldPath)) {
+                pendingWrites.set(oldPath, DELETE);
+            }
+        } else {
+            pendingWrites.set(newPath, {content: patchedContent, mode: patch.newMode});
+            // For renames, delete the old file (but not for copies,
+            // where the old file should be kept)
+            if (patch.isRename && !pendingWrites.has(oldPath)) {
+                pendingWrites.set(oldPath, DELETE);
+            }
+        }
+        callback();
+    },
+    complete: (err) => {
+        if (err) {
+            console.log("Failed with error:", err);
+            return;
+        }
+        for (const [filePath, entry] of pendingWrites) {
+            if (entry === DELETE) {
+                fs.unlinkSync(filePath);
+            } else {
+                fs.writeFileSync(filePath, entry.content);
+                if (entry.mode) {
+                    fs.chmodSync(filePath, parseInt(entry.mode, 8) & 0o777);
+                }
+            }
         }
     }
 });
