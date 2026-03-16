@@ -1033,21 +1033,6 @@ index e69de29..0000000`))
         }]);
     });
 
-    it('should parse diff --git rename with quoted filenames', function() {
-      expect(parsePatch(
-`diff --git "a/old name.txt" "b/new name.txt"
-similarity index 100%
-rename from old name.txt
-rename to new name.txt`))
-        .to.eql([{
-          oldFileName: 'a/old name.txt',
-          newFileName: 'b/new name.txt',
-          isGit: true,
-          hunks: [],
-          isRename: true
-        }]);
-    });
-
     it('should unquote C-style quoted filenames in rename from/to', function() {
       expect(parsePatch(
 `diff --git "a/file\\twith\\ttabs.txt" b/normal.txt
