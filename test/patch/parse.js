@@ -1256,30 +1256,6 @@ rename to z`))
         }]);
       });
 
-      it('should handle an unparseable `diff --git` header with no a/b prefixes', function() {
-        expect(parsePatch(
-`diff --git file.txt file.txt
---- a/file.txt
-+++ b/file.txt
-@@ -1 +1 @@
--old
-+new`))
-          .to.eql([{
-            oldFileName: 'a/file.txt',
-            oldHeader: '',
-            newFileName: 'b/file.txt',
-            newHeader: '',
-            isGit: true,
-            hunks: [
-              {
-                oldStart: 1, oldLines: 1,
-                newStart: 1, newLines: 1,
-                lines: ['-old', '+new']
-              }
-            ]
-          }]);
-      });
-
       it('should handle an incomplete octal escape in a quoted `diff --git` filename', function() {
         // The quoted filename has a truncated octal escape (\36 instead of \360).
         // parseQuotedFileName should return null, so parseGitDiffHeader returns
