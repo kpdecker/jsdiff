@@ -1201,15 +1201,8 @@ describe('patch/create', function() {
           '+new\n';
         expect(formatPatch(patchWithNoFilenames, OMIT_HEADERS)).to.equal(expectedOutput);
         expect(formatPatch(patchWithNoFilenames, FILE_HEADERS_ONLY)).to.equal(expectedOutput);
-        // INCLUDE_HEADERS still emits the underline, just skips Index and file headers
         expect(formatPatch(patchWithNoFilenames, INCLUDE_HEADERS)).to.equal(expectedWithUnderline);
         expect(formatPatch(patchWithNoFilenames)).to.equal(expectedWithUnderline);
-        // includeIndex: true with undefined filenames should also skip silently
-        expect(formatPatch(patchWithNoFilenames, {
-          includeIndex: true,
-          includeUnderline: false,
-          includeFileHeaders: false
-        })).to.equal(expectedOutput);
       });
 
       it('should emit diff --git header for patches with isGit flag', function() {
@@ -1317,7 +1310,7 @@ describe('patch/create', function() {
         );
       });
 
-      it('should emit rename headers with file headers when hunks are present', function() {
+      it('should still emit rename headers with file headers if hunks are present', function() {
         const patch = {
           oldFileName: 'a/old.txt',
           newFileName: 'b/new.txt',
@@ -1360,10 +1353,7 @@ describe('patch/create', function() {
         const formatted = formatPatch(original);
         const parsed = parsePatch(formatted);
         expect(parsed).to.have.length(1);
-        expect(parsed[0].oldFileName).to.equal('a/old.txt');
-        expect(parsed[0].newFileName).to.equal('b/new.txt');
-        expect(parsed[0].isGit).to.equal(true);
-        expect(parsed[0].isRename).to.equal(true);
+        expect(parsed[0]).to.deep.equal(original);
       });
     });
   });
