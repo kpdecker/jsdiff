@@ -1178,19 +1178,21 @@ rename to z`))
     });
 
     it('should handle `diff --git` rename where filenames contain " b/", without rename from/to', function() {
-      // Without rename from/to, the diff --git header is ambiguous when
-      // filenames contain " b/". But --- and +++ lines resolve it.
+      // Same ambiguous `diff --git` line as previous test, but here
+      // disambiguated by the ---/+++ headers.
+
+      // Split interpretation 1: old="a/x", new="b/y b/z"
       expect(parsePatch(
-`diff --git a/x b/old.txt b/x b/new.txt
---- a/x b/old.txt
-+++ b/x b/new.txt
+`diff --git a/x b/y b/z
+--- a/x
++++ b/y b/z
 @@ -1 +1 @@
 -hello
 +world`))
         .to.eql([{
-          oldFileName: 'a/x b/old.txt',
+          oldFileName: 'a/x',
           oldHeader: '',
-          newFileName: 'b/x b/new.txt',
+          newFileName: 'b/y b/z',
           newHeader: '',
           isGit: true,
           hunks: [
@@ -1201,35 +1203,57 @@ rename to z`))
             }
           ]
         }]);
-      });
 
+      // Split interpretation 2: old="a/x b/y", new="b/z"
+      expect(parsePatch(
+`diff --git a/x b/y b/z
+--- a/x b/y
++++ b/z
+@@ -1 +1 @@
+-hello
++world`))
+        .to.eql([{
+          oldFileName: 'a/x b/y',
+          oldHeader: '',
+          newFileName: 'b/z',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-hello', '+world']
+            }
+          ]
+        }]);
+    });
+
+    it('should handle an unparseable `diff --git` header with unterminated quote', function() {
       // So far as we know, Git never actually produces diff --git headers that
       // can't be parsed (e.g. with unterminated quotes or missing a/b prefixes).
       // But we test these cases to confirm parsePatch doesn't crash and instead
       // gracefully falls back to getting filenames from --- / +++ lines.
-
-      it('should handle an unparseable `diff --git` header with unterminated quote', function() {
-        expect(parsePatch(
+      expect(parsePatch(
 `diff --git "a/unterminated
 --- a/file.txt
 +++ b/file.txt
 @@ -1 +1 @@
 -old
 +new`))
-          .to.eql([{
-            oldFileName: 'a/file.txt',
-            oldHeader: '',
-            newFileName: 'b/file.txt',
-            newHeader: '',
-            isGit: true,
-            hunks: [
-              {
-                oldStart: 1, oldLines: 1,
-                newStart: 1, newLines: 1,
-                lines: ['-old', '+new']
-              }
-            ]
-          }]);
+        .to.eql([{
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: 'b/file.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-old', '+new']
+            }
+          ]
+        }]);
       });
 
       it('should handle an unparseable `diff --git` header with no a/b prefixes', function() {
