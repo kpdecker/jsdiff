@@ -877,6 +877,7 @@ Binary files a/image.png and b/image.png differ`))
           oldFileName: 'a/image.png',
           newFileName: 'b/image.png',
           isGit: true,
+          isBinary: true,
           hunks: []
         }]);
     });
@@ -914,6 +915,7 @@ diff --git a/file3.txt b/file3.txt
           oldFileName: 'a/image.png',
           newFileName: 'b/image.png',
           isGit: true,
+          isBinary: true,
           hunks: []
         }, {
           oldFileName: 'a/file3.txt',

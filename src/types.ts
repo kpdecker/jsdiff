@@ -269,6 +269,15 @@ export interface StructuredPatch {
    * Git extended headers (`new mode` or `new file mode`).
    */
   newMode?: string,
+  /**
+   * Set to true when parsing a Git diff that includes a
+   * `Binary files ... differ` line, indicating a binary file change.
+   * Binary patches have no hunks, so the patch content alone is not
+   * sufficient to apply the change; consumers should handle this case
+   * specially (e.g. by warning the user or fetching the binary content
+   * separately).
+   */
+  isBinary?: boolean,
 }
 
 export interface StructuredPatchHunk {

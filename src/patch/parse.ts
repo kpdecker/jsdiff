@@ -149,6 +149,10 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
             index.newMode = newModeMatch[1];
           }
 
+          if ((/^Binary files /).test(extLine)) {
+            index.isBinary = true;
+          }
+
           i++;
         }
         continue;
