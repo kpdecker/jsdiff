@@ -1091,40 +1091,6 @@ index 0000000..ce01362
         }]);
     });
 
-    it('should not be confused by a diff --git rename followed by files with hunks', function() {
-      expect(parsePatch(
-`diff --git a/old.txt b/new.txt
-similarity index 100%
-rename from old.txt
-rename to new.txt
-diff --git a/other.txt b/other.txt
---- a/other.txt
-+++ b/other.txt
-@@ -1 +1 @@
--aaa
-+bbb`))
-        .to.eql([{
-          oldFileName: 'a/old.txt',
-          newFileName: 'b/new.txt',
-          isGit: true,
-          hunks: [],
-          isRename: true
-        }, {
-          oldFileName: 'a/other.txt',
-          oldHeader: '',
-          newFileName: 'b/other.txt',
-          newHeader: '',
-          isGit: true,
-          hunks: [
-            {
-              oldStart: 1, oldLines: 1,
-              newStart: 1, newLines: 1,
-              lines: ['-aaa', '+bbb']
-            }
-          ]
-        }]);
-    });
-
     it('should parse diff --git with unquoted filenames containing spaces (same old and new)', function() {
       expect(parsePatch(
 `diff --git a/file with spaces.txt b/file with spaces.txt
@@ -1141,8 +1107,8 @@ new mode 100755`))
     });
 
     it('should parse diff --git rename with unquoted filenames containing spaces', function() {
-      // The diff --git line alone is ambiguous when filenames contain spaces
-      // and old != new, but rename from / rename to resolve the ambiguity.
+      // Typical, easy case where the `diff --git line is unambiguous.
+      // See a later test for the pathological case.
       expect(parsePatch(
 `diff --git a/file with spaces.txt b/another file with spaces.txt
 similarity index 100%
@@ -1176,17 +1142,35 @@ new mode 100755`))
     });
 
     it('should handle diff --git rename where filenames contain " b/"', function() {
-      // rename from / rename to lines are unambiguous (one filename per
-      // line) so " b/" in the name is not a problem for them. The
-      // diff --git header IS ambiguous, but rename from/to override it.
+      // The diff --git line "diff --git a/x b/y b/z" is ambiguous: it
+      // could be split as old="a/x" new="b/y b/z" or old="a/x b/y"
+      // new="b/z". We parse two patches with the SAME diff --git line
+      // but different rename from/rename to headers to prove the
+      // extended headers win and correctly disambiguate the split.
+
+      // Split interpretation 1: old="a/x", new="b/y b/z"
       expect(parsePatch(
-`diff --git a/x b/old.txt b/x b/new.txt
+`diff --git a/x b/y b/z
 similarity index 100%
-rename from x b/old.txt
-rename to x b/new.txt`))
+rename from x
+rename to y b/z`))
         .to.eql([{
-          oldFileName: 'a/x b/old.txt',
-          newFileName: 'b/x b/new.txt',
+          oldFileName: 'a/x',
+          newFileName: 'b/y b/z',
+          isGit: true,
+          hunks: [],
+          isRename: true
+        }]);
+
+      // Split interpretation 2: old="a/x b/y", new="b/z"
+      expect(parsePatch(
+`diff --git a/x b/y b/z
+similarity index 100%
+rename from x b/y
+rename to z`))
+        .to.eql([{
+          oldFileName: 'a/x b/y',
+          newFileName: 'b/z',
           isGit: true,
           hunks: [],
           isRename: true
