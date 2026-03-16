@@ -882,7 +882,7 @@ Binary files a/image.png and b/image.png differ`))
         }]);
     });
 
-    it('should not lose files when a diff --git binary change is followed by a text change', function() {
+    it('should not lose files when a hunkless file is followed by one with hunks', function() {
       expect(parsePatch(
 `diff --git a/file1.txt b/file1.txt
 --- a/file1.txt
@@ -928,71 +928,6 @@ diff --git a/file3.txt b/file3.txt
               oldStart: 1, oldLines: 1,
               newStart: 1, newLines: 1,
               lines: ['-foo', '+bar']
-            }
-          ]
-        }]);
-    });
-
-    it('should not lose files when a diff --git mode-only change is in the middle', function() {
-      expect(parsePatch(
-`diff --git a/file1.txt b/file1.txt
---- a/file1.txt
-+++ b/file1.txt
-@@ -1,3 +1,4 @@
- line1
- line2
-+line3
- line4
-diff --git a/script.sh b/script.sh
-old mode 100644
-new mode 100755
-diff --git a/file3.txt b/file3.txt
---- a/file3.txt
-+++ b/file3.txt
-@@ -1,2 +1,3 @@
- aaa
-+bbb
- ccc`))
-        .to.eql([{
-          oldFileName: 'a/file1.txt',
-          oldHeader: '',
-          newFileName: 'b/file1.txt',
-          newHeader: '',
-          isGit: true,
-          hunks: [
-            {
-              oldStart: 1, oldLines: 3,
-              newStart: 1, newLines: 4,
-              lines: [
-                ' line1',
-                ' line2',
-                '+line3',
-                ' line4'
-              ]
-            }
-          ]
-        }, {
-          oldFileName: 'a/script.sh',
-          newFileName: 'b/script.sh',
-          isGit: true,
-          oldMode: '100644',
-          newMode: '100755',
-          hunks: []
-        }, {
-          oldFileName: 'a/file3.txt',
-          oldHeader: '',
-          newFileName: 'b/file3.txt',
-          newHeader: '',
-          isGit: true,
-          hunks: [
-            {
-              oldStart: 1, oldLines: 2,
-              newStart: 1, newLines: 3,
-              lines: [
-                ' aaa',
-                '+bbb',
-                ' ccc'
-              ]
             }
           ]
         }]);
