@@ -1063,7 +1063,7 @@ new mode 100755`))
         }]);
     });
 
-    it('should handle multi-byte UTF-8 octal escapes in quoted filenames (emoji)', function() {
+    it('should handle multi-byte UTF-8 octal escapes in quoted filenames', function() {
       // 🎉 is U+1F389, UTF-8 bytes F0 9F 8E 89 = octal 360 237 216 211
       expect(parsePatch(
 `diff --git "a/file\\360\\237\\216\\211.txt" "b/file\\360\\237\\216\\211.txt"
