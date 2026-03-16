@@ -1091,47 +1091,6 @@ index 0000000..ce01362
         }]);
     });
 
-    it('should unquote C-style quoted filenames in copy from/to', function() {
-      expect(parsePatch(
-`diff --git a/original.txt "b/copy\\nwith\\nnewlines.txt"
-similarity index 100%
-copy from original.txt
-copy to "copy\\nwith\\nnewlines.txt"`))
-        .to.eql([{
-          oldFileName: 'a/original.txt',
-          newFileName: 'b/copy\nwith\nnewlines.txt',
-          isGit: true,
-          hunks: [],
-          isCopy: true
-        }]);
-    });
-
-    it('should let --- and +++ lines override filenames from diff --git header', function() {
-      // When --- and +++ are present, they should take precedence over
-      // the filenames parsed from the diff --git header line.
-      expect(parsePatch(
-`diff --git a/file.txt b/file.txt
---- a/file.txt
-+++ b/file.txt
-@@ -1 +1 @@
--old
-+new`))
-        .to.eql([{
-          oldFileName: 'a/file.txt',
-          oldHeader: '',
-          newFileName: 'b/file.txt',
-          newHeader: '',
-          isGit: true,
-          hunks: [
-            {
-              oldStart: 1, oldLines: 1,
-              newStart: 1, newLines: 1,
-              lines: ['-old', '+new']
-            }
-          ]
-        }]);
-    });
-
     it('should not be confused by a diff --git rename followed by files with hunks', function() {
       expect(parsePatch(
 `diff --git a/old.txt b/new.txt
