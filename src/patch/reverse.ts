@@ -19,6 +19,10 @@ export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[
     oldHeader: structuredPatch.newHeader,
     newFileName: structuredPatch.oldFileName,
     newHeader: structuredPatch.oldHeader,
+    oldMode: structuredPatch.newMode,
+    newMode: structuredPatch.oldMode,
+    isCreate: structuredPatch.isDelete,
+    isDelete: structuredPatch.isCreate,
     hunks: structuredPatch.hunks.map(hunk => {
       return {
         oldLines: hunk.newLines,
@@ -40,6 +44,8 @@ export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[
     // exists and should be removed), and the "new" file is /dev/null.
     reversed.newFileName = '/dev/null';
     reversed.newHeader = undefined;
+    reversed.isDelete = true;
+    delete reversed.isCreate;
     delete reversed.isCopy;
     delete reversed.isRename;
   }
