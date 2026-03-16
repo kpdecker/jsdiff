@@ -1066,17 +1066,17 @@ new mode 100755`))
     it('should handle multi-byte UTF-8 octal escapes in quoted filenames', function() {
       // 🎉 is U+1F389, UTF-8 bytes F0 9F 8E 89 = octal 360 237 216 211
       expect(parsePatch(
-`diff --git "a/file\\360\\237\\216\\211.txt" "b/file\\360\\237\\216\\211.txt"
+`diff --git "a/caf\\303\\251-file\\360\\237\\216\\211.txt" "b/caf\\303\\251-file\\360\\237\\216\\211.txt"
 new file mode 100644
 index 0000000..ce01362
 --- /dev/null
-+++ "b/file\\360\\237\\216\\211.txt"
++++ "b/caf\\303\\251-file\\360\\237\\216\\211.txt"
 @@ -0,0 +1 @@
 +hello`))
         .to.eql([{
           oldFileName: '/dev/null',
           oldHeader: '',
-          newFileName: 'b/file🎉.txt',
+          newFileName: 'b/café-file🎉.txt',
           newHeader: '',
           isGit: true,
           isCreate: true,
@@ -1088,22 +1088,6 @@ index 0000000..ce01362
               lines: ['+hello']
             }
           ]
-        }]);
-    });
-
-    it('should handle multi-byte UTF-8 octal escapes in quoted filenames (accented latin)', function() {
-      // é is U+00E9, UTF-8 bytes C3 A9 = octal 303 251
-      expect(parsePatch(
-`diff --git "a/caf\\303\\251.txt" "b/caf\\303\\251.txt"
-old mode 100644
-new mode 100755`))
-        .to.eql([{
-          oldFileName: 'a/café.txt',
-          newFileName: 'b/café.txt',
-          isGit: true,
-          oldMode: '100644',
-          newMode: '100755',
-          hunks: []
         }]);
     });
 
