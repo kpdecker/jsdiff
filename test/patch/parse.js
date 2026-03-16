@@ -743,7 +743,7 @@ index abc1234..def5678 100644
         }]);
     });
 
-    it('should parse a multi-file diff --git patch', function() {
+    it('should parse a multi-file `diff --git` patch', function() {
       expect(parsePatch(
 `diff --git a/file1.txt b/file1.txt
 index abc1234..def5678 100644
@@ -802,7 +802,7 @@ index 1234567..abcdef0 100644
         }]);
     });
 
-    it('should parse a diff --git rename with no content change', function() {
+    it('should parse a `diff --git` rename with no content change', function() {
       expect(parsePatch(
 `diff --git a/README.md b/README-2.md
 similarity index 100%
@@ -817,7 +817,7 @@ rename to README-2.md`))
         }]);
     });
 
-    it('should parse a diff --git rename with content change', function() {
+    it('should parse a `diff --git` rename with content change', function() {
       expect(parsePatch(
 `diff --git a/old-name.txt b/new-name.txt
 similarity index 85%
@@ -853,7 +853,7 @@ index abc1234..def5678 100644
         }]);
     });
 
-    it('should parse a diff --git mode-only change', function() {
+    it('should parse a `diff --git` mode-only change', function() {
       expect(parsePatch(
 `diff --git a/script.sh b/script.sh
 old mode 100644
@@ -868,7 +868,7 @@ new mode 100755`))
         }]);
     });
 
-    it('should parse a diff --git binary file change', function() {
+    it('should parse a `diff --git` binary file change', function() {
       expect(parsePatch(
 `diff --git a/image.png b/image.png
 index abc1234..def5678 100644
@@ -882,7 +882,7 @@ Binary files a/image.png and b/image.png differ`))
         }]);
     });
 
-    it('should not lose files when a hunkless file is followed by one with hunks', function() {
+    it('should not lose files when a hunkless `diff --git` file is followed by one with hunks', function() {
       expect(parsePatch(
 `diff --git a/file1.txt b/file1.txt
 --- a/file1.txt
@@ -933,7 +933,7 @@ diff --git a/file3.txt b/file3.txt
         }]);
     });
 
-    it('should parse a diff --git copy', function() {
+    it('should parse a `diff --git` copy', function() {
       expect(parsePatch(
 `diff --git a/original.txt b/copy.txt
 similarity index 100%
@@ -948,7 +948,7 @@ copy to copy.txt`))
         }]);
     });
 
-    it('should parse a diff --git new file', function() {
+    it('should parse a `diff --git` new file', function() {
       expect(parsePatch(
 `diff --git a/newfile.txt b/newfile.txt
 new file mode 100644
@@ -976,7 +976,7 @@ index 0000000..abc1234
         }]);
     });
 
-    it('should parse a diff --git deleted file', function() {
+    it('should parse a `diff --git` deleted file', function() {
       expect(parsePatch(
 `diff --git a/old.txt b/old.txt
 deleted file mode 100644
@@ -1003,7 +1003,7 @@ index ce01362..0000000
         }]);
     });
 
-    it('should parse a diff --git empty file creation (no --- / +++ or hunks)', function() {
+    it('should parse a `diff --git` empty file creation (no --- / +++ or hunks)', function() {
       expect(parsePatch(
 `diff --git a/empty.txt b/empty.txt
 new file mode 100644
@@ -1018,7 +1018,7 @@ index 0000000..e69de29`))
         }]);
     });
 
-    it('should parse a diff --git empty file deletion (no --- / +++ or hunks)', function() {
+    it('should parse a `diff --git` empty file deletion (no --- / +++ or hunks)', function() {
       expect(parsePatch(
 `diff --git a/empty.txt b/empty.txt
 deleted file mode 100644
@@ -1091,7 +1091,7 @@ index 0000000..ce01362
         }]);
     });
 
-    it('should parse diff --git with unquoted filenames containing spaces (same old and new)', function() {
+    it('should parse `diff --git` with unquoted filenames containing spaces (same old and new)', function() {
       expect(parsePatch(
 `diff --git a/file with spaces.txt b/file with spaces.txt
 old mode 100644
@@ -1106,8 +1106,8 @@ new mode 100755`))
         }]);
     });
 
-    it('should parse diff --git rename with unquoted filenames containing spaces', function() {
-      // Typical, easy case where the `diff --git line is unambiguous.
+    it('should parse `diff --git` rename with unquoted filenames containing spaces', function() {
+      // Typical, easy case where the `diff --git` line is unambiguous.
       // See a later test for the pathological case.
       expect(parsePatch(
 `diff --git a/file with spaces.txt b/another file with spaces.txt
@@ -1123,7 +1123,7 @@ rename to another file with spaces.txt`))
         }]);
     });
 
-    it('should handle diff --git with a filename containing " b/"', function() {
+    it('should handle `diff --git` with a filename containing " b/"', function() {
       // The filename literally contains " b/" which is also the separator
       // between the old and new paths. Since old === new, the parser can
       // find the unique split where both halves match.
@@ -1141,7 +1141,7 @@ new mode 100755`))
         }]);
     });
 
-    it('should handle diff --git rename where filenames contain " b/"', function() {
+    it('should handle `diff --git` rename where filenames contain " b/"', function() {
       // The diff --git line "diff --git a/x b/y b/z" is ambiguous: it
       // could be split as old="a/x" new="b/y b/z" or old="a/x b/y"
       // new="b/z". We parse two patches with the SAME diff --git line
@@ -1177,7 +1177,7 @@ rename to z`))
         }]);
     });
 
-    it('should handle diff --git rename where filenames contain " b/", without rename from/to', function() {
+    it('should handle `diff --git` rename where filenames contain " b/", without rename from/to', function() {
       // Without rename from/to, the diff --git header is ambiguous when
       // filenames contain " b/". But --- and +++ lines resolve it.
       expect(parsePatch(
@@ -1208,7 +1208,7 @@ rename to z`))
       // But we test these cases to confirm parsePatch doesn't crash and instead
       // gracefully falls back to getting filenames from --- / +++ lines.
 
-      it('should handle an unparseable diff --git header with unterminated quote', function() {
+      it('should handle an unparseable `diff --git` header with unterminated quote', function() {
         expect(parsePatch(
 `diff --git "a/unterminated
 --- a/file.txt
@@ -1232,7 +1232,7 @@ rename to z`))
           }]);
       });
 
-      it('should handle an unparseable diff --git header with no a/b prefixes', function() {
+      it('should handle an unparseable `diff --git` header with no a/b prefixes', function() {
         expect(parsePatch(
 `diff --git file.txt file.txt
 --- a/file.txt
@@ -1256,7 +1256,7 @@ rename to z`))
           }]);
       });
 
-      it('should handle an incomplete octal escape in a quoted filename', function() {
+      it('should handle an incomplete octal escape in a quoted `diff --git` filename', function() {
         // The quoted filename has a truncated octal escape (\36 instead of \360).
         // parseQuotedFileName should return null, so parseGitDiffHeader returns
         // null and we fall back to --- / +++ lines for filenames.
@@ -1283,8 +1283,8 @@ rename to z`))
           }]);
       });
 
-      it('should handle an unparseable diff --git header with no --- or +++ fallback', function() {
-        // When both the diff --git header is unparseable AND there are no
+      it('should handle an unparseable `diff --git` header with no --- or +++ fallback', function() {
+        // When both the `diff --git` header is unparseable AND there are no
         // --- / +++ lines, filenames remain undefined.
         expect(parsePatch(
 `diff --git file.txt file.txt
