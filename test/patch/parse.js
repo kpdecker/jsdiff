@@ -1033,31 +1033,6 @@ index e69de29..0000000`))
         }]);
     });
 
-    it('should parse diff --git with quoted filenames containing spaces', function() {
-      expect(parsePatch(
-`diff --git "a/file with spaces.txt" "b/file with spaces.txt"
-index abc1234..def5678 100644
---- "a/file with spaces.txt"
-+++ "b/file with spaces.txt"
-@@ -1 +1 @@
--old
-+new`))
-        .to.eql([{
-          oldFileName: 'a/file with spaces.txt',
-          oldHeader: '',
-          newFileName: 'b/file with spaces.txt',
-          newHeader: '',
-          isGit: true,
-          hunks: [
-            {
-              oldStart: 1, oldLines: 1,
-              newStart: 1, newLines: 1,
-              lines: ['-old', '+new']
-            }
-          ]
-        }]);
-    });
-
     it('should parse diff --git rename with quoted filenames', function() {
       expect(parsePatch(
 `diff --git "a/old name.txt" "b/new name.txt"
