@@ -42,12 +42,23 @@ export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[
     // Reversing a copy means deleting the file that was created by the copy.
     // The "old" file in the reversed patch is the copy destination (which
     // exists and should be removed), and the "new" file is /dev/null.
+    //
+    // Note: we clear the hunks because the original copy's hunks describe
+    // the diff between the source and destination, not the full content of
+    // the destination file, so they can't be meaningfully reversed into a
+    // deletion hunk. This means the resulting patch is not something
+    // `git apply` will accept (it requires deletion patches to include a
+    // hunk removing every line). Producing a correct deletion hunk would
+    // require knowing the full content of the copy destination, which we
+    // don't have. Consumers that need a `git apply`-compatible patch will
+    // need to resolve the full file content themselves.
     reversed.newFileName = '/dev/null';
     reversed.newHeader = undefined;
     reversed.isDelete = true;
     delete reversed.isCreate;
     delete reversed.isCopy;
     delete reversed.isRename;
+    reversed.hunks = [];
   }
   // Reversing a rename is just a rename in the opposite direction;
   // isRename stays set and the filenames are already swapped above.

@@ -147,6 +147,7 @@ describe('patch/reverse', function() {
       expect(reversed[0].isCopy).to.equal(undefined);
       expect(reversed[0].isDelete).to.equal(true);
       expect(reversed[0].isCreate).to.equal(undefined);
+      expect(reversed[0].hunks).to.eql([]);
     });
 
     it('should reverse a hunk-less copy into a deletion', function() {
