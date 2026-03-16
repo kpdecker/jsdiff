@@ -711,7 +711,7 @@ line3
       expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
     });
 
-    it('should parse a single-file diff --git patch', function() {
+    it('should parse a single-file `diff --git` patch', function() {
       expect(parsePatch(
 `diff --git a/file.txt b/file.txt
 index abc1234..def5678 100644
