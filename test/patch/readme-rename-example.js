@@ -24,7 +24,7 @@ describe('README Git rename example', function() {
    * Extract the Git rename example code from the README and return it as a
    * function that takes (applyPatches, patch, fs, path) and runs the example.
    */
-  function getReadmeExampleFn() {
+  const applyGitPatch = (function() {
     const readme = fs.readFileSync(
       path.join(__dirname, '../../README.md'),
       'utf-8'
@@ -58,7 +58,7 @@ describe('README Git rename example', function() {
 
     // eslint-disable-next-line no-new-func
     return new Function('applyPatches', 'patch', 'fs', code);
-  }
+  }());
 
   it('should handle a simple rename with content change', function() {
     fs.writeFileSync('old.txt', 'line1\nline2\nline3\n');
@@ -77,7 +77,7 @@ rename to new.txt
  line3
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.existsSync('old.txt')).to.equal(false);
     expect(fs.readFileSync('new.txt', 'utf-8'))
@@ -99,7 +99,7 @@ rename from b.txt
 rename to a.txt
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.readFileSync('a.txt', 'utf-8')).to.equal('content of b\n');
     expect(fs.readFileSync('b.txt', 'utf-8')).to.equal('content of a\n');
@@ -130,7 +130,7 @@ rename to a.txt
 +bbb-modified
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.readFileSync('a.txt', 'utf-8')).to.equal('bbb-modified\n');
     expect(fs.readFileSync('b.txt', 'utf-8')).to.equal('aaa-modified\n');
@@ -156,7 +156,7 @@ rename from c.txt
 rename to a.txt
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.readFileSync('a.txt', 'utf-8')).to.equal('content of c\n');
     expect(fs.readFileSync('b.txt', 'utf-8')).to.equal('content of a\n');
@@ -176,7 +176,7 @@ index 2b31011..0000000
 -goodbye
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.existsSync('doomed.txt')).to.equal(false);
   });
@@ -192,7 +192,7 @@ index 0000000..fa49b07
 +hello world
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.readFileSync('brand-new.txt', 'utf-8')).to.equal('hello world\n');
   });
@@ -209,7 +209,7 @@ index 0000000..abc1234
 +echo hello
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.readFileSync('run.sh', 'utf-8')).to.equal('#!/bin/bash\necho hello\n');
     const mode = fs.statSync('run.sh').mode & 0o777;
@@ -231,7 +231,7 @@ new mode 100755
 +echo new
 `;
 
-    getReadmeExampleFn()(applyPatches, patch, fs);
+    applyGitPatch(applyPatches, patch, fs);
 
     expect(fs.readFileSync('script.sh', 'utf-8')).to.equal('echo new\n');
     const mode = fs.statSync('script.sh').mode & 0o777;
