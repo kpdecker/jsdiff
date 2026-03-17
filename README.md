@@ -370,7 +370,7 @@ applyPatches(patch, {
 });
 ```
 
-##### Applying a multi-file Git patch that may include renames
+##### Applying a multi-file Git patch that may include renames and mode changes
 
 [Git patches](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) can include file renames and copies (with or without content changes), which need to be handled in the callbacks you provide to `applyPatches`. `parsePatch` sets `isRename` or `isCopy` on the structured patch object so you can distinguish these cases. Patches can also potentially include file *swaps* (renaming `a → b` and `b → a`), in which case it is incorrect to simply apply each change atomically in sequence. The pattern with the `pendingWrites` Map below handles all of these nuances:
 
@@ -426,7 +426,7 @@ applyPatches(patch, {
             } else {
                 fs.writeFileSync(filePath, entry.content);
                 if (entry.mode) {
-                    fs.chmodSync(filePath, parseInt(entry.mode, 8) & 0o777);
+                    fs.chmodSync(filePath, entry.mode.slice(-3));
                 }
             }
         }
