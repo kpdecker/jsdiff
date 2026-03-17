@@ -188,7 +188,15 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
     Return a JSON object representation of the a patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers).
 
-    `parsePatch` has some understanding of [Git's particular dialect of unified diff format](https://git-scm.com/docs/git-diff#generate_patch_text_with_p). In particular, it can extract filenames from the patch headers or extended headers of Git patches that contain no hunks and no file headers, including ones representing a file being renamed without changes. (However, it ignores many extended headers that describe things irrelevant to jsdiff's patch representation, like mode changes.)
+    `parsePatch` has some understanding of [Git's particular dialect of unified diff format](https://git-scm.com/docs/git-diff#generate_patch_text_with_p). In particular, it can extract filenames from the patch headers or extended headers of Git patches that contain no hunks and no file headers, including ones representing a file being renamed without changes. When parsing a Git patch, each index in the result may contain the following additional fields not included in the data structure returned by `structuredPatch`:
+    - `isGit` - set to `true` when parsing from a Git-style patch.
+    - `isRename` - set to `true` when parsing a Git diff that includes `rename from`/`rename to` extended headers, indicating the file was renamed (and the old file no longer exists). Consumers applying the patch should delete the old file.
+    - `isCopy` - set to `true` when parsing a Git diff that includes `copy from`/`copy to` extended headers, indicating the file was copied (and the old file still exists). Consumers applying the patch should NOT delete the old file.
+    - `isCreate` - set to `true` when parsing a Git diff that includes a `new file mode` extended header, indicating the file was newly created.
+    - `isDelete` - set to `true` when parsing a Git diff that includes a `deleted file mode` extended header, indicating the file was deleted.
+    - `oldMode` - the file mode (e.g. `'100644'`, `'100755'`) of the old file, parsed from Git extended headers (`old mode` or `deleted file mode`).
+    - `newMode` - the file mode (e.g. `'100644'`, `'100755'`) of the new file, parsed from Git extended headers (`new mode` or `new file mode`).
+    - `isBinary` - set to `true` when parsing a Git diff that includes a `Binary files ... differ` line, indicating a binary file change. Binary patches have no hunks, so the patch content alone is not sufficient to apply the change; consumers should handle this case specially (e.g. by warning the user or fetching the binary content separately).
 
 * `reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
 
