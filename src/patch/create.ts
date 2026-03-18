@@ -365,8 +365,17 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
   const ret = [];
 
   if (patch.isGit) {
-    // Emit Git-style diff --git header and extended headers
-    ret.push('diff --git ' + quoteFileNameIfNeeded(patch.oldFileName ?? '') + ' ' + quoteFileNameIfNeeded(patch.newFileName ?? ''));
+    // Emit Git-style diff --git header and extended headers.
+    // Git never puts /dev/null in the "diff --git" line; for file
+    // creations/deletions it uses the real filename on both sides.
+    let gitOldName = patch.oldFileName ?? '';
+    let gitNewName = patch.newFileName ?? '';
+    if (patch.isCreate && gitOldName === '/dev/null') {
+      gitOldName = gitNewName.replace(/^b\//, 'a/');
+    } else if (patch.isDelete && gitNewName === '/dev/null') {
+      gitNewName = gitOldName.replace(/^a\//, 'b/');
+    }
+    ret.push('diff --git ' + quoteFileNameIfNeeded(gitOldName) + ' ' + quoteFileNameIfNeeded(gitNewName));
     if (patch.isDelete) {
       ret.push('deleted file mode ' + (patch.oldMode ?? '100644'));
     }

@@ -1277,7 +1277,7 @@ describe('patch/create', function() {
           }]
         };
         expect(formatPatch(patch)).to.equal(
-          'diff --git /dev/null b/newfile.txt\n' +
+          'diff --git a/newfile.txt b/newfile.txt\n' +
           'new file mode 100644\n' +
           '--- /dev/null\t\n' +
           '+++ b/newfile.txt\t\n' +
@@ -1301,7 +1301,7 @@ describe('patch/create', function() {
           }]
         };
         expect(formatPatch(patch)).to.equal(
-          'diff --git a/doomed.txt /dev/null\n' +
+          'diff --git a/doomed.txt b/doomed.txt\n' +
           'deleted file mode 100644\n' +
           '--- a/doomed.txt\t\n' +
           '+++ /dev/null\t\n' +

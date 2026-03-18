@@ -1,5 +1,18 @@
 import type { StructuredPatch } from '../types.js';
 
+function swapPrefix(fileName: string | undefined): string | undefined {
+  if (fileName === undefined || fileName === '/dev/null') {
+    return fileName;
+  }
+  if (fileName.startsWith('a/')) {
+    return 'b/' + fileName.slice(2);
+  }
+  if (fileName.startsWith('b/')) {
+    return 'a/' + fileName.slice(2);
+  }
+  return fileName;
+}
+
 /**
  * @param patch either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
  * @returns a new structured patch which when applied will undo the original `patch`.
@@ -15,9 +28,9 @@ export function reversePatch(structuredPatch: StructuredPatch | StructuredPatch[
 
   const reversed: StructuredPatch = {
     ...structuredPatch,
-    oldFileName: structuredPatch.newFileName,
+    oldFileName: structuredPatch.isGit ? swapPrefix(structuredPatch.newFileName) : structuredPatch.newFileName,
     oldHeader: structuredPatch.newHeader,
-    newFileName: structuredPatch.oldFileName,
+    newFileName: structuredPatch.isGit ? swapPrefix(structuredPatch.oldFileName) : structuredPatch.oldFileName,
     newHeader: structuredPatch.oldHeader,
     oldMode: structuredPatch.newMode,
     newMode: structuredPatch.oldMode,

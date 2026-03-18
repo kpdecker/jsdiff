@@ -61,9 +61,9 @@ describe('patch/reverse', function() {
         '+bar\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git b/README.md a/README.md\n' +
-        '--- b/README.md\t\n' +
-        '+++ a/README.md\t\n' +
+        'diff --git a/README.md b/README.md\n' +
+        '--- a/README.md\t\n' +
+        '+++ b/README.md\t\n' +
         '@@ -1,7 +1,5 @@\n' +
         ' # jsdiff\n' +
         ' \n' +
@@ -79,9 +79,9 @@ describe('patch/reverse', function() {
         '-\n' +
         '-bar\n' +
         '\n' +
-        'diff --git b/CONTRIBUTING.md a/CONTRIBUTING.md\n' +
-        '--- b/CONTRIBUTING.md\t\n' +
-        '+++ a/CONTRIBUTING.md\t\n' +
+        'diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md\n' +
+        '--- a/CONTRIBUTING.md\t\n' +
+        '+++ b/CONTRIBUTING.md\t\n' +
         '@@ -2,8 +2,6 @@\n' +
         ' \n' +
         ' ## Pull Requests\n' +
@@ -109,11 +109,11 @@ describe('patch/reverse', function() {
         ' line3\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git b/new.txt a/old.txt\n' +
-        'rename from b/new.txt\n' +
-        'rename to a/old.txt\n' +
-        '--- b/new.txt\t\n' +
-        '+++ a/old.txt\t\n' +
+        'diff --git a/new.txt b/old.txt\n' +
+        'rename from new.txt\n' +
+        'rename to old.txt\n' +
+        '--- a/new.txt\t\n' +
+        '+++ b/old.txt\t\n' +
         '@@ -1,3 +1,3 @@\n' +
         ' line1\n' +
         '+line2\n' +
@@ -137,7 +137,7 @@ describe('patch/reverse', function() {
         ' line3\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git b/copy.txt /dev/null\n' +
+        'diff --git a/copy.txt b/copy.txt\n' +
         'deleted file mode 100644\n'
       );
     });
@@ -150,7 +150,7 @@ describe('patch/reverse', function() {
         'copy to copy.txt\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git b/copy.txt /dev/null\n' +
+        'diff --git a/copy.txt b/copy.txt\n' +
         'deleted file mode 100644\n'
       );
     });
@@ -163,9 +163,9 @@ describe('patch/reverse', function() {
         'rename to new.txt\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git b/new.txt a/old.txt\n' +
-        'rename from b/new.txt\n' +
-        'rename to a/old.txt\n'
+        'diff --git a/new.txt b/old.txt\n' +
+        'rename from new.txt\n' +
+        'rename to old.txt\n'
       );
     });
 
@@ -179,9 +179,9 @@ describe('patch/reverse', function() {
         '+hello\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git b/newfile.txt /dev/null\n' +
+        'diff --git a/newfile.txt b/newfile.txt\n' +
         'deleted file mode 100755\n' +
-        '--- b/newfile.txt\t\n' +
+        '--- a/newfile.txt\t\n' +
         '+++ /dev/null\t\n' +
         '@@ -1,1 +0,0 @@\n' +
         '-hello\n'
@@ -198,10 +198,10 @@ describe('patch/reverse', function() {
         '-goodbye\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git /dev/null a/oldfile.txt\n' +
+        'diff --git a/oldfile.txt b/oldfile.txt\n' +
         'new file mode 100644\n' +
         '--- /dev/null\t\n' +
-        '+++ a/oldfile.txt\t\n' +
+        '+++ b/oldfile.txt\t\n' +
         '@@ -0,0 +1,1 @@\n' +
         '+goodbye\n'
       );
@@ -214,7 +214,7 @@ describe('patch/reverse', function() {
         'new mode 100755\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git b/script.sh a/script.sh\n' +
+        'diff --git a/script.sh b/script.sh\n' +
         'old mode 100755\n' +
         'new mode 100644\n'
       );
