@@ -108,19 +108,18 @@ describe('patch/reverse', function() {
         '+line2modified\n' +
         ' line3\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      expect(reversed[0].oldFileName).to.equal('b/new.txt');
-      expect(reversed[0].newFileName).to.equal('a/old.txt');
-      expect(reversed[0].isRename).to.equal(true);
-      expect(reversed[0].isCopy).to.equal(undefined);
-      expect(reversed[0].hunks).to.have.length(1);
-      expect(reversed[0].hunks[0].lines).to.eql([
-        ' line1',
-        '+line2',
-        '-line2modified',
-        ' line3'
-      ]);
+      expect(formatPatch(reversePatch(patch))).to.equal(
+        'diff --git b/new.txt a/old.txt\n' +
+        'rename from b/new.txt\n' +
+        'rename to a/old.txt\n' +
+        '--- b/new.txt\t\n' +
+        '+++ a/old.txt\t\n' +
+        '@@ -1,3 +1,3 @@\n' +
+        ' line1\n' +
+        '+line2\n' +
+        '-line2modified\n' +
+        ' line3\n'
+      );
     });
 
     it('should reverse a copy patch into a deletion', function() {
@@ -137,17 +136,10 @@ describe('patch/reverse', function() {
         '+line2modified\n' +
         ' line3\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      // Reversing a copy means deleting the copy destination
-      expect(reversed[0].oldFileName).to.equal('b/copy.txt');
-      expect(reversed[0].newFileName).to.equal('/dev/null');
-      expect(reversed[0].newHeader).to.equal(undefined);
-      expect(reversed[0].isRename).to.equal(undefined);
-      expect(reversed[0].isCopy).to.equal(undefined);
-      expect(reversed[0].isDelete).to.equal(true);
-      expect(reversed[0].isCreate).to.equal(undefined);
-      expect(reversed[0].hunks).to.eql([]);
+      expect(formatPatch(reversePatch(patch))).to.equal(
+        'diff --git b/copy.txt /dev/null\n' +
+        'deleted file mode 100644\n'
+      );
     });
 
     it('should reverse a hunk-less copy into a deletion', function() {
@@ -157,15 +149,10 @@ describe('patch/reverse', function() {
         'copy from original.txt\n' +
         'copy to copy.txt\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      expect(reversed[0].oldFileName).to.equal('b/copy.txt');
-      expect(reversed[0].newFileName).to.equal('/dev/null');
-      expect(reversed[0].isRename).to.equal(undefined);
-      expect(reversed[0].isCopy).to.equal(undefined);
-      expect(reversed[0].isDelete).to.equal(true);
-      expect(reversed[0].isCreate).to.equal(undefined);
-      expect(reversed[0].hunks).to.eql([]);
+      expect(formatPatch(reversePatch(patch))).to.equal(
+        'diff --git b/copy.txt /dev/null\n' +
+        'deleted file mode 100644\n'
+      );
     });
 
     it('should reverse a hunk-less rename', function() {
@@ -175,16 +162,14 @@ describe('patch/reverse', function() {
         'rename from old.txt\n' +
         'rename to new.txt\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      expect(reversed[0].oldFileName).to.equal('b/new.txt');
-      expect(reversed[0].newFileName).to.equal('a/old.txt');
-      expect(reversed[0].isRename).to.equal(true);
-      expect(reversed[0].isCopy).to.equal(undefined);
-      expect(reversed[0].hunks).to.eql([]);
+      expect(formatPatch(reversePatch(patch))).to.equal(
+        'diff --git b/new.txt a/old.txt\n' +
+        'rename from b/new.txt\n' +
+        'rename to a/old.txt\n'
+      );
     });
 
-    it('should swap isCreate and isDelete when reversing a creation', function() {
+    it('should reverse a creation into a deletion, swapping isCreate/isDelete and oldMode/newMode', function() {
       const patch = parsePatch(
         'diff --git a/newfile.txt b/newfile.txt\n' +
         'new file mode 100755\n' +
@@ -193,15 +178,17 @@ describe('patch/reverse', function() {
         '@@ -0,0 +1 @@\n' +
         '+hello\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      expect(reversed[0].isCreate).to.equal(undefined);
-      expect(reversed[0].isDelete).to.equal(true);
-      expect(reversed[0].oldFileName).to.equal('b/newfile.txt');
-      expect(reversed[0].newFileName).to.equal('/dev/null');
+      expect(formatPatch(reversePatch(patch))).to.equal(
+        'diff --git b/newfile.txt /dev/null\n' +
+        'deleted file mode 100755\n' +
+        '--- b/newfile.txt\t\n' +
+        '+++ /dev/null\t\n' +
+        '@@ -1,1 +0,0 @@\n' +
+        '-hello\n'
+      );
     });
 
-    it('should swap isCreate and isDelete when reversing a deletion', function() {
+    it('should reverse a deletion into a creation, swapping isCreate/isDelete and oldMode/newMode', function() {
       const patch = parsePatch(
         'diff --git a/oldfile.txt b/oldfile.txt\n' +
         'deleted file mode 100644\n' +
@@ -210,12 +197,14 @@ describe('patch/reverse', function() {
         '@@ -1 +0,0 @@\n' +
         '-goodbye\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      expect(reversed[0].isCreate).to.equal(true);
-      expect(reversed[0].isDelete).to.equal(undefined);
-      expect(reversed[0].oldFileName).to.equal('/dev/null');
-      expect(reversed[0].newFileName).to.equal('a/oldfile.txt');
+      expect(formatPatch(reversePatch(patch))).to.equal(
+        'diff --git /dev/null a/oldfile.txt\n' +
+        'new file mode 100644\n' +
+        '--- /dev/null\t\n' +
+        '+++ a/oldfile.txt\t\n' +
+        '@@ -0,0 +1,1 @@\n' +
+        '+goodbye\n'
+      );
     });
 
     it('should swap oldMode and newMode when reversing a mode change', function() {
@@ -224,48 +213,11 @@ describe('patch/reverse', function() {
         'old mode 100644\n' +
         'new mode 100755\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      expect(reversed[0].oldMode).to.equal('100755');
-      expect(reversed[0].newMode).to.equal('100644');
-    });
-
-    it('should swap oldMode and newMode when reversing a creation with mode', function() {
-      const patch = parsePatch(
-        'diff --git a/newfile.txt b/newfile.txt\n' +
-        'new file mode 100755\n' +
-        '--- /dev/null\n' +
-        '+++ b/newfile.txt\n' +
-        '@@ -0,0 +1 @@\n' +
-        '+hello\n'
+      expect(formatPatch(reversePatch(patch))).to.equal(
+        'diff --git b/script.sh a/script.sh\n' +
+        'old mode 100755\n' +
+        'new mode 100644\n'
       );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      // The original had newMode 100755 (from "new file mode").
-      // Reversed, that becomes the oldMode (from "deleted file mode").
-      expect(reversed[0].oldMode).to.equal('100755');
-      expect(reversed[0].newMode).to.equal(undefined);
-      expect(reversed[0].isDelete).to.equal(true);
-      expect(reversed[0].isCreate).to.equal(undefined);
-    });
-
-    it('should swap oldMode and newMode when reversing a deletion with mode', function() {
-      const patch = parsePatch(
-        'diff --git a/oldfile.txt b/oldfile.txt\n' +
-        'deleted file mode 100644\n' +
-        '--- a/oldfile.txt\n' +
-        '+++ /dev/null\n' +
-        '@@ -1 +0,0 @@\n' +
-        '-goodbye\n'
-      );
-      const reversed = reversePatch(patch);
-      expect(reversed).to.have.length(1);
-      // The original had oldMode 100644 (from "deleted file mode").
-      // Reversed, that becomes the newMode (from "new file mode").
-      expect(reversed[0].oldMode).to.equal(undefined);
-      expect(reversed[0].newMode).to.equal('100644');
-      expect(reversed[0].isCreate).to.equal(true);
-      expect(reversed[0].isDelete).to.equal(undefined);
     });
   });
 });
