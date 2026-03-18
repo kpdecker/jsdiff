@@ -2,11 +2,28 @@
 
 ## 9.0.0 (prerelease)
 
+(All changes part of PR [#672](https://github.com/kpdecker/jsdiff/pull/672).)
+
+- **C-style quoted strings in filename headers are now properly supported**.
+  
+  When the name of either the old or new file in a patch contains "special characters", both GNU `diff` and Git quote the filename in the patch's headers and escape special characters using the same escape sequences that are used in string literals in C, including octal escapes for all non-ASCII characters. Previously, jsdiff had very little support for this; `parsePatch` would remove the quotes, and unescape any escaped backslashes, but would not unescape other escape sequences. `formatPatch`, meanwhile, did not quote or escape special characters at all.
+
+  Now, `parsePatch` parses all the possible escape sequences that GNU diff (or Git) ever output, and `formatPatch` quotes and escapes filenames containing special characters in the same way GNU diff does.
+
+- **`formatPatch` no longer outputs trailing tab characters at the end of `---`/`+++` headers.**
+
+  Previously, if `formatPatch` was passed a patch object to serialize that had empty strings for the `oldHeader` or `newHeader` property, it would include a trailing tab character after the filename in the `---` and/or `+++` file header. Now, this scenario is treated the same as when `oldHeader`/`newHeader` is `undefined` - i.e. the trailing tab is omitted.
+
+- **Git-style patches are now supported by `parsePatch`, `formatPatch`, and `reversePatch`**.
+
+  Patches output by `git diff` can include some features that are unlike those output by GNU `diff`, and therefore not handled by an ordinary unified diff format parser. An ordinary diff simply describes the differences between the *content* of two files, but Git diffs can also indicate, via "extended headers", the creation or deletion of (potentially empty) files, indicate that a file was renamed, and contain information about file mode changes. Furthermore, when these changes appear in a diff in the absence of a content change (e.g. when an empty file is created, or a file is renamed without content changes), the patch will contain no associated `---`/`+++` file headers nor any hunks.
+
+  jsdiff previously did not support parsing Git's extended headers, nor hunkless patches. Now `parsePatch` parses some of the extended headers, parses hunkless Git patches, and can determine filenames (e.g. from the extended headers) when parsing a patch that includes no `---` or `+++` file headers. The additional information conveyed by the extended headers we support is recorded on new fields on the result object returned by `parsePatch`. See `isGit` and subsequent properties in the docs in the README.md file.
+
+  `formatPatch` now outputs extended headers based on these new Git-specific properties, and `reversePatch` respects them as far as possible (with one unavoidable caveat noted in the README.md file).
+
 TODO:
 - Tidy up AI slop below the ---
-- Note fix to `formatPatch` no longer emitting a trailing `\t` on `---`/`+++` lines when the header is empty
-- Note support for parsing quoted filenames in +++ and --- headers (even outside Git patches as `diff -u` outputs these)
-  - Also in formatPatch
 - Note fixes to #640 and #648
 - Note fix to formatPatch in case where file name is undefined (prev emitted 'undefined' literally)
 - Document limitation reversing copy patches
