@@ -7,6 +7,11 @@ export default function(config) {
     files: [
       'test/**/*.js'
     ],
+    exclude: [
+      // The code being tested by this suite heavily involves Node.js
+      // filesystem operations, so doesn't make sense to run in a browser:
+      'test/patch/readme-rename-example.js'
+    ],
     preprocessors: {
       'test/**/*.js': ['webpack', 'sourcemap']
     },
