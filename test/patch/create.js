@@ -1220,8 +1220,8 @@ describe('patch/create', function() {
         };
         expect(formatPatch(patch)).to.equal(
           'diff --git a/file.txt b/file.txt\n' +
-          '--- a/file.txt\t\n' +
-          '+++ b/file.txt\t\n' +
+          '--- a/file.txt\n' +
+          '+++ b/file.txt\n' +
           '@@ -1,1 +1,1 @@\n' +
           '-old\n' +
           '+new\n'
@@ -1279,8 +1279,8 @@ describe('patch/create', function() {
         expect(formatPatch(patch)).to.equal(
           'diff --git a/newfile.txt b/newfile.txt\n' +
           'new file mode 100644\n' +
-          '--- /dev/null\t\n' +
-          '+++ b/newfile.txt\t\n' +
+          '--- /dev/null\n' +
+          '+++ b/newfile.txt\n' +
           '@@ -0,0 +1,1 @@\n' +
           '+hello\n'
         );
@@ -1303,8 +1303,8 @@ describe('patch/create', function() {
         expect(formatPatch(patch)).to.equal(
           'diff --git a/doomed.txt b/doomed.txt\n' +
           'deleted file mode 100644\n' +
-          '--- a/doomed.txt\t\n' +
-          '+++ /dev/null\t\n' +
+          '--- a/doomed.txt\n' +
+          '+++ /dev/null\n' +
           '@@ -1,1 +0,0 @@\n' +
           '-goodbye\n'
         );
@@ -1328,8 +1328,8 @@ describe('patch/create', function() {
           'diff --git a/old.txt b/new.txt\n' +
           'rename from old.txt\n' +
           'rename to new.txt\n' +
-          '--- a/old.txt\t\n' +
-          '+++ b/new.txt\t\n' +
+          '--- a/old.txt\n' +
+          '+++ b/new.txt\n' +
           '@@ -1,1 +1,1 @@\n' +
           '-aaa\n' +
           '+bbb\n'

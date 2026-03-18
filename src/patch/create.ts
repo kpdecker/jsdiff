@@ -408,8 +408,8 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
   const hasHunks = patch.hunks.length > 0;
   if (headerOptions.includeFileHeaders && patch.oldFileName !== undefined && patch.newFileName !== undefined
       && (!patch.isGit || hasHunks)) {
-    ret.push('--- ' + quoteFileNameIfNeeded(patch.oldFileName) + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
-    ret.push('+++ ' + quoteFileNameIfNeeded(patch.newFileName) + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
+    ret.push('--- ' + quoteFileNameIfNeeded(patch.oldFileName) + (patch.oldHeader ? '\t' + patch.oldHeader : ''));
+    ret.push('+++ ' + quoteFileNameIfNeeded(patch.newFileName) + (patch.newHeader ? '\t' + patch.newHeader : ''));
   }
 
   for (let i = 0; i < patch.hunks.length; i++) {

@@ -4,6 +4,7 @@
 
 TODO:
 - Tidy up AI slop below the ---
+- Note fix to `formatPatch` no longer emitting a trailing `\t` on `---`/`+++` lines when the header is empty
 - Note support for parsing quoted filenames in +++ and --- headers (even outside Git patches as `diff -u` outputs these)
   - Also in formatPatch
 - Note fixes to #640 and #648

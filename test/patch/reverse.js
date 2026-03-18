@@ -28,69 +28,47 @@ describe('patch/reverse', function() {
 
     it('should support taking an array of structured patches, as output by parsePatch', function() {
       const patch = parsePatch(
-        'diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md\n' +
-        'index 20b807a..4a96aff 100644\n' +
-        '--- a/CONTRIBUTING.md\n' +
-        '+++ b/CONTRIBUTING.md\n' +
-        '@@ -2,6 +2,8 @@\n' +
-        ' \n' +
-        ' ## Pull Requests\n' +
-        ' \n' +
-        '+bla bla bla\n' +
-        '+\n' +
-        ' We also accept [pull requests][pull-request]!\n' +
-        ' \n' +
-        ' Generally we like to see pull requests that\n' +
-        'diff --git a/README.md b/README.md\n' +
-        'index 06eebfa..40919a6 100644\n' +
-        '--- a/README.md\n' +
-        '+++ b/README.md\n' +
-        '@@ -1,5 +1,7 @@\n' +
-        ' # jsdiff\n' +
-        ' \n' +
-        '+foo\n' +
-        '+\n' +
-        ' [![Build Status](https://secure.travis-ci.org/kpdecker/jsdiff.svg)](http://travis-ci.org/kpdecker/jsdiff)\n' +
-        ' [![Sauce Test Status](https://saucelabs.com/buildstatus/jsdiff)](https://saucelabs.com/u/jsdiff)\n' +
-        ' \n' +
-        "@@ -225,3 +227,5 @@ jsdiff deviates from the published algorithm in a couple of ways that don't affe\n" +
-        ' \n' +
-        " * jsdiff keeps track of the diff for each diagonal using a linked list of change objects for each diagonal, rather than the historical array of furthest-reaching D-paths on each diagonal contemplated on page 8 of Myers's paper.\n" +
-        ' * jsdiff skips considering diagonals where the furthest-reaching D-path would go off the edge of the edit graph. This dramatically reduces the time cost (from quadratic to linear) in cases where the new text just appends or truncates content at the end of the old text.\n' +
-        '+\n' +
-        '+bar\n'
+        'Index: file1.txt\n' +
+        '===================================================================\n' +
+        '--- file1.txt\n' +
+        '+++ file1.txt\n' +
+        '@@ -1,4 +1,5 @@\n' +
+        ' alpha\n' +
+        '+beta\n' +
+        ' gamma\n' +
+        ' delta\n' +
+        ' epsilon\n' +
+        'Index: file2.txt\n' +
+        '===================================================================\n' +
+        '--- file2.txt\n' +
+        '+++ file2.txt\n' +
+        '@@ -2,3 +2,3 @@\n' +
+        ' two\n' +
+        '-three\n' +
+        '+THREE\n' +
+        ' four\n'
       );
       expect(formatPatch(reversePatch(patch))).to.equal(
-        'diff --git a/README.md b/README.md\n' +
-        '--- a/README.md\t\n' +
-        '+++ b/README.md\t\n' +
-        '@@ -1,7 +1,5 @@\n' +
-        ' # jsdiff\n' +
-        ' \n' +
-        '-foo\n' +
-        '-\n' +
-        ' [![Build Status](https://secure.travis-ci.org/kpdecker/jsdiff.svg)](http://travis-ci.org/kpdecker/jsdiff)\n' +
-        ' [![Sauce Test Status](https://saucelabs.com/buildstatus/jsdiff)](https://saucelabs.com/u/jsdiff)\n' +
-        ' \n' +
-        '@@ -227,5 +225,3 @@\n' +
-        ' \n' +
-        " * jsdiff keeps track of the diff for each diagonal using a linked list of change objects for each diagonal, rather than the historical array of furthest-reaching D-paths on each diagonal contemplated on page 8 of Myers's paper.\n" +
-        ' * jsdiff skips considering diagonals where the furthest-reaching D-path would go off the edge of the edit graph. This dramatically reduces the time cost (from quadratic to linear) in cases where the new text just appends or truncates content at the end of the old text.\n' +
-        '-\n' +
-        '-bar\n' +
+        'Index: file2.txt\n' +
+        '===================================================================\n' +
+        '--- file2.txt\n' +
+        '+++ file2.txt\n' +
+        '@@ -2,3 +2,3 @@\n' +
+        ' two\n' +
+        '+three\n' +
+        '-THREE\n' +
+        ' four\n' +
         '\n' +
-        'diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md\n' +
-        '--- a/CONTRIBUTING.md\t\n' +
-        '+++ b/CONTRIBUTING.md\t\n' +
-        '@@ -2,8 +2,6 @@\n' +
-        ' \n' +
-        ' ## Pull Requests\n' +
-        ' \n' +
-        '-bla bla bla\n' +
-        '-\n' +
-        ' We also accept [pull requests][pull-request]!\n' +
-        ' \n' +
-        ' Generally we like to see pull requests that\n'
+        'Index: file1.txt\n' +
+        '===================================================================\n' +
+        '--- file1.txt\n' +
+        '+++ file1.txt\n' +
+        '@@ -1,5 +1,4 @@\n' +
+        ' alpha\n' +
+        '-beta\n' +
+        ' gamma\n' +
+        ' delta\n' +
+        ' epsilon\n'
       );
     });
 
@@ -112,8 +90,8 @@ describe('patch/reverse', function() {
         'diff --git a/new.txt b/old.txt\n' +
         'rename from new.txt\n' +
         'rename to old.txt\n' +
-        '--- a/new.txt\t\n' +
-        '+++ b/old.txt\t\n' +
+        '--- a/new.txt\n' +
+        '+++ b/old.txt\n' +
         '@@ -1,3 +1,3 @@\n' +
         ' line1\n' +
         '+line2\n' +
@@ -181,8 +159,8 @@ describe('patch/reverse', function() {
       expect(formatPatch(reversePatch(patch))).to.equal(
         'diff --git a/newfile.txt b/newfile.txt\n' +
         'deleted file mode 100755\n' +
-        '--- a/newfile.txt\t\n' +
-        '+++ /dev/null\t\n' +
+        '--- a/newfile.txt\n' +
+        '+++ /dev/null\n' +
         '@@ -1,1 +0,0 @@\n' +
         '-hello\n'
       );
@@ -200,8 +178,8 @@ describe('patch/reverse', function() {
       expect(formatPatch(reversePatch(patch))).to.equal(
         'diff --git a/oldfile.txt b/oldfile.txt\n' +
         'new file mode 100644\n' +
-        '--- /dev/null\t\n' +
-        '+++ b/oldfile.txt\t\n' +
+        '--- /dev/null\n' +
+        '+++ b/oldfile.txt\n' +
         '@@ -0,0 +1,1 @@\n' +
         '+goodbye\n'
       );
