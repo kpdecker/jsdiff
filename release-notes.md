@@ -22,13 +22,21 @@
 
   `formatPatch` now outputs extended headers based on these new Git-specific properties, and `reversePatch` respects them as far as possible (with one unavoidable caveat noted in the README.md file).
 
+- **Unpaired file headers now cause `parsePatch` to throw**.
+
+  It remains acceptable to have a patch with no file headers whatsoever (e.g. one that begins with a `@@` hunk header on the very first line), but a patch with *only* a `---` header or only a `+++` header is now considered an error.
+
+- **`parsePatch` is now more tolerant of "trailing garbage"**
+
+  That is: after a patch, or between files/indexes in a patch, it is now acceptable to have arbitrary lines of "garbage" (so long as they unambiguously have no syntactic meaning - e.g. trailing garbage that leads with a `+`, `-`, or ` ` and thus is interpretable as part of a hunk still triggers a throw).
+
+  This means we no longer reject patches output by tools that include extra data in "garbage" lines not understood by generic unified diff parsers. (For example, SVN patches can include "Property changes on:" lines that generic unified diff parsers should discard as garbage; jsdiff previously threw errors when encountering them.)
+
+  This change brings jsdiff's behaviour more in line with GNU `patch`, which is highly permissive of "garbage".
+
 TODO:
 - Tidy up AI slop below the ---
-- Note fixes to #640 and #648
 - Note fix to formatPatch in case where file name is undefined (prev emitted 'undefined' literally)
-- Document limitation reversing copy patches
-- Note new throw for unpaired file headers
-- Note greater tolerance of trailing garbage (and relevance to e.g. SVN diffs)
 
 ---
 
