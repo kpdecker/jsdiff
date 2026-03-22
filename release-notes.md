@@ -10,6 +10,8 @@
 
   Now, `parsePatch` parses all the possible escape sequences that GNU diff (or Git) ever output, and `formatPatch` quotes and escapes filenames containing special characters in the same way GNU diff does.
 
+- **`formatPatch` now omits file headers when `oldFileName` or `newFileName` in the provided patch object are `undefined`**, regardless of the `headerOptions` parameter. (Previously, it would treat the absence of `oldFileName` or `newFileName` as indicating the filename was the word "undefined" and emit headers `--- undefined` / `+++ undefined`.)
+
 - **`formatPatch` no longer outputs trailing tab characters at the end of `---`/`+++` headers.**
 
   Previously, if `formatPatch` was passed a patch object to serialize that had empty strings for the `oldHeader` or `newHeader` property, it would include a trailing tab character after the filename in the `---` and/or `+++` file header. Now, this scenario is treated the same as when `oldHeader`/`newHeader` is `undefined` - i.e. the trailing tab is omitted.
@@ -36,7 +38,6 @@
 
 TODO:
 - Tidy up AI slop below the ---
-- Note fix to formatPatch in case where file name is undefined (prev emitted 'undefined' literally)
 
 ---
 
