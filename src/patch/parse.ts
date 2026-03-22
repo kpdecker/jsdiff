@@ -191,15 +191,27 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     parseFileHeader(index);
     parseFileHeader(index);
 
+    // If we got one file header but not the other, that's a malformed patch.
+    if ((index.oldFileName === undefined) !== (index.newFileName === undefined)) {
+      throw new Error(
+        'Missing ' + (index.oldFileName !== undefined ? '"+++ ..."' : '"--- ..."')
+        + ' file header for ' + (index.oldFileName ?? index.newFileName)
+      );
+    }
+
     while (i < diffstr.length) {
       const line = diffstr[i];
       if (isDiffHeader(line) || isFileHeader(line) || (/^===================================================================/).test(line)) {
         break;
       } else if (isHunkHeader(line)) {
         index.hunks.push(parseHunk());
-      } else if (line) {
-        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(line));
       } else {
+        // Skip blank lines and any other unrecognized content between
+        // or after hunks. Real-world examples of such content include:
+        //   - `Only in <dir>: <file>` from GNU `diff -r`
+        //   - `Property changes on:` sections from `svn diff`
+        //   - Trailing prose or commentary in email patches
+        // GNU `patch` tolerates all of these, and so do we.
         i++;
       }
     }
@@ -478,6 +490,20 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     }
     if (removeCount !== hunk.oldLines) {
       throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
+    }
+
+    // Check for extra hunk-body-like lines after the declared line counts
+    // were exhausted. If the very next line starts with ' ', '+', or '-',
+    // the hunk's line counts were probably wrong — unless it's a file
+    // header (--- or +++), which legitimately appears immediately after a
+    // hunk in multi-file diffs without Index lines.
+    if (i < diffstr.length && diffstr[i] && (/^[+ -]/).test(diffstr[i])
+        && !isFileHeader(diffstr[i])) {
+      throw new Error(
+        'Hunk at line ' + (chunkHeaderIndex + 1)
+        + ' has more lines than expected (expected '
+        + hunk.oldLines + ' old lines and ' + hunk.newLines + ' new lines)'
+      );
     }
 
     return hunk;

@@ -299,6 +299,217 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       ]);
     });
 
+    it('should parse multi-file output from GNU `diff -u -r`', function() {
+      // GNU `diff -u -r` (recursive unified diff) produces a `diff -u -r ...`
+      // header before each file.
+      expect(parsePatch(
+`diff -u -r old/file1.txt new/file1.txt
+--- old/file1.txt\t2026-01-01 00:00:00.000000000 +0000
++++ new/file1.txt\t2026-01-01 00:00:00.000000000 +0000
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta
+diff -u -r old/file2.txt new/file2.txt
+--- old/file2.txt\t2026-01-01 00:00:00.000000000 +0000
++++ new/file2.txt\t2026-01-01 00:00:00.000000000 +0000
+@@ -1,3 +1,3 @@
+ one
+-two
++TWO
+ three`))
+        .to.eql([{
+          oldFileName: 'old/file1.txt',
+          oldHeader: '2026-01-01 00:00:00.000000000 +0000',
+          newFileName: 'new/file1.txt',
+          newHeader: '2026-01-01 00:00:00.000000000 +0000',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }, {
+          oldFileName: 'old/file2.txt',
+          oldHeader: '2026-01-01 00:00:00.000000000 +0000',
+          newFileName: 'new/file2.txt',
+          newHeader: '2026-01-01 00:00:00.000000000 +0000',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 3,
+              lines: [
+                ' one',
+                '-two',
+                '+TWO',
+                ' three'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should tolerate `Only in` lines from GNU `diff -r`', function() {
+      // When comparing directories, `diff -r` emits `Only in <dir>: <file>`
+      // for files that exist on only one side. These appear between file diffs.
+      expect(parsePatch(
+`diff -u -r old/file1.txt new/file1.txt
+--- old/file1.txt\t2026-01-01
++++ new/file1.txt\t2026-01-01
+@@ -1,2 +1,3 @@
+ alpha
+ beta
++gamma
+Only in old: removed.txt
+Only in new: added.txt
+diff -u -r old/file2.txt new/file2.txt
+--- old/file2.txt\t2026-01-01
++++ new/file2.txt\t2026-01-01
+@@ -1,3 +1,3 @@
+ one
+-two
++TWO
+ three`))
+        .to.have.length(2);
+    });
+
+    it('should tolerate SVN property change sections between file diffs', function() {
+      // `svn diff` can emit `Property changes on:` sections after a file's
+      // hunks. These are not part of the unified diff format but appear
+      // interspersed with it in SVN output.
+      expect(parsePatch(
+`Index: file.txt
+===================================================================
+--- file.txt\t(revision 1)
++++ file.txt\t(working copy)
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta
+
+Property changes on: file.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+Index: other.txt
+===================================================================
+--- other.txt\t(revision 1)
++++ other.txt\t(working copy)
+@@ -1 +1 @@
+-old
++new`))
+        .to.eql([{
+          index: 'file.txt',
+          oldFileName: 'file.txt',
+          oldHeader: '(revision 1)',
+          newFileName: 'file.txt',
+          newHeader: '(working copy)',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }, {
+          index: 'other.txt',
+          oldFileName: 'other.txt',
+          oldHeader: '(revision 1)',
+          newFileName: 'other.txt',
+          newHeader: '(working copy)',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: [
+                '-old',
+                '+new'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should tolerate trailing garbage after the last hunk', function() {
+      // GNU `patch` ignores trailing content that doesn't look like part of
+      // a patch, and so should we.
+      expect(parsePatch(
+`--- file.txt
++++ file.txt
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta
+This is trailing garbage
+More garbage here`))
+        .to.eql([{
+          oldFileName: 'file.txt',
+          oldHeader: '',
+          newFileName: 'file.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should tolerate garbage between file headers and hunks', function() {
+      // GNU `patch` ignores unrecognized lines between the --- / +++ headers
+      // and the first @@ hunk header, and so do we.
+      expect(parsePatch(
+`--- file.txt
++++ file.txt
+some garbage here
+more garbage
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta`))
+        .to.eql([{
+          oldFileName: 'file.txt',
+          oldHeader: '',
+          newFileName: 'file.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1
@@ -441,6 +652,15 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
         }]);
     });
 
+    it('should throw if --- and +++ file headers are not paired', function() {
+      expect(function() {
+        parsePatch('Index: foo\n+++ bar\nblah');
+      }).to['throw']('Missing "--- ..." file header for bar');
+      expect(function() {
+        parsePatch('--- bar\n@@ -1 +1 @@\n-old\n+new');
+      }).to['throw']('Missing "+++ ..." file header for bar');
+    });
+
     it('should perform sanity checks on line numbers', function() {
       parsePatch('@@ -1 +1 @@');
 
@@ -452,18 +672,7 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       }).to['throw']('Removed line count did not match for hunk at line 1');
     });
 
-    it('should not throw on invalid input', function() {
-      expect(parsePatch('blit\nblat\nIndex: foo\nfoo'))
-          .to.eql([{
-            hunks: [],
-            index: 'foo'
-          }]);
-    });
-    it('should throw on invalid input', function() {
-      expect(function() {
-        parsePatch('Index: foo\n+++ bar\nblah');
-      }).to['throw'](/Unknown line 3 "blah"/);
-    });
+
 
     it('should handle OOM case', function() {
       parsePatch('Index: \n===================================================================\n--- \n+++ \n@@ -1,1 +1,2 @@\n-1\n\\ No newline at end of file\n+1\n+2\n');
@@ -689,6 +898,25 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
           { oldStart: 7, oldLines: 0, newStart: 7, newLines: 1, lines: ['+seventh'] }
         ]
       }]);
+    });
+
+    it('should emit an error if a hunk has wrong line counts causing extra hunk-body lines to spill out', () => {
+      // The hunk declares oldLines=2, newLines=2, so the parser consumes
+      // ' a', '-b', '+B' and then stops. The next line ' c' starts with
+      // a space (context line) immediately after the hunk ended, which
+      // indicates the line counts were wrong.
+      const patchStr = `--- file.txt
++++ file.txt
+@@ -1,2 +1,2 @@
+ a
+-b
++B
+ c
+ d
+ e`;
+
+      // eslint-disable-next-line dot-notation
+      expect(() => {parsePatch(patchStr);}).to.throw(/Hunk at line 3 has more lines than expected/);
     });
 
     it('should emit an error if a hunk contains an invalid line', () => {

@@ -27,6 +27,8 @@ TODO:
 - Note fixes to #640 and #648
 - Note fix to formatPatch in case where file name is undefined (prev emitted 'undefined' literally)
 - Document limitation reversing copy patches
+- Note new throw for unpaired file headers
+- Note greater tolerance of trailing garbage (and relevance to e.g. SVN diffs)
 
 ---
 
