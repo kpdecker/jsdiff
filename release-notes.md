@@ -38,7 +38,7 @@
 
 - **The `oldFileName` and `newFileName` fields of `StructuredPatch` are now typed as `string | undefined` instead of `string`**. This type change reflects the (pre-existing) reality that `parsePatch` can produce patches without filenames (e.g. when parsing a patch that simply contains hunks with no file headers).
 
-## 8.0.4 (prerelease)
+## 8.0.4
 
 - [#667](https://github.com/kpdecker/jsdiff/pull/667) - **fix another bug in `diffWords` when used with an `Intl.Segmenter`**. If the text to be diffed included a combining mark after a whitespace character (i.e. roughly speaking, an accented space), `diffWords` would previously crash. Now this case is handled correctly.
 
