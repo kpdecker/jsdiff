@@ -3,7 +3,7 @@ import type { StructuredPatch } from '../types.js';
 /**
  * Parses a patch into structured data, in the same structure returned by `structuredPatch`.
  *
- * @return a JSON object representation of the a patch, suitable for use with the `applyPatch` method.
+ * @return a JSON object representation of the patch, suitable for use with the `applyPatch` method.
  */
 export function parsePatch(uniDiff: string): StructuredPatch[] {
   const diffstr = uniDiff.split(/\n/),
