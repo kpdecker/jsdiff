@@ -345,7 +345,15 @@ export function structuredPatch(
 
 /**
  * creates a unified diff patch.
- * @param patch either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`)
+ *
+ * @param patch either a single structured patch object (as returned by `structuredPatch`) or an
+ *   array of them (as returned by `parsePatch`).
+ * @param headerOptions behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
+ *
+ * When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's
+ * output: it emits a `diff --git` header, emits Git extended headers as appropriate based on
+ * properties like `isRename`, `isCreate`, `newFileMode`, etc, and will omit `---`/`+++` file
+ * headers for patches with no hunks (e.g. renames without content changes).
  */
 export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOptions?: HeaderOptions): string {
   if (!headerOptions) {

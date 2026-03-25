@@ -137,6 +137,8 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
     `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
 
+    When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's output: it emits a `diff --git` header, emits Git extended headers as appropriate based on properties like `isRename`, `isCreate`, `newFileMode`, etc, and will omit `---`/`+++` file headers for patches with no hunks (e.g. renames without content changes).
+
 * `structuredPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - returns an object with an array of hunk objects.
 
     This method is similar to createTwoFilesPatch, but returns a data structure
@@ -186,9 +188,9 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
 * `parsePatch(diffStr)` - Parses a unified diff format patch into a structured patch object.
 
-    Return a JSON object representation of the patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers).
+    Returns a JSON object representation of the patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers).
 
-    `parsePatch` has some understanding of [Git's particular dialect of unified diff format](https://git-scm.com/docs/git-diff#generate_patch_text_with_p). In particular, it can extract filenames from the patch headers or extended headers of Git patches that contain no hunks and no file headers, including ones representing a file being renamed without changes. When parsing a Git patch, each index in the result may contain the following additional fields not included in the data structure returned by `structuredPatch`:
+    `parsePatch` has some understanding of [Git's particular dialect of unified diff format](https://git-scm.com/docs/git-diff#generate_patch_text_with_p). When parsing a Git patch, each index in the result may contain the following additional fields not included in the data structure returned by `structuredPatch`:
     - `isGit` - set to `true` when parsing from a Git-style patch.
     - `isRename` - set to `true` when parsing a Git diff that includes `rename from`/`rename to` extended headers, indicating the file was renamed (and the old file no longer exists). Consumers applying the patch should delete the old file.
     - `isCopy` - set to `true` when parsing a Git diff that includes `copy from`/`copy to` extended headers, indicating the file was copied (and the old file still exists). Consumers applying the patch should NOT delete the old file.
