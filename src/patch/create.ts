@@ -7,8 +7,7 @@ import type { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabo
  */
 function needsQuoting(s: string): boolean {
   for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    if (c < 0x20 || c > 0x7e || s[i] === '"' || s[i] === '\\') {
+    if (s[i] < '\x20' || s[i] > '\x7e' || s[i] === '"' || s[i] === '\\') {
       return true;
     }
   }
