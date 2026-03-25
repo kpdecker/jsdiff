@@ -349,6 +349,7 @@ export function structuredPatch(
  * @param patch either a single structured patch object (as returned by `structuredPatch`) or an
  *   array of them (as returned by `parsePatch`).
  * @param headerOptions behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
+ *   Ignored for patches where `isGit` is `true`.
  *
  * When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's
  * output: it emits a `diff --git` header, emits Git extended headers as appropriate based on
@@ -360,7 +361,7 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
     headerOptions = INCLUDE_HEADERS;
   }
   if (Array.isArray(patch)) {
-    if (patch.length > 1 && !headerOptions.includeFileHeaders) {
+    if (patch.length > 1 && !headerOptions.includeFileHeaders && !patch.every(p => p.isGit)) {
       throw new Error(
         'Cannot omit file headers on a multi-file patch. '
         + '(The result would be unparseable; how would a tool trying to apply '
@@ -372,7 +373,10 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
 
   const ret = [];
 
+  // Git patches have a fixed header format (diff --git, extended headers,
+  // and ---/+++ when hunks are present), so headerOptions is ignored.
   if (patch.isGit) {
+    headerOptions = INCLUDE_HEADERS;
     // Emit Git-style diff --git header and extended headers.
     // Git never puts /dev/null in the "diff --git" line; for file
     // creations/deletions it uses the real filename on both sides.

@@ -1228,6 +1228,55 @@ describe('patch/create', function() {
         );
       });
 
+      it('should ignore headerOptions for multi-file patches with isGit flag', function() {
+        const patches = [
+          {
+            oldFileName: 'a/one.txt',
+            newFileName: 'b/one.txt',
+            oldHeader: '',
+            newHeader: '',
+            isGit: true,
+            hunks: [{
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-a', '+b']
+            }]
+          },
+          {
+            oldFileName: 'a/two.txt',
+            newFileName: 'b/two.txt',
+            oldHeader: '',
+            newHeader: '',
+            isGit: true,
+            hunks: [{
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-c', '+d']
+            }]
+          }
+        ];
+        const expected =
+          'diff --git a/one.txt b/one.txt\n' +
+          '--- a/one.txt\n' +
+          '+++ b/one.txt\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-a\n' +
+          '+b\n' +
+          '\n' +
+          'diff --git a/two.txt b/two.txt\n' +
+          '--- a/two.txt\n' +
+          '+++ b/two.txt\n' +
+          '@@ -1,1 +1,1 @@\n' +
+          '-c\n' +
+          '+d\n';
+        // All three headerOptions values should produce identical output;
+        // Git patches are self-delimiting via diff --git headers, so
+        // OMIT_HEADERS should also not throw for multi-file patches:
+        expect(formatPatch(patches, INCLUDE_HEADERS)).to.equal(expected);
+        expect(formatPatch(patches, FILE_HEADERS_ONLY)).to.equal(expected);
+        expect(formatPatch(patches, OMIT_HEADERS)).to.equal(expected);
+      });
+
       it('should emit rename headers for patches with isGit and isRename', function() {
         const patch = {
           oldFileName: 'a/old.txt',

@@ -135,9 +135,9 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
 * `formatPatch(patch[, headerOptions])` - creates a unified diff patch.
 
-    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
+    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`, except that it is ignored for Git patches (i.e. patches where `isGit` is `true`).
 
-    When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's output: it emits a `diff --git` header, emits Git extended headers as appropriate based on properties like `isRename`, `isCreate`, `newMode`, etc, and will omit `---`/`+++` file headers for patches with no hunks (e.g. renames without content changes).
+    When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's output: it emits a `diff --git` header, emits Git extended headers as appropriate based on properties like `isRename`, `isCreate`, `newMode`, etc, and always emits `---`/`+++` file headers when hunks are present but omits them when there are no hunks (e.g. renames without content changes). The `headerOptions` parameter has no effect on Git patches since the header format is fully determined by the Git extended header properties.
 
 * `structuredPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - returns an object with an array of hunk objects.
 
