@@ -16,6 +16,8 @@
 
   Previously, if `formatPatch` was passed a patch object to serialize that had empty strings for the `oldHeader` or `newHeader` property, it would include a trailing tab character after the filename in the `---` and/or `+++` file header. Now, this scenario is treated the same as when `oldHeader`/`newHeader` is `undefined` - i.e. the trailing tab is omitted.
 
+- **`formatPatch` no longer mutates its input** when serializing a patch containing a hunk where either the old or new content contained zero lines. (Such a hunk occurs only when the hunk has no context lines and represents a pure insertion or pure deletion, which for instance will occur whenever one of the two files being diffed is completely empty.) Previously `formatPatch` would provide the correct output but also mutate the `oldLines` or `newLines` property on the hunk, changing the meaning of the underlying patch.
+
 - **Git-style patches are now supported by `parsePatch`, `formatPatch`, and `reversePatch`**.
 
   Patches output by `git diff` can include some features that are unlike those output by GNU `diff`, and therefore not handled by an ordinary unified diff format parser. An ordinary diff simply describes the differences between the *content* of two files, but Git diffs can also indicate, via "extended headers", the creation or deletion of (potentially empty) files, indicate that a file was renamed, and contain information about file mode changes. Furthermore, when these changes appear in a diff in the absence of a content change (e.g. when an empty file is created, or a file is renamed without content changes), the patch will contain no associated `---`/`+++` file headers nor any hunks.

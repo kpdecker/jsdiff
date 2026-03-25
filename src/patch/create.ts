@@ -428,15 +428,11 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
     // Unified Diff Format quirk: If the chunk size is 0,
     // the first number is one lower than one would expect.
     // https://www.artima.com/weblogs/viewpost.jsp?thread=164293
-    if (hunk.oldLines === 0) {
-      hunk.oldStart -= 1;
-    }
-    if (hunk.newLines === 0) {
-      hunk.newStart -= 1;
-    }
+    const oldStart = hunk.oldLines === 0 ? hunk.oldStart - 1 : hunk.oldStart;
+    const newStart = hunk.newLines === 0 ? hunk.newStart - 1 : hunk.newStart;
     ret.push(
-      '@@ -' + hunk.oldStart + ',' + hunk.oldLines
-      + ' +' + hunk.newStart + ',' + hunk.newLines
+      '@@ -' + oldStart + ',' + hunk.oldLines
+      + ' +' + newStart + ',' + hunk.newLines
       + ' @@'
     );
     for (const line of hunk.lines) {

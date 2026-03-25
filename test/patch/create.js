@@ -1228,6 +1228,23 @@ describe('patch/create', function() {
         );
       });
 
+      it('should not mutate hunk objects', function() {
+        const patch = {
+          oldFileName: 'a/file.txt',
+          newFileName: 'b/file.txt',
+          oldHeader: '',
+          newHeader: '',
+          hunks: [{
+            oldStart: 1, oldLines: 0,
+            newStart: 1, newLines: 0,
+            lines: []
+          }]
+        };
+        formatPatch(patch);
+        expect(patch.hunks[0].oldStart).to.equal(1);
+        expect(patch.hunks[0].newStart).to.equal(1);
+      });
+
       it('should ignore headerOptions for multi-file patches with isGit flag', function() {
         const patches = [
           {
