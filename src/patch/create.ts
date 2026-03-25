@@ -63,7 +63,7 @@ function quoteFileNameIfNeeded(s: string): string {
       result += String.fromCharCode(b);
     } else {
       // Either part of a non-ASCII character or a control character without a
-      // special escape sequence; needs escaping as as 3-digit octal escape
+      // special escape sequence; needs escaping as a 3-digit octal escape
       result += '\\' + b.toString(8).padStart(3, '0');
     }
     i++;
@@ -352,7 +352,7 @@ export function structuredPatch(
  *
  * When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's
  * output: it emits a `diff --git` header, emits Git extended headers as appropriate based on
- * properties like `isRename`, `isCreate`, `newFileMode`, etc, and will omit `---`/`+++` file
+ * properties like `isRename`, `isCreate`, `newMode`, etc, and will omit `---`/`+++` file
  * headers for patches with no hunks (e.g. renames without content changes).
  */
 export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOptions?: HeaderOptions): string {

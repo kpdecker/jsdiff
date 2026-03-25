@@ -137,7 +137,7 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
     `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
 
-    When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's output: it emits a `diff --git` header, emits Git extended headers as appropriate based on properties like `isRename`, `isCreate`, `newFileMode`, etc, and will omit `---`/`+++` file headers for patches with no hunks (e.g. renames without content changes).
+    When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's output: it emits a `diff --git` header, emits Git extended headers as appropriate based on properties like `isRename`, `isCreate`, `newMode`, etc, and will omit `---`/`+++` file headers for patches with no hunks (e.g. renames without content changes).
 
 * `structuredPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - returns an object with an array of hunk objects.
 
