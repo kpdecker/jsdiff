@@ -22,7 +22,7 @@ describe('README Git rename example', function() {
 
   /**
    * Extract the Git rename example code from the README and return it as a
-   * function that takes (applyPatches, patch, fs, path) and runs the example.
+   * function that takes (applyPatches, patch, fs) and runs the example.
    */
   const applyGitPatch = (function() {
     const readme = fs.readFileSync(
