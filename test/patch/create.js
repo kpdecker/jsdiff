@@ -1228,6 +1228,39 @@ describe('patch/create', function() {
         );
       });
 
+      it('should throw if oldFileName is missing or empty for a Git patch', function() {
+        const patch = {
+          newFileName: 'b/file.txt',
+          oldHeader: '',
+          newHeader: '',
+          isGit: true,
+          hunks: [{
+            oldStart: 1, oldLines: 1,
+            newStart: 1, newLines: 1,
+            lines: ['-old', '+new']
+          }]
+        };
+        // eslint-disable-next-line dot-notation
+        expect(() => formatPatch(patch)).to.throw('oldFileName must be specified for Git patches');
+      });
+
+      it('should throw if newFileName is missing or empty for a Git patch', function() {
+        const patch = {
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: '',
+          newHeader: '',
+          isGit: true,
+          hunks: [{
+            oldStart: 1, oldLines: 1,
+            newStart: 1, newLines: 1,
+            lines: ['-old', '+new']
+          }]
+        };
+        // eslint-disable-next-line dot-notation
+        expect(() => formatPatch(patch)).to.throw('newFileName must be specified for Git patches');
+      });
+
       it('should not mutate hunk objects', function() {
         const patch = {
           oldFileName: 'a/file.txt',

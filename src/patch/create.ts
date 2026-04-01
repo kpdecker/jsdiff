@@ -379,8 +379,14 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
     // Emit Git-style diff --git header and extended headers.
     // Git never puts /dev/null in the "diff --git" line; for file
     // creations/deletions it uses the real filename on both sides.
-    let gitOldName = patch.oldFileName ?? '';
-    let gitNewName = patch.newFileName ?? '';
+    if (!patch.oldFileName) {
+      throw new Error('oldFileName must be specified for Git patches');
+    }
+    if (!patch.newFileName) {
+      throw new Error('newFileName must be specified for Git patches');
+    }
+    let gitOldName = patch.oldFileName;
+    let gitNewName = patch.newFileName;
     if (patch.isCreate && gitOldName === '/dev/null') {
       gitOldName = gitNewName.replace(/^b\//, 'a/');
     } else if (patch.isDelete && gitNewName === '/dev/null') {
