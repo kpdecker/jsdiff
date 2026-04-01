@@ -4,6 +4,8 @@
 
 (All changes part of PR [#672](https://github.com/kpdecker/jsdiff/pull/672).)
 
+- **ES5 support is dropped**. `parsePatch` now uses `TextDecoder` and `Uint8Array`, which are not available in ES5, and TypeScript is now compiled with the "es6" `target`. From now on, I intend to freely use any features that are deemed "Widely available" by [Baseline](https://web.dev/baseline). Users who need ES5 support should stick to version 8.
+
 - **C-style quoted strings in filename headers are now properly supported**.
   
   When the name of either the old or new file in a patch contains "special characters", both GNU `diff` and Git quote the filename in the patch's headers and escape special characters using the same escape sequences that are used in string literals in C, including octal escapes for all non-ASCII characters. Previously, jsdiff had very little support for this; `parsePatch` would remove the quotes, and unescape any escaped backslashes, but would not unescape other escape sequences. `formatPatch`, meanwhile, did not quote or escape special characters at all.
