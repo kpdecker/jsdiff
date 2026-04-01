@@ -1,5 +1,47 @@
 # Release Notes
 
+## 9.0.0 (prerelease)
+
+(All changes part of PR [#672](https://github.com/kpdecker/jsdiff/pull/672).)
+
+- **ES5 support is dropped**. `parsePatch` now uses `TextDecoder` and `Uint8Array`, which are not available in ES5, and TypeScript is now compiled with the "es6" `target`. From now on, I intend to freely use any features that are deemed "Widely available" by [Baseline](https://web.dev/baseline). Users who need ES5 support should stick to version 8.
+
+- **C-style quoted strings in filename headers are now properly supported**.
+  
+  When the name of either the old or new file in a patch contains "special characters", both GNU `diff` and Git quote the filename in the patch's headers and escape special characters using the same escape sequences that are used in string literals in C, including octal escapes for all non-ASCII characters. Previously, jsdiff had very little support for this; `parsePatch` would remove the quotes, and unescape any escaped backslashes, but would not unescape other escape sequences. `formatPatch`, meanwhile, did not quote or escape special characters at all.
+
+  Now, `parsePatch` parses all the possible escape sequences that GNU diff (or Git) ever output, and `formatPatch` quotes and escapes filenames containing special characters in the same way GNU diff does.
+
+- **`formatPatch` now omits file headers when `oldFileName` or `newFileName` in the provided patch object are `undefined`**, regardless of the `headerOptions` parameter. (Previously, it would treat the absence of `oldFileName` or `newFileName` as indicating the filename was the word "undefined" and emit headers `--- undefined` / `+++ undefined`.)
+
+- **`formatPatch` no longer outputs trailing tab characters at the end of `---`/`+++` headers.**
+
+  Previously, if `formatPatch` was passed a patch object to serialize that had empty strings for the `oldHeader` or `newHeader` property, it would include a trailing tab character after the filename in the `---` and/or `+++` file header. Now, this scenario is treated the same as when `oldHeader`/`newHeader` is `undefined` - i.e. the trailing tab is omitted.
+
+- **`formatPatch` no longer mutates its input** when serializing a patch containing a hunk where either the old or new content contained zero lines. (Such a hunk occurs only when the hunk has no context lines and represents a pure insertion or pure deletion, which for instance will occur whenever one of the two files being diffed is completely empty.) Previously `formatPatch` would provide the correct output but also mutate the `oldLines` or `newLines` property on the hunk, changing the meaning of the underlying patch.
+
+- **Git-style patches are now supported by `parsePatch`, `formatPatch`, and `reversePatch`**.
+
+  Patches output by `git diff` can include some features that are unlike those output by GNU `diff`, and therefore not handled by an ordinary unified diff format parser. An ordinary diff simply describes the differences between the *content* of two files, but Git diffs can also indicate, via "extended headers", the creation or deletion of (potentially empty) files, indicate that a file was renamed, and contain information about file mode changes. Furthermore, when these changes appear in a diff in the absence of a content change (e.g. when an empty file is created, or a file is renamed without content changes), the patch will contain no associated `---`/`+++` file headers nor any hunks.
+
+  jsdiff previously did not support parsing Git's extended headers, nor hunkless patches. Now `parsePatch` parses some of the extended headers, parses hunkless Git patches, and can determine filenames (e.g. from the extended headers) when parsing a patch that includes no `---` or `+++` file headers. The additional information conveyed by the extended headers we support is recorded on new fields on the result object returned by `parsePatch`. See `isGit` and subsequent properties in the docs in the README.md file.
+
+  `formatPatch` now outputs extended headers based on these new Git-specific properties, and `reversePatch` respects them as far as possible (with one unavoidable caveat noted in the README.md file).
+
+- **Unpaired file headers now cause `parsePatch` to throw**.
+
+  It remains acceptable to have a patch with no file headers whatsoever (e.g. one that begins with a `@@` hunk header on the very first line), but a patch with *only* a `---` header or only a `+++` header is now considered an error.
+
+- **`parsePatch` is now more tolerant of "trailing garbage"**
+
+  That is: after a patch, or between files/indexes in a patch, it is now acceptable to have arbitrary lines of "garbage" (so long as they unambiguously have no syntactic meaning - e.g. trailing garbage that leads with a `+`, `-`, or ` ` and thus is interpretable as part of a hunk still triggers a throw).
+
+  This means we no longer reject patches output by tools that include extra data in "garbage" lines not understood by generic unified diff parsers. (For example, SVN patches can include "Property changes on:" lines that generic unified diff parsers should discard as garbage; jsdiff previously threw errors when encountering them.)
+
+  This change brings jsdiff's behaviour more in line with GNU `patch`, which is highly permissive of "garbage".
+
+- **The `oldFileName` and `newFileName` fields of `StructuredPatch` are now typed as `string | undefined` instead of `string`**. This type change reflects the (pre-existing) reality that `parsePatch` can produce patches without filenames (e.g. when parsing a patch that simply contains hunks with no file headers).
+
 ## 8.0.4
 
 - [#667](https://github.com/kpdecker/jsdiff/pull/667) - **fix another bug in `diffWords` when used with an `Intl.Segmenter`**. If the text to be diffed included a combining mark after a whitespace character (i.e. roughly speaking, an accented space), `diffWords` would previously crash. Now this case is handled correctly.

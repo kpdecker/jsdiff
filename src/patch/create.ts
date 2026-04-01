@@ -1,6 +1,76 @@
 import {diffLines} from '../diff/line.js';
 import type { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable, AbortableDiffOptions, ChangeObject } from '../types.js';
 
+/**
+ * Returns true if the filename contains characters that require C-style
+ * quoting (as used by Git and GNU diffutils in diff output).
+ */
+function needsQuoting(s: string): boolean {
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] < '\x20' || s[i] > '\x7e' || s[i] === '"' || s[i] === '\\') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * C-style quotes a filename, encoding special characters as escape sequences
+ * and non-ASCII bytes as octal escapes. This is the inverse of
+ * `parseQuotedFileName` in parse.ts.
+ *
+ * Non-ASCII bytes are encoded as UTF-8 before being emitted as octal escapes.
+ * This matches the behaviour of both Git and GNU diffutils, which always emit
+ * UTF-8 octal escapes regardless of the underlying filesystem encoding (e.g.
+ * Git for Windows converts from NTFS's UTF-16 to UTF-8 internally).
+ *
+ * If the filename doesn't need quoting, returns it as-is.
+ */
+function quoteFileNameIfNeeded(s: string): string {
+  if (!needsQuoting(s)) {
+    return s;
+  }
+
+  let result = '"';
+  const bytes = new TextEncoder().encode(s);
+  let i = 0;
+  while (i < bytes.length) {
+    const b = bytes[i];
+
+    // See https://en.wikipedia.org/wiki/Escape_sequences_in_C#Escape_sequences
+    if (b === 0x07) {
+      result += '\\a';
+    } else if (b === 0x08) {
+      result += '\\b';
+    } else if (b === 0x09) {
+      result += '\\t';
+    } else if (b === 0x0a) {
+      result += '\\n';
+    } else if (b === 0x0b) {
+      result += '\\v';
+    } else if (b === 0x0c) {
+      result += '\\f';
+    } else if (b === 0x0d) {
+      result += '\\r';
+    } else if (b === 0x22) {
+      result += '\\"';
+    } else if (b === 0x5c) {
+      result += '\\\\';
+    } else if (b >= 0x20 && b <= 0x7e) {
+      // Just a printable ASCII character that is neither a double quote nor a
+      // backslash; no need to escape it.
+      result += String.fromCharCode(b);
+    } else {
+      // Either part of a non-ASCII character or a control character without a
+      // special escape sequence; needs escaping as a 3-digit octal escape
+      result += '\\' + b.toString(8).padStart(3, '0');
+    }
+    i++;
+  }
+  result += '"';
+  return result;
+}
+
 type StructuredPatchCallbackAbortable = (patch: StructuredPatch | undefined) => void;
 type StructuredPatchCallbackNonabortable = (patch: StructuredPatch) => void;
 
@@ -274,14 +344,23 @@ export function structuredPatch(
 
 /**
  * creates a unified diff patch.
- * @param patch either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`)
+ *
+ * @param patch either a single structured patch object (as returned by `structuredPatch`) or an
+ *   array of them (as returned by `parsePatch`).
+ * @param headerOptions behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
+ *   Ignored for patches where `isGit` is `true`.
+ *
+ * When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's
+ * output: it emits a `diff --git` header, emits Git extended headers as appropriate based on
+ * properties like `isRename`, `isCreate`, `newMode`, etc, and will omit `---`/`+++` file
+ * headers for patches with no hunks (e.g. renames without content changes).
  */
 export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOptions?: HeaderOptions): string {
   if (!headerOptions) {
     headerOptions = INCLUDE_HEADERS;
   }
   if (Array.isArray(patch)) {
-    if (patch.length > 1 && !headerOptions.includeFileHeaders) {
+    if (patch.length > 1 && !headerOptions.includeFileHeaders && !patch.every(p => p.isGit)) {
       throw new Error(
         'Cannot omit file headers on a multi-file patch. '
         + '(The result would be unparseable; how would a tool trying to apply '
@@ -292,15 +371,62 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
   }
 
   const ret = [];
-  if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName) {
-    ret.push('Index: ' + patch.oldFileName);
+
+  // Git patches have a fixed header format (diff --git, extended headers,
+  // and ---/+++ when hunks are present), so headerOptions is ignored.
+  if (patch.isGit) {
+    headerOptions = INCLUDE_HEADERS;
+    // Emit Git-style diff --git header and extended headers.
+    // Git never puts /dev/null in the "diff --git" line; for file
+    // creations/deletions it uses the real filename on both sides.
+    if (!patch.oldFileName) {
+      throw new Error('oldFileName must be specified for Git patches');
+    }
+    if (!patch.newFileName) {
+      throw new Error('newFileName must be specified for Git patches');
+    }
+    let gitOldName = patch.oldFileName;
+    let gitNewName = patch.newFileName;
+    if (patch.isCreate && gitOldName === '/dev/null') {
+      gitOldName = gitNewName.replace(/^b\//, 'a/');
+    } else if (patch.isDelete && gitNewName === '/dev/null') {
+      gitNewName = gitOldName.replace(/^a\//, 'b/');
+    }
+    ret.push('diff --git ' + quoteFileNameIfNeeded(gitOldName) + ' ' + quoteFileNameIfNeeded(gitNewName));
+    if (patch.isDelete) {
+      ret.push('deleted file mode ' + (patch.oldMode ?? '100644'));
+    }
+    if (patch.isCreate) {
+      ret.push('new file mode ' + (patch.newMode ?? '100644'));
+    }
+    if (patch.oldMode && patch.newMode && !patch.isDelete && !patch.isCreate) {
+      ret.push('old mode ' + patch.oldMode);
+      ret.push('new mode ' + patch.newMode);
+    }
+    if (patch.isRename) {
+      ret.push('rename from ' + quoteFileNameIfNeeded((patch.oldFileName ?? '').replace(/^a\//, '')));
+      ret.push('rename to ' + quoteFileNameIfNeeded((patch.newFileName ?? '').replace(/^b\//, '')));
+    }
+    if (patch.isCopy) {
+      ret.push('copy from ' + quoteFileNameIfNeeded((patch.oldFileName ?? '').replace(/^a\//, '')));
+      ret.push('copy to ' + quoteFileNameIfNeeded((patch.newFileName ?? '').replace(/^b\//, '')));
+    }
+  } else {
+    if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName && patch.oldFileName !== undefined) {
+      ret.push('Index: ' + patch.oldFileName);
+    }
+    if (headerOptions.includeUnderline) {
+      ret.push('===================================================================');
+    }
   }
-  if (headerOptions.includeUnderline) {
-    ret.push('===================================================================');
-  }
-  if (headerOptions.includeFileHeaders) {
-    ret.push('--- ' + patch.oldFileName + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
-    ret.push('+++ ' + patch.newFileName + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
+
+  // Emit --- / +++ file headers. For Git patches with no hunks (e.g.
+  // pure renames, mode-only changes), Git omits these, so we do too.
+  const hasHunks = patch.hunks.length > 0;
+  if (headerOptions.includeFileHeaders && patch.oldFileName !== undefined && patch.newFileName !== undefined
+      && (!patch.isGit || hasHunks)) {
+    ret.push('--- ' + quoteFileNameIfNeeded(patch.oldFileName) + (patch.oldHeader ? '\t' + patch.oldHeader : ''));
+    ret.push('+++ ' + quoteFileNameIfNeeded(patch.newFileName) + (patch.newHeader ? '\t' + patch.newHeader : ''));
   }
 
   for (let i = 0; i < patch.hunks.length; i++) {
@@ -308,15 +434,11 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
     // Unified Diff Format quirk: If the chunk size is 0,
     // the first number is one lower than one would expect.
     // https://www.artima.com/weblogs/viewpost.jsp?thread=164293
-    if (hunk.oldLines === 0) {
-      hunk.oldStart -= 1;
-    }
-    if (hunk.newLines === 0) {
-      hunk.newStart -= 1;
-    }
+    const oldStart = hunk.oldLines === 0 ? hunk.oldStart - 1 : hunk.oldStart;
+    const newStart = hunk.newLines === 0 ? hunk.newStart - 1 : hunk.newStart;
     ret.push(
-      '@@ -' + hunk.oldStart + ',' + hunk.oldLines
-      + ' +' + hunk.newStart + ',' + hunk.newLines
+      '@@ -' + oldStart + ',' + hunk.oldLines
+      + ' +' + newStart + ',' + hunk.newLines
       + ' @@'
     );
     for (const line of hunk.lines) {

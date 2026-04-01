@@ -135,7 +135,9 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
 * `formatPatch(patch[, headerOptions])` - creates a unified diff patch.
 
-    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
+    `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`). The optional `headerOptions` argument behaves the same as the `headerOptions` option of `createTwoFilesPatch`, except that it is ignored for Git patches (i.e. patches where `isGit` is `true`).
+
+    When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's output: it emits a `diff --git` header, emits Git extended headers as appropriate based on properties like `isRename`, `isCreate`, `newMode`, etc, and always emits `---`/`+++` file headers when hunks are present but omits them when there are no hunks (e.g. renames without content changes). The `headerOptions` parameter has no effect on Git patches since the header format is fully determined by the Git extended header properties.
 
 * `structuredPatch(oldFileName, newFileName, oldStr, newStr[, oldHeader[, newHeader[, options]]])` - returns an object with an array of hunk objects.
 
@@ -184,13 +186,25 @@ jsdiff's diff functions all take an old text and a new text and perform three st
 
     Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
 
-* `parsePatch(diffStr)` - Parses a patch into structured data
+* `parsePatch(diffStr)` - Parses a unified diff format patch into a structured patch object.
 
-    Return a JSON object representation of the patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`.
+    Returns a JSON object representation of the patch, suitable for use with the `applyPatch` method. This parses to the same structure returned by `structuredPatch`, except that `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough information to determine them (e.g. a hunk-only patch with no file headers).
+
+    `parsePatch` has some understanding of [Git's particular dialect of unified diff format](https://git-scm.com/docs/git-diff#generate_patch_text_with_p). When parsing a Git patch, each index in the result may contain the following additional fields not included in the data structure returned by `structuredPatch`:
+    - `isGit` - set to `true` when parsing from a Git-style patch.
+    - `isRename` - set to `true` when parsing a Git diff that includes `rename from`/`rename to` extended headers, indicating the file was renamed (and the old file no longer exists). Consumers applying the patch should delete the old file.
+    - `isCopy` - set to `true` when parsing a Git diff that includes `copy from`/`copy to` extended headers, indicating the file was copied (and the old file still exists). Consumers applying the patch should NOT delete the old file.
+    - `isCreate` - set to `true` when parsing a Git diff that includes a `new file mode` extended header, indicating the file was newly created.
+    - `isDelete` - set to `true` when parsing a Git diff that includes a `deleted file mode` extended header, indicating the file was deleted.
+    - `oldMode` - the file mode (e.g. `'100644'`, `'100755'`) of the old file, parsed from Git extended headers (`old mode` or `deleted file mode`).
+    - `newMode` - the file mode (e.g. `'100644'`, `'100755'`) of the new file, parsed from Git extended headers (`new mode` or `new file mode`).
+    - `isBinary` - set to `true` when parsing a Git diff that includes a `Binary files ... differ` line, indicating a binary file change. Binary patches have no hunks, so the patch content alone is not sufficient to apply the change; consumers should handle this case specially (e.g. by warning the user or fetching the binary content separately).
 
 * `reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
 
     `patch` may be either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`).
+
+    When `patch` is a Git-style patch, `reversePatch` handles extended header information (relating to renames, file modes, etc.) to the extent that doing so is possible, but note one fundamental limitation: the correct inverse of a patch featuring `copy from`/`copy to` headers cannot, in general, be determined based on the information contained in the patch alone, and so `reversePatch`'s output when passed such a patch will usually be rejected by `git apply`. (The correct inverse would be a patch that deletes the newly-created file, but for Git to apply such a patch, the patch must explicitly delete every line of content in the file too, and that content cannot be determined from the original patch on its own. `reversePatch` therefore does the only vaguely reasonable thing it can do in this scenario: it outputs a patch with a `deleted file mode` header - indicating that the file should be deleted - but no hunks.)
 
 * `convertChangesToXML(changes)` - converts a list of change objects to a serialized XML format
 
@@ -360,9 +374,75 @@ applyPatches(patch, {
 });
 ```
 
+##### Applying a multi-file Git patch that may include renames and mode changes
+
+[Git patches](https://git-scm.com/docs/git-diff#generate_patch_text_with_p) can include file renames and copies (with or without content changes), which need to be handled in the callbacks you provide to `applyPatches`. `parsePatch` sets `isRename` or `isCopy` on the structured patch object so you can distinguish these cases. Patches can also potentially include file *swaps* (renaming `a → b` and `b → a`), in which case it is incorrect to simply apply each change atomically in sequence. The pattern with the `pendingWrites` Map below handles all of these nuances:
+
+```
+const {applyPatches} = require('diff');
+const patch = fs.readFileSync("git-diff.patch").toString();
+const DELETE = Symbol('delete');
+const pendingWrites = new Map(); // filePath → {content, mode} or DELETE sentinel
+applyPatches(patch, {
+    loadFile: (patch, callback) => {
+        if (patch.isCreate) {
+            // Newly created file — no old content to load
+            callback(undefined, '');
+            return;
+        }
+        try {
+            // Git diffs use a/ and b/ prefixes; strip them to get the real path
+            const filePath = patch.oldFileName.replace(/^a\//, '');
+            callback(undefined, fs.readFileSync(filePath).toString());
+        } catch (e) {
+            callback(`No such file: ${patch.oldFileName}`);
+        }
+    },
+    patched: (patch, patchedContent, callback) => {
+        if (patchedContent === false) {
+            callback(`Failed to apply patch to ${patch.oldFileName}`);
+            return;
+        }
+        const oldPath = patch.oldFileName.replace(/^a\//, '');
+        const newPath = patch.newFileName.replace(/^b\//, '');
+        if (patch.isDelete) {
+            if (!pendingWrites.has(oldPath)) {
+                pendingWrites.set(oldPath, DELETE);
+            }
+        } else {
+            pendingWrites.set(newPath, {content: patchedContent, mode: patch.newMode});
+            // For renames, delete the old file (but not for copies,
+            // where the old file should be kept)
+            if (patch.isRename && !pendingWrites.has(oldPath)) {
+                pendingWrites.set(oldPath, DELETE);
+            }
+        }
+        callback();
+    },
+    complete: (err) => {
+        if (err) {
+            console.log("Failed with error:", err);
+            return;
+        }
+        for (const [filePath, entry] of pendingWrites) {
+            if (entry === DELETE) {
+                fs.unlinkSync(filePath);
+            } else {
+                fs.writeFileSync(filePath, entry.content);
+                if (entry.mode) {
+                    fs.chmodSync(filePath, entry.mode.slice(-3));
+                }
+            }
+        }
+    }
+});
+```
+
 ## Compatibility
 
-jsdiff should support all ES5 environments. If you find one that it doesn't support, please [open an issue](https://github.com/kpdecker/jsdiff/issues).
+Version 8 of jsdiff supported ES5.
+
+Starting from version 9, at the point of release, each jsdiff release should fully support the latest LTS version of Node plus all [Baseline](https://web.dev/baseline) "core browser" releases that are at least 30 months old. (That is: jsdiff only uses JavaScript features that are deemed "widely available" by Baseline.) If you find one that it doesn't support, please [open an issue](https://github.com/kpdecker/jsdiff/issues).
 
 ## TypeScript
 

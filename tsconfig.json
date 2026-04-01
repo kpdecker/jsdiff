@@ -2,7 +2,7 @@
     "include": ["src/*.ts", "src/**/*.ts"],
     "compilerOptions": {
         "rootDir": "src/",
-        "target": "es5",
+        "target": "es6",
         "lib": [
             "es2022"
         ],
@@ -16,7 +16,7 @@
         // The same docs page recommends setting
         // "verbatimModuleSyntax": true,
         // but this totally breaks the CJS build and a footnote observes that "Any configuration
-        // that produces both an ESM and a CJS output from the same source file is fundamentally 
+        // that produces both an ESM and a CJS output from the same source file is fundamentally
         // incompatible with" this setting. I don't really know WTF the authors of those docs were
         // thinking, because the recommendation to turn this setting on is from the section
         // specifically for "a library author" who wants to ensure their code works "under all

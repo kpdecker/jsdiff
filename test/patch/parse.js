@@ -299,6 +299,217 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       ]);
     });
 
+    it('should parse multi-file output from GNU `diff -u -r`', function() {
+      // GNU `diff -u -r` (recursive unified diff) produces a `diff -u -r ...`
+      // header before each file.
+      expect(parsePatch(
+`diff -u -r old/file1.txt new/file1.txt
+--- old/file1.txt\t2026-01-01 00:00:00.000000000 +0000
++++ new/file1.txt\t2026-01-01 00:00:00.000000000 +0000
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta
+diff -u -r old/file2.txt new/file2.txt
+--- old/file2.txt\t2026-01-01 00:00:00.000000000 +0000
++++ new/file2.txt\t2026-01-01 00:00:00.000000000 +0000
+@@ -1,3 +1,3 @@
+ one
+-two
++TWO
+ three`))
+        .to.eql([{
+          oldFileName: 'old/file1.txt',
+          oldHeader: '2026-01-01 00:00:00.000000000 +0000',
+          newFileName: 'new/file1.txt',
+          newHeader: '2026-01-01 00:00:00.000000000 +0000',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }, {
+          oldFileName: 'old/file2.txt',
+          oldHeader: '2026-01-01 00:00:00.000000000 +0000',
+          newFileName: 'new/file2.txt',
+          newHeader: '2026-01-01 00:00:00.000000000 +0000',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 3,
+              lines: [
+                ' one',
+                '-two',
+                '+TWO',
+                ' three'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should tolerate `Only in` lines from GNU `diff -r`', function() {
+      // When comparing directories, `diff -r` emits `Only in <dir>: <file>`
+      // for files that exist on only one side. These appear between file diffs.
+      expect(parsePatch(
+`diff -u -r old/file1.txt new/file1.txt
+--- old/file1.txt\t2026-01-01
++++ new/file1.txt\t2026-01-01
+@@ -1,2 +1,3 @@
+ alpha
+ beta
++gamma
+Only in old: removed.txt
+Only in new: added.txt
+diff -u -r old/file2.txt new/file2.txt
+--- old/file2.txt\t2026-01-01
++++ new/file2.txt\t2026-01-01
+@@ -1,3 +1,3 @@
+ one
+-two
++TWO
+ three`))
+        .to.have.length(2);
+    });
+
+    it('should tolerate SVN property change sections between file diffs', function() {
+      // `svn diff` can emit `Property changes on:` sections after a file's
+      // hunks. These are not part of the unified diff format but appear
+      // interspersed with it in SVN output.
+      expect(parsePatch(
+`Index: file.txt
+===================================================================
+--- file.txt\t(revision 1)
++++ file.txt\t(working copy)
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta
+
+Property changes on: file.txt
+___________________________________________________________________
+Added: svn:eol-style
+## -0,0 +1 ##
++native
+Index: other.txt
+===================================================================
+--- other.txt\t(revision 1)
++++ other.txt\t(working copy)
+@@ -1 +1 @@
+-old
++new`))
+        .to.eql([{
+          index: 'file.txt',
+          oldFileName: 'file.txt',
+          oldHeader: '(revision 1)',
+          newFileName: 'file.txt',
+          newHeader: '(working copy)',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }, {
+          index: 'other.txt',
+          oldFileName: 'other.txt',
+          oldHeader: '(revision 1)',
+          newFileName: 'other.txt',
+          newHeader: '(working copy)',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: [
+                '-old',
+                '+new'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should tolerate trailing garbage after the last hunk', function() {
+      // GNU `patch` ignores trailing content that doesn't look like part of
+      // a patch, and so should we.
+      expect(parsePatch(
+`--- file.txt
++++ file.txt
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta
+This is trailing garbage
+More garbage here`))
+        .to.eql([{
+          oldFileName: 'file.txt',
+          oldHeader: '',
+          newFileName: 'file.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should tolerate garbage between file headers and hunks', function() {
+      // GNU `patch` ignores unrecognized lines between the --- / +++ headers
+      // and the first @@ hunk header, and so do we.
+      expect(parsePatch(
+`--- file.txt
++++ file.txt
+some garbage here
+more garbage
+@@ -1,3 +1,4 @@
+ alpha
++beta
+ gamma
+ delta`))
+        .to.eql([{
+          oldFileName: 'file.txt',
+          oldHeader: '',
+          newFileName: 'file.txt',
+          newHeader: '',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' alpha',
+                '+beta',
+                ' gamma',
+                ' delta'
+              ]
+            }
+          ]
+        }]);
+    });
+
     it('should parse multiple files without the Index line', function() {
       expect(parsePatch(
 `--- from\theader1
@@ -441,6 +652,15 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
         }]);
     });
 
+    it('should throw if --- and +++ file headers are not paired', function() {
+      expect(function() {
+        parsePatch('Index: foo\n+++ bar\nblah');
+      }).to['throw']('Missing "--- ..." file header for bar');
+      expect(function() {
+        parsePatch('--- bar\n@@ -1 +1 @@\n-old\n+new');
+      }).to['throw']('Missing "+++ ..." file header for bar');
+    });
+
     it('should perform sanity checks on line numbers', function() {
       parsePatch('@@ -1 +1 @@');
 
@@ -452,18 +672,7 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       }).to['throw']('Removed line count did not match for hunk at line 1');
     });
 
-    it('should not throw on invalid input', function() {
-      expect(parsePatch('blit\nblat\nIndex: foo\nfoo'))
-          .to.eql([{
-            hunks: [],
-            index: 'foo'
-          }]);
-    });
-    it('should throw on invalid input', function() {
-      expect(function() {
-        parsePatch('Index: foo\n+++ bar\nblah');
-      }).to['throw'](/Unknown line 3 "blah"/);
-    });
+
 
     it('should handle OOM case', function() {
       parsePatch('Index: \n===================================================================\n--- \n+++ \n@@ -1,1 +1,2 @@\n-1\n\\ No newline at end of file\n+1\n+2\n');
@@ -691,6 +900,25 @@ diff -r 9117c6561b0b -r 273ce12ad8f1 README
       }]);
     });
 
+    it('should emit an error if a hunk has wrong line counts causing extra hunk-body lines to spill out', () => {
+      // The hunk declares oldLines=2, newLines=2, so the parser consumes
+      // ' a', '-b', '+B' and then stops. The next line ' c' starts with
+      // a space (context line) immediately after the hunk ended, which
+      // indicates the line counts were wrong.
+      const patchStr = `--- file.txt
++++ file.txt
+@@ -1,2 +1,2 @@
+ a
+-b
++B
+ c
+ d
+ e`;
+
+      // eslint-disable-next-line dot-notation
+      expect(() => {parsePatch(patchStr);}).to.throw(/Hunk at line 3 has more lines than expected/);
+    });
+
     it('should emit an error if a hunk contains an invalid line', () => {
       // Within a hunk, every line must either start with '+' (insertion), '-' (deletion),
       // ' ' (context line, i.e. not deleted nor inserted) or a backslash (for
@@ -709,6 +937,620 @@ line3
 
       // eslint-disable-next-line dot-notation
       expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
+    });
+
+    it('should parse a single-file `diff --git` patch', function() {
+      expect(parsePatch(
+`diff --git a/file.txt b/file.txt
+index abc1234..def5678 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1,3 +1,4 @@
+ line1
+ line2
++line3
+ line4`))
+        .to.eql([{
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: 'b/file.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a multi-file `diff --git` patch', function() {
+      expect(parsePatch(
+`diff --git a/file1.txt b/file1.txt
+index abc1234..def5678 100644
+--- a/file1.txt
++++ b/file1.txt
+@@ -1,3 +1,4 @@
+ line1
+ line2
++line3
+ line4
+diff --git a/file2.txt b/file2.txt
+index 1234567..abcdef0 100644
+--- a/file2.txt
++++ b/file2.txt
+@@ -1,3 +1,4 @@
+ lineA
+ lineB
++lineC
+ lineD`))
+        .to.eql([{
+          oldFileName: 'a/file1.txt',
+          oldHeader: '',
+          newFileName: 'b/file1.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }, {
+          oldFileName: 'a/file2.txt',
+          oldHeader: '',
+          newFileName: 'b/file2.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' lineA',
+                ' lineB',
+                '+lineC',
+                ' lineD'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a `diff --git` rename with no content change', function() {
+      expect(parsePatch(
+`diff --git a/README.md b/README-2.md
+similarity index 100%
+rename from README.md
+rename to README-2.md`))
+        .to.eql([{
+          oldFileName: 'a/README.md',
+          newFileName: 'b/README-2.md',
+          isGit: true,
+          hunks: [],
+          isRename: true
+        }]);
+    });
+
+    it('should parse a `diff --git` rename with content change', function() {
+      expect(parsePatch(
+`diff --git a/old-name.txt b/new-name.txt
+similarity index 85%
+rename from old-name.txt
+rename to new-name.txt
+index abc1234..def5678 100644
+--- a/old-name.txt
++++ b/new-name.txt
+@@ -1,3 +1,4 @@
+ line1
+ line2
++line3
+ line4`))
+        .to.eql([{
+          oldFileName: 'a/old-name.txt',
+          oldHeader: '',
+          newFileName: 'b/new-name.txt',
+          newHeader: '',
+          isGit: true,
+          isRename: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a `diff --git` mode-only change', function() {
+      expect(parsePatch(
+`diff --git a/script.sh b/script.sh
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/script.sh',
+          newFileName: 'b/script.sh',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }]);
+    });
+
+    it('should parse a `diff --git` binary file change', function() {
+      expect(parsePatch(
+`diff --git a/image.png b/image.png
+index abc1234..def5678 100644
+Binary files a/image.png and b/image.png differ`))
+        .to.eql([{
+          oldFileName: 'a/image.png',
+          newFileName: 'b/image.png',
+          isGit: true,
+          isBinary: true,
+          hunks: []
+        }]);
+    });
+
+    it('should not lose files when a hunkless `diff --git` file is followed by one with hunks', function() {
+      expect(parsePatch(
+`diff --git a/file1.txt b/file1.txt
+--- a/file1.txt
++++ b/file1.txt
+@@ -1 +1 @@
+-old
++new
+diff --git a/image.png b/image.png
+Binary files a/image.png and b/image.png differ
+diff --git a/file3.txt b/file3.txt
+--- a/file3.txt
++++ b/file3.txt
+@@ -1 +1 @@
+-foo
++bar`))
+        .to.eql([{
+          oldFileName: 'a/file1.txt',
+          oldHeader: '',
+          newFileName: 'b/file1.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-old', '+new']
+            }
+          ]
+        }, {
+          oldFileName: 'a/image.png',
+          newFileName: 'b/image.png',
+          isGit: true,
+          isBinary: true,
+          hunks: []
+        }, {
+          oldFileName: 'a/file3.txt',
+          oldHeader: '',
+          newFileName: 'b/file3.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-foo', '+bar']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a `diff --git` copy', function() {
+      expect(parsePatch(
+`diff --git a/original.txt b/copy.txt
+similarity index 100%
+copy from original.txt
+copy to copy.txt`))
+        .to.eql([{
+          oldFileName: 'a/original.txt',
+          newFileName: 'b/copy.txt',
+          isGit: true,
+          hunks: [],
+          isCopy: true
+        }]);
+    });
+
+    it('should parse a `diff --git` new file', function() {
+      expect(parsePatch(
+`diff --git a/newfile.txt b/newfile.txt
+new file mode 100644
+index 0000000..abc1234
+--- /dev/null
++++ b/newfile.txt
+@@ -0,0 +1,2 @@
++hello
++world`))
+        .to.eql([{
+          oldFileName: '/dev/null',
+          oldHeader: '',
+          newFileName: 'b/newfile.txt',
+          newHeader: '',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 0,
+              newStart: 1, newLines: 2,
+              lines: ['+hello', '+world']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a `diff --git` deleted file', function() {
+      expect(parsePatch(
+`diff --git a/old.txt b/old.txt
+deleted file mode 100644
+index ce01362..0000000
+--- a/old.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-goodbye`))
+        .to.eql([{
+          oldFileName: 'a/old.txt',
+          oldHeader: '',
+          newFileName: '/dev/null',
+          newHeader: '',
+          isGit: true,
+          isDelete: true,
+          oldMode: '100644',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 0,
+              lines: ['-goodbye']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a `diff --git` empty file creation (no --- / +++ or hunks)', function() {
+      expect(parsePatch(
+`diff --git a/empty.txt b/empty.txt
+new file mode 100644
+index 0000000..e69de29`))
+        .to.eql([{
+          oldFileName: 'a/empty.txt',
+          newFileName: 'b/empty.txt',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
+          hunks: []
+        }]);
+    });
+
+    it('should parse a `diff --git` empty file deletion (no --- / +++ or hunks)', function() {
+      expect(parsePatch(
+`diff --git a/empty.txt b/empty.txt
+deleted file mode 100644
+index e69de29..0000000`))
+        .to.eql([{
+          oldFileName: 'a/empty.txt',
+          newFileName: 'b/empty.txt',
+          isGit: true,
+          isDelete: true,
+          oldMode: '100644',
+          hunks: []
+        }]);
+    });
+
+    it('should unquote C-style quoted filenames in rename from/to', function() {
+      expect(parsePatch(
+`diff --git "a/file\\twith\\ttabs.txt" b/normal.txt
+similarity index 100%
+rename from "file\\twith\\ttabs.txt"
+rename to normal.txt`))
+        .to.eql([{
+          oldFileName: 'a/file\twith\ttabs.txt',
+          newFileName: 'b/normal.txt',
+          isGit: true,
+          hunks: [],
+          isRename: true
+        }]);
+    });
+
+    it('should handle all Git C-style escape sequences in quoted filenames', function() {
+      expect(parsePatch(
+`diff --git "a/\\a\\b\\f\\r\\v\\001file.txt" "b/\\a\\b\\f\\r\\v\\001file.txt"
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/\x07\b\f\r\v\x01file.txt',
+          newFileName: 'b/\x07\b\f\r\v\x01file.txt',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }]);
+    });
+
+    it('should handle multi-byte UTF-8 octal escapes in quoted filenames', function() {
+      // 🎉 is U+1F389, UTF-8 bytes F0 9F 8E 89 = octal 360 237 216 211
+      expect(parsePatch(
+`diff --git "a/caf\\303\\251-file\\360\\237\\216\\211.txt" "b/caf\\303\\251-file\\360\\237\\216\\211.txt"
+new file mode 100644
+index 0000000..ce01362
+--- /dev/null
++++ "b/caf\\303\\251-file\\360\\237\\216\\211.txt"
+@@ -0,0 +1 @@
++hello`))
+        .to.eql([{
+          oldFileName: '/dev/null',
+          oldHeader: '',
+          newFileName: 'b/café-file🎉.txt',
+          newHeader: '',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
+          hunks: [
+            {
+              oldStart: 1, oldLines: 0,
+              newStart: 1, newLines: 1,
+              lines: ['+hello']
+            }
+          ]
+        }]);
+    });
+
+    it('should parse `diff --git` with unquoted filenames containing spaces (same old and new)', function() {
+      expect(parsePatch(
+`diff --git a/file with spaces.txt b/file with spaces.txt
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/file with spaces.txt',
+          newFileName: 'b/file with spaces.txt',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }]);
+    });
+
+    it('should parse `diff --git` rename with unquoted filenames containing spaces', function() {
+      // Typical, easy case where the `diff --git` line is unambiguous.
+      // See a later test for the pathological case.
+      expect(parsePatch(
+`diff --git a/file with spaces.txt b/another file with spaces.txt
+similarity index 100%
+rename from file with spaces.txt
+rename to another file with spaces.txt`))
+        .to.eql([{
+          oldFileName: 'a/file with spaces.txt',
+          newFileName: 'b/another file with spaces.txt',
+          isGit: true,
+          hunks: [],
+          isRename: true
+        }]);
+    });
+
+    it('should handle `diff --git` with a filename containing " b/"', function() {
+      // The filename literally contains " b/" which is also the separator
+      // between the old and new paths. Since old === new, the parser can
+      // find the unique split where both halves match.
+      expect(parsePatch(
+`diff --git a/x b/y.txt b/x b/y.txt
+old mode 100644
+new mode 100755`))
+        .to.eql([{
+          oldFileName: 'a/x b/y.txt',
+          newFileName: 'b/x b/y.txt',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }]);
+    });
+
+    it('should handle `diff --git` rename where filenames contain " b/"', function() {
+      // The diff --git line "diff --git a/x b/y b/z" is ambiguous: it
+      // could be split as old="a/x" new="b/y b/z" or old="a/x b/y"
+      // new="b/z". We parse two patches with the SAME diff --git line
+      // but different rename from/rename to headers to prove the
+      // extended headers win and correctly disambiguate the split.
+
+      // Split interpretation 1: old="a/x", new="b/y b/z"
+      expect(parsePatch(
+`diff --git a/x b/y b/z
+similarity index 100%
+rename from x
+rename to y b/z`))
+        .to.eql([{
+          oldFileName: 'a/x',
+          newFileName: 'b/y b/z',
+          isGit: true,
+          hunks: [],
+          isRename: true
+        }]);
+
+      // Split interpretation 2: old="a/x b/y", new="b/z"
+      expect(parsePatch(
+`diff --git a/x b/y b/z
+similarity index 100%
+rename from x b/y
+rename to z`))
+        .to.eql([{
+          oldFileName: 'a/x b/y',
+          newFileName: 'b/z',
+          isGit: true,
+          hunks: [],
+          isRename: true
+        }]);
+    });
+
+    it('should handle `diff --git` rename where filenames contain " b/", without rename from/to', function() {
+      // Same ambiguous `diff --git` line as previous test, but here
+      // disambiguated by the ---/+++ headers.
+
+      // Split interpretation 1: old="a/x", new="b/y b/z"
+      expect(parsePatch(
+`diff --git a/x b/y b/z
+--- a/x
++++ b/y b/z
+@@ -1 +1 @@
+-hello
++world`))
+        .to.eql([{
+          oldFileName: 'a/x',
+          oldHeader: '',
+          newFileName: 'b/y b/z',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-hello', '+world']
+            }
+          ]
+        }]);
+
+      // Split interpretation 2: old="a/x b/y", new="b/z"
+      expect(parsePatch(
+`diff --git a/x b/y b/z
+--- a/x b/y
++++ b/z
+@@ -1 +1 @@
+-hello
++world`))
+        .to.eql([{
+          oldFileName: 'a/x b/y',
+          oldHeader: '',
+          newFileName: 'b/z',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-hello', '+world']
+            }
+          ]
+        }]);
+    });
+
+    describe('unparseable `diff --git headers', function() {
+      // So far as we know, Git never actually produces diff --git headers that
+      // can't be parsed (e.g. with unterminated quotes or missing a/b prefixes).
+      // But we test these cases to confirm parsePatch doesn't crash and instead
+      // gracefully falls back to getting filenames from --- / +++ lines.
+      it('should handle an unparseable `diff --git` header with unterminated quote', function() {
+        expect(parsePatch(
+        `diff --git "a/unterminated
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new`))
+          .to.eql([{
+            oldFileName: 'a/file.txt',
+            oldHeader: '',
+            newFileName: 'b/file.txt',
+            newHeader: '',
+            isGit: true,
+            hunks: [
+              {
+                oldStart: 1, oldLines: 1,
+                newStart: 1, newLines: 1,
+                lines: ['-old', '+new']
+              }
+            ]
+          }]);
+      });
+
+      it('should handle an unparseable `diff --git` header with no a/b prefixes', function() {
+        expect(parsePatch(
+        `diff --git file.txt file.txt
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new`))
+          .to.eql([{
+            oldFileName: 'a/file.txt',
+            oldHeader: '',
+            newFileName: 'b/file.txt',
+            newHeader: '',
+            isGit: true,
+            hunks: [
+              {
+                oldStart: 1, oldLines: 1,
+                newStart: 1, newLines: 1,
+                lines: ['-old', '+new']
+              }
+            ]
+          }]);
+      });
+
+
+      it('should handle an incomplete octal escape in a quoted `diff --git` filename', function() {
+        // The quoted filename has a truncated octal escape (\36 instead of \360).
+        // parseQuotedFileName should return null, so parseGitDiffHeader returns
+        // null and we fall back to --- / +++ lines for filenames.
+        expect(parsePatch(
+        `diff --git "a/file\\36" "b/file\\36"
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new`))
+          .to.eql([{
+            oldFileName: 'a/file.txt',
+            oldHeader: '',
+            newFileName: 'b/file.txt',
+            newHeader: '',
+            isGit: true,
+            hunks: [
+              {
+                oldStart: 1, oldLines: 1,
+                newStart: 1, newLines: 1,
+                lines: ['-old', '+new']
+              }
+            ]
+          }]);
+      });
+
+      it('should handle an unparseable `diff --git` header with no --- or +++ fallback', function() {
+        // When both the `diff --git` header is unparseable AND there are no
+        // --- / +++ lines, filenames remain undefined.
+        expect(parsePatch(
+        `diff --git file.txt file.txt
+old mode 100644
+new mode 100755`))
+          .to.eql([{
+            isGit: true,
+            oldMode: '100644',
+            newMode: '100755',
+            hunks: []
+          }]);
+      });
     });
   });
 });
