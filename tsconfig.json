@@ -3,10 +3,31 @@
     "compilerOptions": {
         "rootDir": "src/",
         "target": "es6",
+
+        // What we would IDEALLY like to do is compile against type declarations corresponding to
+        // precisely what is available in BOTH the "Widely Available" Baseline
+        // (https://web.dev/baseline) AND the latest Node.js LTS, since jsdiff supports both.
+        // Alas, there is no way to do this. As of configuring the settings below (7th
+        // April 2026)...
+        // * there is simply no way to tell TypeScript to use the intersection of two sets of
+        //   global type declarations (i.e. to only use stuff supported by both environments)
+        // * we use stuff that is Widely Available, and available in Node, but not part of ANY
+        //   available "lib" we can set here - namely TextDecoder, which has its own spec separate
+        //   from the ECMAScript spec
+        // * even setTimeout is tricky. It's been supported in every browser and in Node since the
+        //   beginning of time, but technically it's part of the DOM spec, not the ES spec, so for
+        //   TypeScript to let us use it, we need to either include "dom" as a "lib" below (allowing
+        //   us to use anything from the DOM spec, even if it's not available in Node) OR specify
+        //   "node" in the "types" array (to use the `@types/node` type declaration module,
+        //   allowing us to use anything available in Node even if it's not available in browsers).
+        // Faced with a menu of unsatisfactory options, we reluctantly choose one. But it means we
+        // absolutely cannot rely on TypeScript to catch if we use a global that isn't actually
+        // available in all our supported environments, and so must rely on tests and vigilance.
         "lib": [
-            "es2022"
+            "es2023", "dom"
         ],
-        "types": ["node"],
+        "types": [],
+
         "declaration": true,
         "skipLibCheck": true,
 
