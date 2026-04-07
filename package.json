@@ -104,7 +104,7 @@
     "nyc": "^18.0.0",
     "rollup": "^4.60.1",
     "tsd": "^0.33.0",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.0",
     "uglify-js": "^3.19.3",
     "webpack": "^5.105.4",
