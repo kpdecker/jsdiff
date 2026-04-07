@@ -6,6 +6,7 @@
         "lib": [
             "es2022"
         ],
+        "types": ["node"],
         "declaration": true,
         "skipLibCheck": true,
 
