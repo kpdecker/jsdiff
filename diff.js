@@ -1001,44 +1001,176 @@
     }
 
     /**
-     * Parses a patch into structured data, in the same structure returned by `structuredPatch`.
+     * Parses a unified diff format patch into a structured patch object.
      *
-     * @return a JSON object representation of the a patch, suitable for use with the `applyPatch` method.
+     * `parsePatch` has some understanding of Git's particular dialect of unified diff format.
+     * When parsing a Git patch, each index in the result may contain additional
+     * fields (`isRename`, `isBinary`, etc) not included in the data structure returned by
+     * `structuredPatch`; see the `StructuredPatch` interface for a full list.
+     *
+     * @return a JSON object representation of the patch, suitable for use with the `applyPatch`
+     * method. This parses to the same structure returned by `structuredPatch`, except that
+     * `oldFileName` and `newFileName` may be `undefined` if the patch doesn't contain enough
+     * information to determine them (e.g. a hunk-only patch with no file headers).
      */
     function parsePatch(uniDiff) {
         const diffstr = uniDiff.split(/\n/), list = [];
         let i = 0;
+        // These helper functions identify line types that can appear between files
+        // in a multi-file patch. Keeping them in one place avoids subtle
+        // inconsistencies from having the same regexes duplicated in multiple places.
+        // Matches `diff --git ...` lines specifically.
+        function isGitDiffHeader(line) {
+            return (/^diff --git /).test(line);
+        }
+        // Matches lines that denote the start of a new diff's section in a
+        // multi-file patch: `diff --git ...`, `Index: ...`, or `diff -r ...`.
+        function isDiffHeader(line) {
+            return isGitDiffHeader(line)
+                || (/^Index:\s/).test(line)
+                || (/^diff(?: -r \w+)+\s/).test(line);
+        }
+        // Matches `--- ...` and `+++ ...` file header lines.
+        function isFileHeader(line) {
+            return (/^(---|\+\+\+)\s/).test(line);
+        }
+        // Matches `@@ ...` hunk header lines.
+        function isHunkHeader(line) {
+            return (/^@@\s/).test(line);
+        }
         function parseIndex() {
+            var _a;
             const index = {};
+            index.hunks = [];
             list.push(index);
             // Parse diff metadata
+            let seenDiffHeader = false;
             while (i < diffstr.length) {
                 const line = diffstr[i];
-                // File header found, end parsing diff metadata
-                if ((/^(---|\+\+\+|@@)\s/).test(line)) {
+                // File header (---, +++) or hunk header (@@) found; end parsing diff metadata
+                if (isFileHeader(line) || isHunkHeader(line)) {
                     break;
                 }
-                // Try to parse the line as a diff header, like
-                //     Index: README.md
-                // or
-                //     diff -r 9117c6561b0b -r 273ce12ad8f1 .hgignore
-                // or
-                //     Index: something with multiple words
-                // and extract the filename (or whatever else is used as an index name)
-                // from the end (i.e. 'README.md', '.hgignore', or
-                // 'something with multiple words' in the examples above).
+                // The next two branches handle recognized diff headers. Note that
+                // isDiffHeader deliberately does NOT match arbitrary `diff`
+                // commands like `diff -u -p -r1.1 -r1.2`, because in some
+                // formats (e.g. CVS diffs) such lines appear as metadata within
+                // a single file's header section, after an `Index:` line. See the
+                // diffx documentation (https://diffx.org) for examples.
                 //
-                // TODO: It seems awkward that we indiscriminately trim off trailing
-                //       whitespace here. Theoretically, couldn't that be meaningful -
-                //       e.g. if the patch represents a diff of a file whose name ends
-                //       with a space? Seems wrong to nuke it.
-                //       But this behaviour has been around since v2.2.1 in 2015, so if
-                //       it's going to change, it should be done cautiously and in a new
-                //       major release, for backwards-compat reasons.
-                //       -- ExplodingCabbage
-                const headerMatch = (/^(?:Index:|diff(?: -r \w+)+)\s+/).exec(line);
-                if (headerMatch) {
-                    index.index = line.substring(headerMatch[0].length).trim();
+                // In both branches: if we've already seen a diff header for *this*
+                // file and now we encounter another one, it must belong to the
+                // next file, so break.
+                if (isGitDiffHeader(line)) {
+                    if (seenDiffHeader) {
+                        return;
+                    }
+                    seenDiffHeader = true;
+                    index.isGit = true;
+                    // Parse the old and new filenames from the `diff --git` header and
+                    // tentatively set oldFileName and newFileName from them. These may
+                    // be overridden below by `rename from` / `rename to` or `copy from` /
+                    // `copy to` extended headers, or by --- and +++ lines. But for Git
+                    // diffs that lack all of those (e.g. mode-only changes, binary
+                    // file changes without rename), these are the only filenames we
+                    // get.
+                    // parseGitDiffHeader returns null if the header can't be parsed
+                    // (e.g. unterminated quoted filename, or unexpected format). In
+                    // that case we skip setting filenames here; they may still be
+                    // set from --- / +++ or rename from / rename to lines below.
+                    const paths = parseGitDiffHeader(line);
+                    if (paths) {
+                        index.oldFileName = paths.oldFileName;
+                        index.newFileName = paths.newFileName;
+                    }
+                    // Consume Git extended headers (`old mode`, `new mode`, `rename from`,
+                    // `rename to`, `similarity index`, `index`, `Binary files ... differ`,
+                    // etc.)
+                    i++;
+                    while (i < diffstr.length) {
+                        const extLine = diffstr[i];
+                        // Stop consuming extended headers if we hit a file header,
+                        // hunk header, or another diff header.
+                        if (isFileHeader(extLine) || isHunkHeader(extLine) || isDiffHeader(extLine)) {
+                            break;
+                        }
+                        // Parse `rename from` / `rename to` lines - these give us
+                        // unambiguous filenames. These lines don't include the
+                        // a/ and b/ prefixes that appear in the `diff --git` header
+                        // and --- / +++ lines, so we add them for consistency.
+                        // Git C-style quotes filenames containing special characters
+                        // (tabs, newlines, backslashes, double quotes), so we must
+                        // unquote them when present.
+                        const renameFromMatch = (/^rename from (.*)/).exec(extLine);
+                        if (renameFromMatch) {
+                            index.oldFileName = 'a/' + unquoteIfQuoted(renameFromMatch[1]);
+                            index.isRename = true;
+                        }
+                        const renameToMatch = (/^rename to (.*)/).exec(extLine);
+                        if (renameToMatch) {
+                            index.newFileName = 'b/' + unquoteIfQuoted(renameToMatch[1]);
+                            index.isRename = true;
+                        }
+                        // Parse copy from / copy to lines similarly
+                        const copyFromMatch = (/^copy from (.*)/).exec(extLine);
+                        if (copyFromMatch) {
+                            index.oldFileName = 'a/' + unquoteIfQuoted(copyFromMatch[1]);
+                            index.isCopy = true;
+                        }
+                        const copyToMatch = (/^copy to (.*)/).exec(extLine);
+                        if (copyToMatch) {
+                            index.newFileName = 'b/' + unquoteIfQuoted(copyToMatch[1]);
+                            index.isCopy = true;
+                        }
+                        const newFileModeMatch = (/^new file mode (\d+)/).exec(extLine);
+                        if (newFileModeMatch) {
+                            index.isCreate = true;
+                            index.newMode = newFileModeMatch[1];
+                        }
+                        const deletedFileModeMatch = (/^deleted file mode (\d+)/).exec(extLine);
+                        if (deletedFileModeMatch) {
+                            index.isDelete = true;
+                            index.oldMode = deletedFileModeMatch[1];
+                        }
+                        const oldModeMatch = (/^old mode (\d+)/).exec(extLine);
+                        if (oldModeMatch) {
+                            index.oldMode = oldModeMatch[1];
+                        }
+                        const newModeMatch = (/^new mode (\d+)/).exec(extLine);
+                        if (newModeMatch) {
+                            index.newMode = newModeMatch[1];
+                        }
+                        if ((/^Binary files /).test(extLine)) {
+                            index.isBinary = true;
+                        }
+                        i++;
+                    }
+                    continue;
+                }
+                else if (isDiffHeader(line)) {
+                    if (seenDiffHeader) {
+                        return;
+                    }
+                    seenDiffHeader = true;
+                    // For Mercurial-style headers like
+                    //     diff -r 9117c6561b0b -r 273ce12ad8f1 .hgignore
+                    // or Index: headers like
+                    //     Index: something with multiple words
+                    // we extract the trailing filename as the index.
+                    //
+                    // TODO: It seems awkward that we indiscriminately trim off
+                    //       trailing whitespace here. Theoretically, couldn't that
+                    //       be meaningful - e.g. if the patch represents a diff of a
+                    //       file whose name ends with a space? Seems wrong to nuke
+                    //       it. But this behaviour has been around since v2.2.1 in
+                    //       2015, so if it's going to change, it should be done
+                    //       cautiously and in a new major release, for
+                    //       backwards-compat reasons.
+                    //       -- ExplodingCabbage
+                    const headerMatch = (/^(?:Index:|diff(?: -r \w+)+)\s+/).exec(line);
+                    if (headerMatch) {
+                        index.index = line.substring(headerMatch[0].length).trim();
+                    }
                 }
                 i++;
             }
@@ -1046,23 +1178,242 @@
             // there's no technical issues to have an isolated hunk without file header
             parseFileHeader(index);
             parseFileHeader(index);
-            // Parse hunks
-            index.hunks = [];
+            // If we got one file header but not the other, that's a malformed patch.
+            if ((index.oldFileName === undefined) !== (index.newFileName === undefined)) {
+                throw new Error('Missing ' + (index.oldFileName !== undefined ? '"+++ ..."' : '"--- ..."')
+                    + ' file header for ' + ((_a = index.oldFileName) !== null && _a !== void 0 ? _a : index.newFileName));
+            }
             while (i < diffstr.length) {
                 const line = diffstr[i];
-                if ((/^(Index:\s|diff\s|---\s|\+\+\+\s|===================================================================)/).test(line)) {
+                if (isDiffHeader(line) || isFileHeader(line) || (/^===================================================================/).test(line)) {
                     break;
                 }
-                else if ((/^@@/).test(line)) {
+                else if (isHunkHeader(line)) {
                     index.hunks.push(parseHunk());
                 }
-                else if (line) {
-                    throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(line));
-                }
                 else {
+                    // Skip blank lines and any other unrecognized content between
+                    // or after hunks. Real-world examples of such content include:
+                    //   - `Only in <dir>: <file>` from GNU `diff -r`
+                    //   - `Property changes on:` sections from `svn diff`
+                    //   - Trailing prose or commentary in email patches
+                    // GNU `patch` tolerates all of these, and so do we.
                     i++;
                 }
             }
+        }
+        /**
+         * Parses the old and new filenames from a `diff --git` header line.
+         *
+         * The format is:
+         *     diff --git a/<old-path> b/<new-path>
+         *
+         * When filenames contain special characters (including newlines, tabs,
+         * backslashes, or double quotes), Git quotes them with C-style escaping:
+         *     diff --git "a/file\twith\ttabs.txt" "b/file\twith\ttabs.txt"
+         *
+         * When filenames don't contain special characters and the old and new names
+         * are the same, we can unambiguously split on ` b/` by finding where the
+         * two halves (including their a/ and b/ prefixes) yield matching bare names.
+         *
+         * A pathological case exists in which we cannot reliably determine the paths
+         * from the `diff --git` header. This case is when the following are true:
+         * - the old and new file paths differ
+         * - they are both unquoted (i.e. contain no special characters)
+         * - at least one of the underlying file paths includes the substring ` b/`
+         * In this scenario, we do not know which occurrence of ` b/` indicates the
+         * start of the new file path, so the header is inherently ambiguous. We thus
+         * select a possible interpretation arbitrarily and return that.
+         *
+         * Fortunately, this ambiguity should never matter, because in any patch
+         * genuinely output by Git in which this pathological scenario occurs, there
+         * must also be `rename from`/`rename to` or `copy from`/`copy to` extended
+         * headers present below the `diff --git` header. `parseIndex` will parse
+         * THOSE headers, from which we CAN unambiguously determine the filenames,
+         * and will discard the result returned by this function.
+         *
+         * Returns null if the header can't be parsed at all — e.g. a quoted filename
+         * has an unterminated quote, or if the unquoted header doesn't match the
+         * expected `a/... b/...` format. In that case, the caller (parseIndex)
+         * skips setting oldFileName/newFileName from this header, but they may
+         * still be set later from `---`/`+++` lines or `rename from`/`rename to`
+         * extended headers; if none of those are present either, they'll remain
+         * undefined in the output.
+         */
+        function parseGitDiffHeader(line) {
+            // Strip the "diff --git " prefix
+            const rest = line.substring('diff --git '.length);
+            // Handle quoted paths: "a/path" "b/path"
+            // Git quotes paths when they contain characters like newlines, tabs,
+            // backslashes, or double quotes (but notably not spaces).
+            if (rest.startsWith('"')) {
+                const oldPath = parseQuotedFileName(rest);
+                if (oldPath === null) {
+                    return null;
+                }
+                const afterOld = rest.substring(oldPath.rawLength + 1); // +1 for space
+                let newFileName;
+                if (afterOld.startsWith('"')) {
+                    const newPath = parseQuotedFileName(afterOld);
+                    if (newPath === null) {
+                        return null;
+                    }
+                    newFileName = newPath.fileName;
+                }
+                else {
+                    newFileName = afterOld;
+                }
+                return {
+                    oldFileName: oldPath.fileName,
+                    newFileName
+                };
+            }
+            // Check if the second path is quoted
+            // e.g. diff --git a/simple "b/renamed\nnewline.txt"
+            const quoteIdx = rest.indexOf('"');
+            if (quoteIdx > 0) {
+                const oldFileName = rest.substring(0, quoteIdx - 1);
+                const newPath = parseQuotedFileName(rest.substring(quoteIdx));
+                if (newPath === null) {
+                    return null;
+                }
+                return {
+                    oldFileName,
+                    newFileName: newPath.fileName
+                };
+            }
+            // Unquoted paths. Try to find the split point.
+            // The format is: a/<old-path> b/<new-path>
+            //
+            // Note the potential ambiguity caused by the possibility of the file paths
+            // themselves containing the substring ` b/`, plus the pathological case
+            // described in the comment above.
+            //
+            // Strategy: find all occurrences of " b/" and split on the middle
+            // one. When old and new names are the same (which is the only case where
+            // we can't rely on extended headers later in the patch so HAVE to get
+            // this right), this will always be the correct split.
+            if (rest.startsWith('a/')) {
+                const splits = [];
+                let idx = 0;
+                while (true) {
+                    idx = rest.indexOf(' b/', idx + 1);
+                    if (idx === -1) {
+                        break;
+                    }
+                    splits.push(idx);
+                }
+                if (splits.length > 0) {
+                    const mid = splits[Math.floor(splits.length / 2)];
+                    return {
+                        oldFileName: rest.substring(0, mid),
+                        newFileName: rest.substring(mid + 1)
+                    };
+                }
+            }
+            // Fallback: can't parse, return null
+            return null;
+        }
+        /**
+         * If `s` starts with a double quote, unquotes it using C-style escape
+         * rules (as used by Git). Otherwise returns `s` as-is.
+         */
+        function unquoteIfQuoted(s) {
+            if (s.startsWith('"')) {
+                const parsed = parseQuotedFileName(s);
+                if (parsed) {
+                    return parsed.fileName;
+                }
+            }
+            return s;
+        }
+        /**
+         * Parses a C-style quoted filename as used by Git or GNU `diff -u`.
+         * Returns the unescaped filename and the raw length consumed (including quotes).
+         */
+        function parseQuotedFileName(s) {
+            if (!s.startsWith('"')) {
+                return null;
+            }
+            let result = '';
+            let j = 1; // skip opening quote
+            while (j < s.length) {
+                if (s[j] === '"') {
+                    return { fileName: result, rawLength: j + 1 };
+                }
+                if (s[j] === '\\' && j + 1 < s.length) {
+                    j++;
+                    switch (s[j]) {
+                        case 'a':
+                            result += '\x07';
+                            break;
+                        case 'b':
+                            result += '\b';
+                            break;
+                        case 'f':
+                            result += '\f';
+                            break;
+                        case 'n':
+                            result += '\n';
+                            break;
+                        case 'r':
+                            result += '\r';
+                            break;
+                        case 't':
+                            result += '\t';
+                            break;
+                        case 'v':
+                            result += '\v';
+                            break;
+                        case '\\':
+                            result += '\\';
+                            break;
+                        case '"':
+                            result += '"';
+                            break;
+                        case '0':
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7': {
+                            // C-style octal escapes represent raw bytes. Collect
+                            // consecutive octal-escaped bytes and decode as UTF-8.
+                            // Validate that we have a full 3-digit octal escape
+                            if (j + 2 >= s.length || s[j + 1] < '0' || s[j + 1] > '7' || s[j + 2] < '0' || s[j + 2] > '7') {
+                                return null;
+                            }
+                            const bytes = [parseInt(s.substring(j, j + 3), 8)];
+                            j += 3;
+                            while (s[j] === '\\' && s[j + 1] >= '0' && s[j + 1] <= '7') {
+                                if (j + 3 >= s.length || s[j + 2] < '0' || s[j + 2] > '7' || s[j + 3] < '0' || s[j + 3] > '7') {
+                                    return null;
+                                }
+                                bytes.push(parseInt(s.substring(j + 1, j + 4), 8));
+                                j += 4;
+                            }
+                            result += new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+                            continue; // j already points at the next character
+                        }
+                        // Note that in C, there are also three kinds of hex escape sequences:
+                        // - \xhh
+                        // - \uhhhh
+                        // - \Uhhhhhhhh
+                        // We do not bother to parse them here because, so far as we know,
+                        // they are never emitted by any tools that generate unified diff
+                        // format diffs, and so for now jsdiff does not consider them legal.
+                        default: return null;
+                    }
+                }
+                else {
+                    result += s[j];
+                }
+                j++;
+            }
+            // Unterminated quote
+            return null;
         }
         // Parses the --- and +++ headers, if none are found, no lines
         // are consumed.
@@ -1070,9 +1421,12 @@
             const fileHeaderMatch = (/^(---|\+\+\+)\s+/).exec(diffstr[i]);
             if (fileHeaderMatch) {
                 const prefix = fileHeaderMatch[1], data = diffstr[i].substring(3).trim().split('\t', 2), header = (data[1] || '').trim();
-                let fileName = data[0].replace(/\\\\/g, '\\');
-                if (fileName.startsWith('"') && fileName.endsWith('"')) {
-                    fileName = fileName.substr(1, fileName.length - 2);
+                let fileName = data[0];
+                if (fileName.startsWith('"')) {
+                    fileName = unquoteIfQuoted(fileName);
+                }
+                else {
+                    fileName = fileName.replace(/\\\\/g, '\\');
                 }
                 if (prefix === '---') {
                     index.oldFileName = fileName;
@@ -1139,6 +1493,17 @@
             }
             if (removeCount !== hunk.oldLines) {
                 throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
+            }
+            // Check for extra hunk-body-like lines after the declared line counts
+            // were exhausted. If the very next line starts with ' ', '+', or '-',
+            // the hunk's line counts were probably wrong — unless it's a file
+            // header (--- or +++), which legitimately appears immediately after a
+            // hunk in multi-file diffs without Index lines.
+            if (i < diffstr.length && diffstr[i] && (/^[+ -]/).test(diffstr[i])
+                && !isFileHeader(diffstr[i])) {
+                throw new Error('Hunk at line ' + (chunkHeaderIndex + 1)
+                    + ' has more lines than expected (expected '
+                    + hunk.oldLines + ' old lines and ' + hunk.newLines + ' new lines)');
             }
             return hunk;
         }
@@ -1440,12 +1805,24 @@
         processIndex();
     }
 
+    function swapPrefix(fileName) {
+        if (fileName === undefined || fileName === '/dev/null') {
+            return fileName;
+        }
+        if (fileName.startsWith('a/')) {
+            return 'b/' + fileName.slice(2);
+        }
+        if (fileName.startsWith('b/')) {
+            return 'a/' + fileName.slice(2);
+        }
+        return fileName;
+    }
     function reversePatch(structuredPatch) {
         if (Array.isArray(structuredPatch)) {
             // (See comment in unixToWin for why we need the pointless-looking anonymous function here)
             return structuredPatch.map(patch => reversePatch(patch)).reverse();
         }
-        return Object.assign(Object.assign({}, structuredPatch), { oldFileName: structuredPatch.newFileName, oldHeader: structuredPatch.newHeader, newFileName: structuredPatch.oldFileName, newHeader: structuredPatch.oldHeader, hunks: structuredPatch.hunks.map(hunk => {
+        const reversed = Object.assign(Object.assign({}, structuredPatch), { oldFileName: structuredPatch.isGit ? swapPrefix(structuredPatch.newFileName) : structuredPatch.newFileName, oldHeader: structuredPatch.newHeader, newFileName: structuredPatch.isGit ? swapPrefix(structuredPatch.oldFileName) : structuredPatch.oldFileName, newHeader: structuredPatch.oldHeader, oldMode: structuredPatch.newMode, newMode: structuredPatch.oldMode, isCreate: structuredPatch.isDelete, isDelete: structuredPatch.isCreate, hunks: structuredPatch.hunks.map(hunk => {
                 return {
                     oldLines: hunk.newLines,
                     oldStart: hunk.newStart,
@@ -1462,8 +1839,109 @@
                     })
                 };
             }) });
+        if (structuredPatch.isCopy) {
+            // Reversing a copy means deleting the file that was created by the copy.
+            // The "old" file in the reversed patch is the copy destination (which
+            // exists and should be removed), and the "new" file is /dev/null.
+            //
+            // Note: we clear the hunks because the original copy's hunks describe
+            // the diff between the source and destination, not the full content of
+            // the destination file, so they can't be meaningfully reversed into a
+            // deletion hunk. This means the resulting patch is not something
+            // `git apply` will accept (it requires deletion patches to include a
+            // hunk removing every line). Producing a correct deletion hunk would
+            // require knowing the full content of the copy destination, which we
+            // don't have. Consumers that need a `git apply`-compatible patch will
+            // need to resolve the full file content themselves.
+            reversed.newFileName = '/dev/null';
+            reversed.newHeader = undefined;
+            reversed.isDelete = true;
+            delete reversed.isCreate;
+            delete reversed.isCopy;
+            delete reversed.isRename;
+            reversed.hunks = [];
+        }
+        // Reversing a rename is just a rename in the opposite direction;
+        // isRename stays set and the filenames are already swapped above.
+        return reversed;
     }
 
+    /**
+     * Returns true if the filename contains characters that require C-style
+     * quoting (as used by Git and GNU diffutils in diff output).
+     */
+    function needsQuoting(s) {
+        for (let i = 0; i < s.length; i++) {
+            if (s[i] < '\x20' || s[i] > '\x7e' || s[i] === '"' || s[i] === '\\') {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * C-style quotes a filename, encoding special characters as escape sequences
+     * and non-ASCII bytes as octal escapes. This is the inverse of
+     * `parseQuotedFileName` in parse.ts.
+     *
+     * Non-ASCII bytes are encoded as UTF-8 before being emitted as octal escapes.
+     * This matches the behaviour of both Git and GNU diffutils, which always emit
+     * UTF-8 octal escapes regardless of the underlying filesystem encoding (e.g.
+     * Git for Windows converts from NTFS's UTF-16 to UTF-8 internally).
+     *
+     * If the filename doesn't need quoting, returns it as-is.
+     */
+    function quoteFileNameIfNeeded(s) {
+        if (!needsQuoting(s)) {
+            return s;
+        }
+        let result = '"';
+        const bytes = new TextEncoder().encode(s);
+        let i = 0;
+        while (i < bytes.length) {
+            const b = bytes[i];
+            // See https://en.wikipedia.org/wiki/Escape_sequences_in_C#Escape_sequences
+            if (b === 0x07) {
+                result += '\\a';
+            }
+            else if (b === 0x08) {
+                result += '\\b';
+            }
+            else if (b === 0x09) {
+                result += '\\t';
+            }
+            else if (b === 0x0a) {
+                result += '\\n';
+            }
+            else if (b === 0x0b) {
+                result += '\\v';
+            }
+            else if (b === 0x0c) {
+                result += '\\f';
+            }
+            else if (b === 0x0d) {
+                result += '\\r';
+            }
+            else if (b === 0x22) {
+                result += '\\"';
+            }
+            else if (b === 0x5c) {
+                result += '\\\\';
+            }
+            else if (b >= 0x20 && b <= 0x7e) {
+                // Just a printable ASCII character that is neither a double quote nor a
+                // backslash; no need to escape it.
+                result += String.fromCharCode(b);
+            }
+            else {
+                // Either part of a non-ASCII character or a control character without a
+                // special escape sequence; needs escaping as a 3-digit octal escape
+                result += '\\' + b.toString(8).padStart(3, '0');
+            }
+            i++;
+        }
+        result += '"';
+        return result;
+    }
     const INCLUDE_HEADERS = {
         includeIndex: true,
         includeUnderline: true,
@@ -1606,14 +2084,24 @@
     }
     /**
      * creates a unified diff patch.
-     * @param patch either a single structured patch object (as returned by `structuredPatch`) or an array of them (as returned by `parsePatch`)
+     *
+     * @param patch either a single structured patch object (as returned by `structuredPatch`) or an
+     *   array of them (as returned by `parsePatch`).
+     * @param headerOptions behaves the same as the `headerOptions` option of `createTwoFilesPatch`.
+     *   Ignored for patches where `isGit` is `true`.
+     *
+     * When a patch has `isGit: true`, `formatPatch` output is changed to more closely match Git's
+     * output: it emits a `diff --git` header, emits Git extended headers as appropriate based on
+     * properties like `isRename`, `isCreate`, `newMode`, etc, and will omit `---`/`+++` file
+     * headers for patches with no hunks (e.g. renames without content changes).
      */
     function formatPatch(patch, headerOptions) {
+        var _a, _b, _c, _d, _e, _f;
         if (!headerOptions) {
             headerOptions = INCLUDE_HEADERS;
         }
         if (Array.isArray(patch)) {
-            if (patch.length > 1 && !headerOptions.includeFileHeaders) {
+            if (patch.length > 1 && !headerOptions.includeFileHeaders && !patch.every(p => p.isGit)) {
                 throw new Error('Cannot omit file headers on a multi-file patch. '
                     + '(The result would be unparseable; how would a tool trying to apply '
                     + 'the patch know which changes are to which file?)');
@@ -1621,29 +2109,72 @@
             return patch.map(p => formatPatch(p, headerOptions)).join('\n');
         }
         const ret = [];
-        if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName) {
-            ret.push('Index: ' + patch.oldFileName);
+        // Git patches have a fixed header format (diff --git, extended headers,
+        // and ---/+++ when hunks are present), so headerOptions is ignored.
+        if (patch.isGit) {
+            headerOptions = INCLUDE_HEADERS;
+            // Emit Git-style diff --git header and extended headers.
+            // Git never puts /dev/null in the "diff --git" line; for file
+            // creations/deletions it uses the real filename on both sides.
+            if (!patch.oldFileName) {
+                throw new Error('oldFileName must be specified for Git patches');
+            }
+            if (!patch.newFileName) {
+                throw new Error('newFileName must be specified for Git patches');
+            }
+            let gitOldName = patch.oldFileName;
+            let gitNewName = patch.newFileName;
+            if (patch.isCreate && gitOldName === '/dev/null') {
+                gitOldName = gitNewName.replace(/^b\//, 'a/');
+            }
+            else if (patch.isDelete && gitNewName === '/dev/null') {
+                gitNewName = gitOldName.replace(/^a\//, 'b/');
+            }
+            ret.push('diff --git ' + quoteFileNameIfNeeded(gitOldName) + ' ' + quoteFileNameIfNeeded(gitNewName));
+            if (patch.isDelete) {
+                ret.push('deleted file mode ' + ((_a = patch.oldMode) !== null && _a !== void 0 ? _a : '100644'));
+            }
+            if (patch.isCreate) {
+                ret.push('new file mode ' + ((_b = patch.newMode) !== null && _b !== void 0 ? _b : '100644'));
+            }
+            if (patch.oldMode && patch.newMode && !patch.isDelete && !patch.isCreate) {
+                ret.push('old mode ' + patch.oldMode);
+                ret.push('new mode ' + patch.newMode);
+            }
+            if (patch.isRename) {
+                ret.push('rename from ' + quoteFileNameIfNeeded(((_c = patch.oldFileName) !== null && _c !== void 0 ? _c : '').replace(/^a\//, '')));
+                ret.push('rename to ' + quoteFileNameIfNeeded(((_d = patch.newFileName) !== null && _d !== void 0 ? _d : '').replace(/^b\//, '')));
+            }
+            if (patch.isCopy) {
+                ret.push('copy from ' + quoteFileNameIfNeeded(((_e = patch.oldFileName) !== null && _e !== void 0 ? _e : '').replace(/^a\//, '')));
+                ret.push('copy to ' + quoteFileNameIfNeeded(((_f = patch.newFileName) !== null && _f !== void 0 ? _f : '').replace(/^b\//, '')));
+            }
         }
-        if (headerOptions.includeUnderline) {
-            ret.push('===================================================================');
+        else {
+            if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName && patch.oldFileName !== undefined) {
+                ret.push('Index: ' + patch.oldFileName);
+            }
+            if (headerOptions.includeUnderline) {
+                ret.push('===================================================================');
+            }
         }
-        if (headerOptions.includeFileHeaders) {
-            ret.push('--- ' + patch.oldFileName + (typeof patch.oldHeader === 'undefined' ? '' : '\t' + patch.oldHeader));
-            ret.push('+++ ' + patch.newFileName + (typeof patch.newHeader === 'undefined' ? '' : '\t' + patch.newHeader));
+        // Emit --- / +++ file headers. For Git patches with no hunks (e.g.
+        // pure renames, mode-only changes), Git omits these, so we do too.
+        const hasHunks = patch.hunks.length > 0;
+        if (headerOptions.includeFileHeaders && patch.oldFileName !== undefined && patch.newFileName !== undefined
+            && (!patch.isGit || hasHunks)) {
+            ret.push('--- ' + quoteFileNameIfNeeded(patch.oldFileName) + (patch.oldHeader ? '\t' + patch.oldHeader : ''));
+            ret.push('+++ ' + quoteFileNameIfNeeded(patch.newFileName) + (patch.newHeader ? '\t' + patch.newHeader : ''));
         }
         for (let i = 0; i < patch.hunks.length; i++) {
             const hunk = patch.hunks[i];
             // Unified Diff Format quirk: If the chunk size is 0,
             // the first number is one lower than one would expect.
             // https://www.artima.com/weblogs/viewpost.jsp?thread=164293
-            if (hunk.oldLines === 0) {
-                hunk.oldStart -= 1;
-            }
-            if (hunk.newLines === 0) {
-                hunk.newStart -= 1;
-            }
-            ret.push('@@ -' + hunk.oldStart + ',' + hunk.oldLines
-                + ' +' + hunk.newStart + ',' + hunk.newLines
+            const oldStart = hunk.oldLines === 0 ? hunk.oldStart - 1 : hunk.oldStart;
+            const newStart = hunk.newLines === 0 ? hunk.newStart - 1 : hunk.newStart;
+            ret.push('@@ -' + oldStart + ',' + hunk.oldLines
+                + ' +' + newStart + ',' + hunk.newLines
                 + ' @@');
             for (const line of hunk.lines) {
                 ret.push(line);
