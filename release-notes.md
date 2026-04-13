@@ -1,6 +1,6 @@
 # Release Notes
 
-## 9.0.0 (prerelease)
+## 9.0.0
 
 (All changes part of PR [#672](https://github.com/kpdecker/jsdiff/pull/672).)
 
