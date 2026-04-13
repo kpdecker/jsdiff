@@ -3,9 +3,38 @@
     "compilerOptions": {
         "rootDir": "src/",
         "target": "es6",
+
+        // What we would IDEALLY like to do is compile against type declarations corresponding to
+        // precisely what is available in BOTH the "Widely Available" Baseline
+        // (https://web.dev/baseline) AND the latest Node.js LTS, since jsdiff supports both.
+        // Alas, there is no way to do this. As of configuring the settings below (7th
+        // April 2026)...
+        // 1. there is simply no way to tell TypeScript to use the intersection of two sets of
+        //    global type declarations (i.e. to only let us use stuff supported by both
+        //    environments). At best, we can minimise how many global type declarations we include
+        //    by keeping the "lib" and "types" arrays below minimal, and ideally avoiding including
+        //    anything in them that is either browser-specific or Node-specific.
+        // 2. jsdiff actually uses some stuff that is both "Widely Available" and available in Node,
+        //    but not part of *any* ECMAScript spec. These include `TextDecoder`, which has its own
+        //    dedicated spec, and `setTimeout`, which is (weirdly!) part of the HTML standard, not
+        //    the ECMAScript spec (although Node has its own, identical-ish implementation).
+        //    Consequently setting `"lib": ["esnext"]` will not suffice to let jsdiff compile; to
+        //    get to a tsconfig that actually works, we MUST include "dom" in the "lib" array
+        //    and/or use the @types/node type declaration module by including "node" in the
+        //    "types" array.
+        // Obviously, both available solutions to point 2 above are unsatisfactory, due to point 1.
+        // If we include "dom" in the "lib" array, then if we use browser-specific features in our
+        // TypeScript code (that won't work in Node), TypeScript will not warn us about it at
+        // compilation time. If we instead use `types: ["node"]`, the converse problem will exist.
+        //
+        // Faced with two unsatisfactory options, we reluctantly choose one. But it means we
+        // absolutely cannot rely on TypeScript to catch if we use a global that isn't actually
+        // available in all our supported environments, and so must rely on tests and vigilance.
         "lib": [
-            "es2022"
+            "es2023", "dom"
         ],
+        "types": [],
+
         "declaration": true,
         "skipLibCheck": true,
 
