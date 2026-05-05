@@ -16,10 +16,7 @@
     "Kevin Decker <kpdecker@gmail.com> (http://incaseofstairs.com)",
     "Mark Amery <markrobertamery+jsdiff@gmail.com>"
   ],
-  "bugs": {
-    "email": "kpdecker@gmail.com",
-    "url": "http://github.com/kpdecker/jsdiff/issues"
-  },
+  "bugs": "http://github.com/kpdecker/jsdiff/issues",
   "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
