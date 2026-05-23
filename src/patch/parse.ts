@@ -467,7 +467,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
       i < diffstr.length && (removeCount < hunk.oldLines || addCount < hunk.newLines || diffstr[i]?.startsWith('\\'));
       i++
     ) {
-      const operation = (diffstr[i].length == 0 && i != (diffstr.length - 1)) ? ' ' : diffstr[i][0];
+      const operation = diffstr[i].length == 0 ? ' ' : diffstr[i][0];
       if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
         hunk.lines.push(diffstr[i]);
 
