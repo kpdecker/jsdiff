@@ -4,13 +4,11 @@ jsdiff was originally written by Kevin Decker (https://github.com/kpdecker) but 
 
 Please post bug reports and feature requests at https://github.com/kpdecker/jsdiff/issues.
 
-In particular, also feel free to post bugs that could amount to denial-of-service vulnerabilities as public issues. jsdiff has had a handful of such vulnerabilities in the past, caused by bugs where some function has extremely bad time complexity on adversarial input, or in one case a bug whereby adversarial input to `parsePatch` could cause it to go into an infinite loop consuming memory without bound until the JavaScript runtime crashed. I have never heard of them being exploited in the wild, and am generally of the view that denial-of-service vulnerabilities in libraries are typically not especially serious and do not warrant the careful private disclosure that is properly applied to more serious vulnerabilities - so please just chuck them on the public issue tracker. (All that notwithstanding, I will still try to fix them promptly when reported.)
+In particular, also feel free to post bugs that could amount to denial-of-service vulnerabilities as public issues. jsdiff has had a handful of such vulnerabilities in the past, often caused by bugs where some function has bad time complexity on adversarial input. I have never heard of them being exploited in the wild and do not consider their security implications particularly serious - so please just chuck them on the public issue tracker rather than disclosing privately. (All that notwithstanding, I will still try to fix them promptly when reported.)
 
 In the extremely unlikely scenario that you find something more serious than a denial-of-service vulnerability (though I can't even imagine what this would be), please *do* keep it private and reach out to me and Kevin via the email addresses listed in `package.json`.
 
 PRs are welcome (https://github.com/kpdecker/jsdiff/pulls). PRs with tests are even welcomer. I often reject them if I decide I prefer a slightly different approach, though, so the chance of wasting work is high.
-
-(I don't promise to address absolutely *everything* but since taking over maintainership from Kevin I have cleaned up the majority of issues and PRs.)
 
 ## Building and testing
 
