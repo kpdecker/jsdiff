@@ -1,3 +1,15 @@
+# Contributing
+
+jsdiff was originally written by Kevin Decker (https://github.com/kpdecker) but is presently maintained by Mark Amery (https://github.com/ExplodingCabbage) (henceforth "I").
+
+Please post bug reports and feature requests at https://github.com/kpdecker/jsdiff/issues.
+
+In particular, also feel free to post bugs that could amount to denial-of-service vulnerabilities as public issues. jsdiff has had a handful of such vulnerabilities in the past, often caused by bugs where some function has bad time complexity on adversarial input. I have never heard of them being exploited in the wild and do not consider their security implications particularly serious - so please just chuck them on the public issue tracker rather than disclosing privately. (All that notwithstanding, I will still try to fix them promptly when reported.)
+
+In the extremely unlikely scenario that you find something more serious than a denial-of-service vulnerability (though I can't even imagine what this would be), please *do* keep it private and reach out to me and Kevin via the email addresses listed in `package.json`.
+
+PRs are welcome (https://github.com/kpdecker/jsdiff/pulls). PRs with tests are even welcomer. I often reject them if I decide I prefer a slightly different approach, though, so the chance of wasting work is high.
+
 ## Building and testing
 
 ```
@@ -10,7 +22,7 @@ To run tests in a *browser* (for instance to test compatibility with Firefox, wi
 If you notice any problems, please report them to the GitHub issue tracker at
 [http://github.com/kpdecker/jsdiff/issues](http://github.com/kpdecker/jsdiff/issues).
 
-## Releasing
+## Releasing (maintainers only)
 
 Run a test in Firefox via the procedure above before releasing.
 
