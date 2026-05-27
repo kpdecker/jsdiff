@@ -666,10 +666,10 @@ more garbage
 
       expect(function() {
         parsePatch('@@ -1 +1,4 @@');
-      }).to['throw']('Added line count did not match for hunk at line 1');
+      }).to['throw']('New line count did not match for hunk at line 1; expected 4 but got 0');
       expect(function() {
         parsePatch('@@ -1,4 +1 @@');
-      }).to['throw']('Removed line count did not match for hunk at line 1');
+      }).to['throw']('Old line count did not match for hunk at line 1; expected 4 but got 0');
     });
 
 
@@ -937,6 +937,22 @@ line3
 
       // eslint-disable-next-line dot-notation
       expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
+    });
+
+    it('should emit a useful error message if the final hunk of the patch file ends prematurely', () => {
+      const patchStr = `Index: test
+===================================================================
+--- from\theader1
++++ to\theader2
+@@ -1,4 +1,5 @@
+ line2
+ line3
++line4
+ line5`;
+      // eslint-disable-next-line dot-notation
+      expect(() => { parsePatch(patchStr); }).to.throw(
+        'New line count did not match for hunk at line 5; expected 5 but got 4'
+      );
     });
 
     it('should parse a single-file `diff --git` patch', function() {
