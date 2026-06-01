@@ -16,6 +16,15 @@ import type { StructuredPatch } from '../types.js';
 export function parsePatch(uniDiff: string): StructuredPatch[] {
   const diffstr = uniDiff.split(/\n/),
         list: Partial<StructuredPatch>[] = [];
+
+  // If the final line of the patch is missing the trailing newline character
+  // that should be present, we forgive that, but if the final character of
+  // the patch is a newline as expected, we don't consider there to be a
+  // further blank line afterwards. We remove that blank line here:
+  if (diffstr[diffstr.length - 1] == '') {
+    diffstr.pop();
+  }
+
   let i = 0;
 
   // These helper functions identify line types that can appear between files
@@ -494,10 +503,14 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
     // Perform sanity checking
     if (addCount !== hunk.newLines) {
-      throw new Error('Added line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
+      throw new Error(
+        `New line count did not match for hunk at line ${chunkHeaderIndex + 1}; expected ${hunk.newLines} but got ${addCount}`
+      );
     }
     if (removeCount !== hunk.oldLines) {
-      throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
+      throw new Error(
+        `Old line count did not match for hunk at line ${chunkHeaderIndex + 1}; expected ${hunk.oldLines} but got ${removeCount}`
+      );
     }
 
     // Check for extra hunk-body-like lines after the declared line counts
