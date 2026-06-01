@@ -21,7 +21,7 @@ import {diffLines, diffTrimmedLines, lineDiff} from './diff/line.js';
 import {diffSentences, sentenceDiff} from './diff/sentence.js';
 
 import {diffCss, cssDiff} from './diff/css.js';
-import {diffJson, canonicalize, jsonDiff} from './diff/json.js';
+import { diffJson, jsonDiff } from './diff/json.js';
 
 import {diffArrays, arrayDiff} from './diff/array.js';
 
@@ -103,8 +103,7 @@ export {
   parsePatch,
   reversePatch,
   convertChangesToDMP,
-  convertChangesToXML,
-  canonicalize
+  convertChangesToXML
 };
 
 export type {
