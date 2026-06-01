@@ -949,8 +949,15 @@ line3
  line3
 +line4
  line5`;
+      const patchStr2 = patchStr + '\n';
+
       // eslint-disable-next-line dot-notation
       expect(() => { parsePatch(patchStr); }).to.throw(
+        'New line count did not match for hunk at line 5; expected 5 but got 4'
+      );
+
+      // eslint-disable-next-line dot-notation
+      expect(() => { parsePatch(patchStr2); }).to.throw(
         'New line count did not match for hunk at line 5; expected 5 but got 4'
       );
     });
