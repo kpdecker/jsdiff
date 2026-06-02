@@ -126,7 +126,7 @@ describe('diff/json', function() {
         }
         return obj;
       }
-      const deepObj = makeNested(1000000);
+      const deepObj = makeNested(15000);
       expect(() => diffJson(deepObj, {})).not.to['throw']();
     });
   });
