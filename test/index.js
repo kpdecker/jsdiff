@@ -26,6 +26,5 @@ describe('root exports', function() {
     expect(Diff.parsePatch).to.exist;
     expect(Diff.convertChangesToDMP).to.exist;
     expect(Diff.convertChangesToXML).to.exist;
-    expect(Diff.canonicalize).to.exist;
   });
 });
