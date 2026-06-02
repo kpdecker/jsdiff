@@ -113,6 +113,21 @@ describe('diff/json', function() {
         );
       }).to['throw'](/circular|cyclic/i);
     });
+
+    it('can handle deeply-nested objects without exploding (e.g. due to recursion depth)', () => {
+      // Regression test for https://github.com/kpdecker/jsdiff/issues/689
+      function makeNested(depth) {
+        let obj = {};
+        let cur = obj;
+        for (let i = 0; i < depth; i++) {
+          cur.child = {};
+          cur = cur.child;
+        }
+        return obj;
+      }
+      const deepObj = makeNested(1000000);
+      expect(() => diffJson(deepObj, {})).not.to['throw']();
+    });
   });
 
   describe('#canonicalize', function() {
