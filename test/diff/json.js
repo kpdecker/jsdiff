@@ -136,9 +136,10 @@ describe('diff/json', function() {
     it('should handle circular references correctly', function() {
       const obj = {b: 456};
       obj.a = obj;
-      const canonicalObj = canonicalize(obj, noop);
+      const canonicalObj = canonicalize(obj, (k, v) => k == 'b' ? v + 1 : v);
       expect(Object.keys(canonicalObj)).to.eql(['a', 'b']);
-      expect(Object.keys(canonicalObj.a)).to.eql(['a', 'b']);
+      expect(canonicalObj.a).to.eql(canonicalObj);
+      expect(canonicalObj.a.a.a.a.a.b).to.eql(457);
     });
 
     it('should accept a custom JSON.stringify() replacer function', function() {
