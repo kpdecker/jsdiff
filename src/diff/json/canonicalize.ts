@@ -1,5 +1,6 @@
 interface AncestorsLlNode {
-  val: { [k: string]: any } | any[];
+  rawValue: { [k: string]: any } | any[];
+  canonicalizedValue: any,
   next: AncestorsLlNode | null;
 }
 
@@ -10,17 +11,15 @@ interface CanonicalizeTask {
   ancestorsLl: AncestorsLlNode;
 }
 
-function llContains(haystack: AncestorsLlNode | null, needle: any) {
+function duplicateAncestor(haystack: AncestorsLlNode | null, needle: any) {
   while (haystack) {
-    if (haystack.val === needle) {
-      return true;
+    if (haystack.rawValue === needle) {
+      return haystack;
     }
     haystack = haystack.next;
   }
   return false;
 }
-
-const REFERENCE_CYCLE_DETECTED = Symbol();
 
 export function canonicalize(obj: any, replacer: (k: string, v: any) => any) {
   const wrapper: any = {};
@@ -29,53 +28,57 @@ export function canonicalize(obj: any, replacer: (k: string, v: any) => any) {
       parent: wrapper,
       key: 'root',
       rawValue: obj,
-      ancestorsLl: { val: wrapper, next: null }
+      ancestorsLl: { rawValue: wrapper, next: null, canonicalizedValue: wrapper }
     }
   ];
 
   function doTask(task: CanonicalizeTask): any {
-    if (llContains(task.ancestorsLl, task.rawValue)) {
-      return REFERENCE_CYCLE_DETECTED;
-    }
-    const ancestorsLl = { val: task.rawValue, next: task.ancestorsLl };
-    // Step 1: run the replacer
-    const replacedValue = replacer(
-      task.rawValue === obj ? '' : String(task.key),
-      task.rawValue
-    );
-
-    // Step 2: replace objects and arrays with new, empty ones, and queue up
-    // tasks to populate those empty objects with canonicalized versions of
-    // their original contents. Also sort object keys alphabetically.
     let canonicalizedValue: any;
-    if ('[object Array]' === Object.prototype.toString.call(replacedValue)) {
-      canonicalizedValue = new Array(replacedValue.length);
-      for (let i = 0; i < replacedValue.length; i += 1) {
-        tasks.push({
-          parent: canonicalizedValue,
-          key: i,
-          rawValue: replacedValue[i],
-          ancestorsLl
-        });
-      }
-    } else if (replacedValue && replacedValue.toJSON) {
-      // Convert dates to strings - don't replace them with empty objects
-      // as the subsequent clause for objects would otherwise do
-      canonicalizedValue = replacedValue.toJSON();
-    } else if (typeof replacedValue === 'object' && replacedValue !== null) {
-      canonicalizedValue = {};
-      for (const key of Object.keys(replacedValue).sort()) {
-        if (Object.prototype.hasOwnProperty.call(replacedValue, key)) {
+
+    // If we've encountered a reference cycle, bail out of it rather than
+    // following it in circles forever, and skip steps 1 and 2 below.
+    const dupe = duplicateAncestor(task.ancestorsLl, task.rawValue);
+    if (dupe) {
+      canonicalizedValue = dupe.canonicalizedValue;
+    } else {
+      // Step 1: run the replacer
+      const replacedValue = replacer(
+        task.rawValue === obj ? '' : String(task.key),
+        task.rawValue
+      );
+
+      // Step 2: replace objects and arrays with new, empty ones, and queue up
+      // tasks to populate those empty objects with canonicalized versions of
+      // their original contents. Also sort object keys alphabetically.
+      if ('[object Array]' === Object.prototype.toString.call(replacedValue)) {
+        canonicalizedValue = new Array(replacedValue.length);
+        for (let i = 0; i < replacedValue.length; i += 1) {
           tasks.push({
             parent: canonicalizedValue,
-            key,
-            rawValue: replacedValue[key],
-            ancestorsLl
+            key: i,
+            rawValue: replacedValue[i],
+            ancestorsLl: { rawValue: task.rawValue, next: task.ancestorsLl, canonicalizedValue }
           });
         }
+      } else if (replacedValue && replacedValue.toJSON) {
+        // Convert dates to strings - don't replace them with empty objects
+        // as the subsequent clause for objects would otherwise do
+        canonicalizedValue = replacedValue.toJSON();
+      } else if (typeof replacedValue === 'object' && replacedValue !== null) {
+        canonicalizedValue = {};
+        for (const key of Object.keys(replacedValue).sort()) {
+          if (Object.prototype.hasOwnProperty.call(replacedValue, key)) {
+            tasks.push({
+              parent: canonicalizedValue,
+              key,
+              rawValue: replacedValue[key],
+              ancestorsLl: { rawValue: task.rawValue, next: task.ancestorsLl, canonicalizedValue }
+            });
+          }
+        }
+      } else {
+        canonicalizedValue = replacedValue;
       }
-    } else {
-      canonicalizedValue = replacedValue;
     }
 
     // Step 3: insert the new value into the parent object
@@ -83,9 +86,7 @@ export function canonicalize(obj: any, replacer: (k: string, v: any) => any) {
   }
 
   for (let taskIndex = 0; taskIndex <= tasks.length - 1; taskIndex++) {
-    if (doTask(tasks[taskIndex]) === REFERENCE_CYCLE_DETECTED) {
-      return obj;
-    }
+    doTask(tasks[taskIndex]);
   }
   return wrapper.root;
 }
