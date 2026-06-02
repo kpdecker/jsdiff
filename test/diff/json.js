@@ -117,7 +117,7 @@ describe('diff/json', function() {
   });
 
   describe('#canonicalize', function() {
-    function noop(x) { return x; }
+    function noop(k, v) { return v; }
 
     it('should put the keys in canonical order', function() {
       expect(Object.keys(canonicalize({b: 456, a: 123}, noop))).to.eql(['a', 'b']);
