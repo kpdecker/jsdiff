@@ -1,4 +1,5 @@
-import {diffJson, canonicalize} from '../../libesm/diff/json.js';
+import { diffJson } from '../../libesm/diff/json.js';
+import { canonicalize } from '../../libesm/diff/json/canonicalize.js';
 import {convertChangesToXML} from '../../libesm/convert/xml.js';
 
 import {expect} from 'chai';
@@ -116,24 +117,26 @@ describe('diff/json', function() {
   });
 
   describe('#canonicalize', function() {
+    function noop(x) { return x; }
+
     it('should put the keys in canonical order', function() {
-      expect(Object.keys(canonicalize({b: 456, a: 123}))).to.eql(['a', 'b']);
+      expect(Object.keys(canonicalize({b: 456, a: 123}, noop))).to.eql(['a', 'b']);
     });
 
     it('should dive into nested objects', function() {
-      const canonicalObj = canonicalize({b: 456, a: {d: 123, c: 456}});
+      const canonicalObj = canonicalize({b: 456, a: {d: 123, c: 456}}, noop);
       expect(Object.keys(canonicalObj.a)).to.eql(['c', 'd']);
     });
 
     it('should dive into nested arrays', function() {
-      const canonicalObj = canonicalize({b: 456, a: [789, {d: 123, c: 456}]});
+      const canonicalObj = canonicalize({b: 456, a: [789, {d: 123, c: 456}]}, noop);
       expect(Object.keys(canonicalObj.a[1])).to.eql(['c', 'd']);
     });
 
     it('should handle circular references correctly', function() {
       const obj = {b: 456};
       obj.a = obj;
-      const canonicalObj = canonicalize(obj);
+      const canonicalObj = canonicalize(obj, noop);
       expect(Object.keys(canonicalObj)).to.eql(['a', 'b']);
       expect(Object.keys(canonicalObj.a)).to.eql(['a', 'b']);
     });
