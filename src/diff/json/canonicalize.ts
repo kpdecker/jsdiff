@@ -58,6 +58,10 @@ export function canonicalize(obj: any, replacer: (k: string, v: any) => any) {
           ancestorsLl
         });
       }
+    } else if (replacedValue && replacedValue.toJSON) {
+      // Convert dates to strings - don't replace them with empty objects
+      // as the subsequent clause for objects would otherwise do
+      canonicalizedValue = replacedValue.toJSON();
     } else if (typeof replacedValue === 'object' && obj !== null) {
       canonicalizedValue = {};
       for (const key of Object.keys(replacedValue).sort()) {
