@@ -113,6 +113,20 @@ describe('diff/json', function() {
         );
       }).to['throw'](/circular|cyclic/i);
     });
+
+    it('does not silently drop an own __proto__ property', function() {
+      // Objects parsed from JSON can carry an own enumerable "__proto__"
+      // property. Diffing must reflect a change to it instead of reporting
+      // the two objects as identical.
+      const oldObj = JSON.parse('{"__proto__": "old"}');
+      const newObj = JSON.parse('{"__proto__": "new"}');
+      expect(diffJson(oldObj, newObj)).to.eql([
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  "__proto__": "old"\n', added: false, removed: true },
+        { count: 1, value: '  "__proto__": "new"\n', added: true, removed: false },
+        { count: 1, value: '}', removed: false, added: false }
+      ]);
+    });
   });
 
   describe('#canonicalize', function() {

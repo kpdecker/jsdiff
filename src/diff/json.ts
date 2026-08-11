@@ -103,7 +103,10 @@ export function canonicalize(
 
   if (typeof obj === 'object' && obj !== null) {
     stack.push(obj);
-    canonicalizedObj = {};
+    // Use a null-prototype object so that an own "__proto__" key is stored as
+    // a normal property instead of triggering the Object.prototype setter,
+    // which would silently drop the key from the canonicalized output.
+    canonicalizedObj = Object.create(null);
     replacementStack.push(canonicalizedObj);
     const sortedKeys = [];
     let key;
