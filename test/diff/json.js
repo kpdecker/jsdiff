@@ -127,6 +127,38 @@ describe('diff/json', function() {
         { count: 1, value: '}', removed: false, added: false }
       ]);
     });
+
+    it('handles custom toJSON methods like JSON.stringify does', function() {
+      const x = {
+        toJSON: () => 'aaa'
+      };
+      const y = {
+        toJSON: () => 'bbb'
+      };
+
+      expect(diffJson({ foo: x }, {foo: y})).to.eql([
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  "foo": "aaa"\n', added: false, removed: true },
+        { count: 1, value: '  "foo": "bbb"\n', added: true, removed: false },
+        { count: 1, value: '}', removed: false, added: false }
+      ]);
+    });
+
+    it('treats non-callable toJSON properties as normal properties (like JSON.stringify does)', function() {
+      const x = {
+        toJSON: 'aaa'
+      };
+      const y = {
+        toJSON: 'bbb'
+      };
+
+      expect(diffJson(x, y)).to.eql([
+        { count: 1, value: '{\n', removed: false, added: false },
+        { count: 1, value: '  "toJSON": "aaa"\n', added: false, removed: true },
+        { count: 1, value: '  "toJSON": "bbb"\n', added: true, removed: false },
+        { count: 1, value: '}', removed: false, added: false }
+      ]);
+    });
   });
 
   describe('#canonicalize', function() {

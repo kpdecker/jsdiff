@@ -3,6 +3,7 @@
 ## 9.1.0 (prerelease)
 
 - [#697](https://github.com/kpdecker/jsdiff/pull/697) *`diffJson` now correctly handles JSON objects containing a key named `__proto__`*. (Previously, the returned diff would be as if the `__proto__` key did not exist on either of the objects being diffed.)
+- [#700](https://github.com/kpdecker/jsdiff/pull/700) *`diffJson` now correctly handles JSON objects containing a non-callable property named `toJSON`* - i.e. it gives such a property no special behaviour whatsoever, just as `JSON.stringify` doesn't. Previously, such properties caused an error to be thrown. (*Callable* `toJSON` properties continue to get the same special behaviour that `JSON.stringify` gives them.)
 
 ## 9.0.0
 
