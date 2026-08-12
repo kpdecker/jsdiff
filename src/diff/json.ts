@@ -97,7 +97,7 @@ export function canonicalize(
     return canonicalizedObj;
   }
 
-  if (obj && obj.toJSON) {
+  if (obj && typeof obj.toJSON === 'function') {
     obj = obj.toJSON();
   }
 
