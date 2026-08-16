@@ -73,6 +73,35 @@ describe('unixToWin and winToUnix', function() {
       + '\\ No newline at end of file\n'
     );
   });
+
+  it('winToUnix should not strip a literal \\r from the last line if there was no newline at EOF', () => {
+    // The final line's content ends with a literal '\r' with no trailing newline. That '\r' is not
+    // a Windows line ending (those are '\r\n'), so it must be left alone rather than stripped.
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,2 @@\n'
+      + ' line2\r\n'
+      + '-line3\r\n'
+      + '+line3changed\r\n'
+      + '\\ No newline at end of file\n'
+    );
+
+    const unixPatch = winToUnix(patch);
+    expect(formatPatch(unixPatch)).to.equal(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,2 @@\n'
+      + ' line2\n'
+      + '-line3\n'
+      + '+line3changed\r\n'
+      + '\\ No newline at end of file\n'
+    );
+  });
 });
 
 describe('isWin', () => {
@@ -117,6 +146,19 @@ describe('isWin', () => {
       + '\\ No newline at end of file\n'
     );
     expect(isWin(patch)).to.equal(true);
+  });
+
+  it('should return false if the only line ending in a CR is a no-newline-at-EOF line (a literal CR, not a Windows line ending)', () => {
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -2,0 +3,1 @@\n'
+      + '+line3\r\n'
+      + '\\ No newline at end of file\n'
+    );
+    expect(isWin(patch)).to.equal(false);
   });
 });
 
