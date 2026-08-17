@@ -47,7 +47,7 @@ describe('unixToWin and winToUnix', function() {
     expect(formatPatch(winToUnix(patch))).to.equal(formatPatch(unixPatch));
   });
 
-  it('should not introduce \\r on the last line if there was no newline at EOF', () => {
+  it('unixToWin should not introduce \\r on the last line if there was no newline at EOF', () => {
     const patch = parsePatch(
       'Index: test\n'
       + '===================================================================\n'
