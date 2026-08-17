@@ -148,4 +148,19 @@ describe('isUnix', () => {
     );
     expect(isUnix(patch)).to.equal(true);
   });
+
+  it('should still return true if only the last line in a file is missing a LF and there is a no newline at EOF indicator', () => {
+    const patch = parsePatch(
+      'Index: test\n'
+      + '===================================================================\n'
+      + '--- test\theader1\n'
+      + '+++ test\theader2\n'
+      + '@@ -1,2 +1,3 @@\n'
+      + ' line2\n'
+      + ' line3\n'
+      + '+line4\r\n'
+      + '\\ No newline at end of file\n'
+    );
+    expect(isUnix(patch)).to.equal(true);
+  });
 });
