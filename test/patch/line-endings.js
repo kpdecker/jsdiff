@@ -149,7 +149,7 @@ describe('isUnix', () => {
     expect(isUnix(patch)).to.equal(true);
   });
 
-  it('should still return true if only the last line in a file is missing a LF and there is a no newline at EOF indicator', () => {
+  it('should still return true if only the last line in a file has a CR and there is a no newline at EOF indicator', () => {
     const patch = parsePatch(
       'Index: test\n'
       + '===================================================================\n'
