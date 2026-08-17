@@ -148,7 +148,7 @@ describe('isWin', () => {
     expect(isWin(patch)).to.equal(true);
   });
 
-  it('should return false if the only line ending in a CR is a no-newline-at-EOF line (a literal CR, not a Windows line ending)', () => {
+  it('should return false if the only line to end with a CR is a no-newline-at-EOF line (making it a stray literal CR, not a Windows line ending)', () => {
     const patch = parsePatch(
       'Index: test\n'
       + '===================================================================\n'
