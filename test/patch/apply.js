@@ -1422,6 +1422,19 @@ describe('patch/apply', function() {
         .to.equal('');
     });
 
+    it('should correctly apply a Unix patch whose final added line ends with a literal \\r (no newline at EOF) to a Windows file', () => {
+      // The patch is Unix-style (no \\r\\n line endings), but the added line's content ends with a
+      // literal '\\r' because the new file has no trailing newline. autoConvertLineEndings must
+      // recognise the patch as Unix (not Windows), convert it to match the CRLF source, and apply
+      // it correctly — without dropping the literal '\\r'. Previously, isUnix() returned false for
+      // such a patch, so no conversion was attempted and applyPatch returned false.
+      const oldFileUnix = 'line1\nline2\n';
+      const newFileUnix = 'line1\nline3\r'; // final line has literal CR and no trailing newline
+      const patch = structuredPatch('test', 'test', oldFileUnix, newFileUnix, undefined, undefined, {context: 0});
+      const oldFileWin = 'line1\r\nline2\r\n';
+      expect(applyPatch(oldFileWin, patch)).to.equal('line1\r\nline3\r');
+    });
+
     it('should automatically convert a patch with Unix file endings to Windows when patching a Windows file', () => {
       const oldFile = 'foo\r\nbar\r\nbaz\r\nqux\r\n';
       const diffFile =
