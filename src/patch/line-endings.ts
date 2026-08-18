@@ -41,7 +41,16 @@ export function winToUnix(patch: StructuredPatch | StructuredPatch[]): Structure
     ...patch,
     hunks: patch.hunks.map(hunk => ({
       ...hunk,
-      lines: hunk.lines.map(line => line.endsWith('\r') ? line.substring(0, line.length - 1) : line)
+      lines: hunk.lines.map(
+        (line, i) =>
+          // A trailing '\r' on a line immediately followed by a "\ No newline at end of file"
+          // marker is not a Windows line ending (a Windows EOL is '\r\n'); it's a literal carriage
+          // return in the final line's content. Stripping it would corrupt the content, so we leave
+          // such lines alone. (This mirrors the equivalent guard in unixToWin.)
+          (line.endsWith('\r') && !hunk.lines[i + 1]?.startsWith('\\'))
+            ? line.substring(0, line.length - 1)
+            : line
+      )
     }))
   };
 }
@@ -55,7 +64,7 @@ export function isUnix(patch: StructuredPatch | StructuredPatch[]): boolean {
   return !patch.some(
     index => index.hunks.some(
       hunk => hunk.lines.some(
-        line => !line.startsWith('\\') && line.endsWith('\r')
+        (line, i) => !line.startsWith('\\') && line.endsWith('\r') && !hunk.lines[i + 1]?.startsWith('\\')
       )
     )
   );
@@ -66,7 +75,16 @@ export function isUnix(patch: StructuredPatch | StructuredPatch[]): boolean {
  */
 export function isWin(patch: StructuredPatch | StructuredPatch[]): boolean {
   if (!Array.isArray(patch)) { patch = [patch]; }
-  return patch.some(index => index.hunks.some(hunk => hunk.lines.some(line => line.endsWith('\r'))))
+  return patch.some(
+    index => index.hunks.some(
+      hunk => hunk.lines.some(
+        // A trailing '\r' before a "\ No newline at end of file" marker is a literal carriage
+        // return in the final line's content, not a Windows line ending, so it isn't evidence that
+        // the patch uses Windows line endings.
+        (line, i) => line.endsWith('\r') && !hunk.lines[i + 1]?.startsWith('\\')
+      )
+    )
+  )
     && patch.every(
       index => index.hunks.every(
         hunk => hunk.lines.every(

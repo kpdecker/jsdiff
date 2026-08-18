@@ -1422,6 +1422,20 @@ describe('patch/apply', function() {
         .to.equal('');
     });
 
+    it('should correctly apply a Unix patch whose final added line ends with a literal \\r (no newline at EOF) to a Windows file', () => {
+      // Regression test for bug fixed in https://github.com/kpdecker/jsdiff/pull/701
+      // The patch is Unix-style (no \\r\\n line endings), but the added line's content ends with a
+      // literal '\\r' because the new file has no trailing newline. autoConvertLineEndings must
+      // recognise the patch as Unix (not Windows), convert it to match the CRLF source, and apply
+      // it correctly — without dropping the literal '\\r'. Previously, isUnix() returned false for
+      // such a patch, so no conversion was attempted and applyPatch returned false.
+      const oldFileUnix = 'line1\nline2\n';
+      const newFileUnix = 'line1\nline3\r'; // final line has literal CR and no trailing newline
+      const patch = structuredPatch('test', 'test', oldFileUnix, newFileUnix, undefined, undefined, {context: 0});
+      const oldFileWin = 'line1\r\nline2\r\n';
+      expect(applyPatch(oldFileWin, patch)).to.equal('line1\r\nline3\r');
+    });
+
     it('should automatically convert a patch with Unix file endings to Windows when patching a Windows file', () => {
       const oldFile = 'foo\r\nbar\r\nbaz\r\nqux\r\n';
       const diffFile =
@@ -1473,6 +1487,17 @@ describe('patch/apply', function() {
 
       expect(applyPatch(oldFile1, diffFile)).to.equal(false);
       expect(applyPatch(oldFile2, diffFile)).to.equal('foo\nnew\r\ntwo\r\nthree\r\nqux\n');
+    });
+
+    it('should not strip a literal carriage return from a no-newline-at-EOF line when patching a Unix file', () => {
+      // Regression test for bug fixed in https://github.com/kpdecker/jsdiff/pull/701
+      // The final line's content ends with a literal '\r' and has no trailing newline. This '\r' is
+      // not a Windows line ending (those are '\r\n'), so autoConvertLineEndings must not strip it -
+      // doing so previously corrupted the output, losing the carriage return.
+      const oldFile = 'line1\nline2\n';
+      const newFile = 'line1\nline2\nline3\r';
+      const patch = structuredPatch('test', 'test', oldFile, newFile, undefined, undefined, {context: 0});
+      expect(applyPatch(oldFile, patch)).to.equal(newFile);
     });
 
     it('should leave patch file endings alone if autoConvertLineEndings=false', () => {

@@ -4,6 +4,7 @@
 
 - [#697](https://github.com/kpdecker/jsdiff/pull/697) *`diffJson` now correctly handles JSON objects containing a key named `__proto__`*. (Previously, the returned diff would be as if the `__proto__` key did not exist on either of the objects being diffed.)
 - [#700](https://github.com/kpdecker/jsdiff/pull/700) *`diffJson` now correctly handles JSON objects containing a non-callable property named `toJSON`* - i.e. it gives such a property no special behaviour whatsoever, just as `JSON.stringify` doesn't. Previously, such properties caused an error to be thrown. (*Callable* `toJSON` properties continue to get the same special behaviour that `JSON.stringify` gives them.)
+- [#701](https://github.com/kpdecker/jsdiff/pull/701) *`applyPatch` with `autoConvertLineEndings` on will no longer consider a stray `\r` character occurring at the end of a file without a terminating `\n` character to be a Windows line ending*, and so will no longer strip it when converting from Windows to Unix line endings nor fail to apply a Unix-style patch to a Windows file when the patch introduces such a stray `\r`.
 
 ## 9.0.0
 
