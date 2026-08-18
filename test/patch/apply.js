@@ -1423,6 +1423,7 @@ describe('patch/apply', function() {
     });
 
     it('should correctly apply a Unix patch whose final added line ends with a literal \\r (no newline at EOF) to a Windows file', () => {
+      // Regression test for bug fixed in https://github.com/kpdecker/jsdiff/pull/701
       // The patch is Unix-style (no \\r\\n line endings), but the added line's content ends with a
       // literal '\\r' because the new file has no trailing newline. autoConvertLineEndings must
       // recognise the patch as Unix (not Windows), convert it to match the CRLF source, and apply
@@ -1489,6 +1490,7 @@ describe('patch/apply', function() {
     });
 
     it('should not strip a literal carriage return from a no-newline-at-EOF line when patching a Unix file', () => {
+      // Regression test for bug fixed in https://github.com/kpdecker/jsdiff/pull/701
       // The final line's content ends with a literal '\r' and has no trailing newline. This '\r' is
       // not a Windows line ending (those are '\r\n'), so autoConvertLineEndings must not strip it -
       // doing so previously corrupted the output, losing the carriage return.
