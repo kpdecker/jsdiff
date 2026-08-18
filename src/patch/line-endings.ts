@@ -64,7 +64,7 @@ export function isUnix(patch: StructuredPatch | StructuredPatch[]): boolean {
   return !patch.some(
     index => index.hunks.some(
       hunk => hunk.lines.some(
-        line => !line.startsWith('\\') && line.endsWith('\r')
+        (line, i) => !line.startsWith('\\') && line.endsWith('\r') && !hunk.lines[i + 1]?.startsWith('\\')
       )
     )
   );
