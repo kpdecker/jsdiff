@@ -144,6 +144,27 @@ describe('diff/json', function() {
       ]);
     });
 
+    it('preserves arrays returned by toJSON methods', function() {
+      const value = {
+        toJSON: () => [1, {b: 3, a: 2}]
+      };
+      const expected = [1, {a: 2, b: 3}];
+
+      expect(diffJson(value, expected)).to.eql([
+        { count: 7, value: JSON.stringify(expected, null, '  '), added: false, removed: false }
+      ]);
+    });
+
+    it('calls toJSON methods on arrays', function() {
+      const value = [1, 2];
+      value.toJSON = () => ({b: 2, a: 1});
+      const expected = {a: 1, b: 2};
+
+      expect(diffJson(value, expected)).to.eql([
+        { count: 4, value: JSON.stringify(expected, null, '  '), added: false, removed: false }
+      ]);
+    });
+
     it('treats non-callable toJSON properties as normal properties (like JSON.stringify does)', function() {
       const x = {
         toJSON: 'aaa'
