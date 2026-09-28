@@ -9,7 +9,7 @@
 
   Besides preventing jsdiff from emitting patches that jsdiff itself cannot parse, other compatibility impacts should be fairly limited - essentially only occurring when one generates patches using `includeIndex: true` but `includeFileHeaders: false` (since virtually every tool that works with patches will prefer to use the `---`/`+++` file headers to determine the filenames of files to patch, rather than the `Index:` header. To the extent that this change affects compatibility at all, it should mostly be beneficial; GNU `patch` attempts to unquote quoted index headers if it sees them, so this change makes jsdiff's output more compatible with GNU `patch`.
 - [#707](https://github.com/kpdecker/jsdiff/pull/707) **objects with `toJSON` methods that return arrays are supported properly in `diffJson` now**. (Previously, these would be serialized as objects with numeric keys instead of arrays.)
-- [#XXX](https://github.com/kpdecker/jsdiff/pull/XXX) **`diffJson` now calls `toJSON` before `stringifyReplacer`, and passes it the property key, like `JSON.stringify` does**. Previously the replacer saw the original value (e.g. a `Date` rather than its ISO string), so a replacer that checks for a `Date` will now receive the string instead, as it would with `JSON.stringify`.
+- [#708](https://github.com/kpdecker/jsdiff/pull/708) **`diffJson` now calls `toJSON` before `stringifyReplacer`, and passes it the property key, like `JSON.stringify` does**. Previously the replacer saw the original value (e.g. a `Date` rather than its ISO string), so a replacer that checks for a `Date` will now receive the string instead, as it would with `JSON.stringify`.
 
 ## 9.0.0
 
