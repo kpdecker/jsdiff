@@ -585,6 +585,84 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
+    it('should not repeatedly search the same failing fuzzy matches', function() {
+      const patch = parsePatch('--- test\n'
+        + '+++ test\n'
+        + '@@ -1,17 +1,16 @@\n'
+        + ' a\n'.repeat(16)
+        + '-missing\n')[0];
+      let lineReads = 0;
+      patch.hunks[0].lines = new Proxy(patch.hunks[0].lines, {
+        get(target, key, receiver) {
+          if (typeof key === 'string' && (/^\d+$/).test(key)) {
+            // Bound the search work instead of using a machine-dependent time limit.
+            // Also stop an exponential regression without making the test itself slow.
+            if (++lineReads > 50000) {
+              throw new Error('Too many patch line reads');
+            }
+          }
+          return Reflect.get(target, key, receiver);
+        }
+      });
+
+      expect(applyPatch('b\n'.repeat(16), patch, {fuzzFactor: 16})).to.equal(false);
+    });
+
+    it('should not reuse failed fuzzy matches from a different hunk', function() {
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -9,4 +9,4 @@\n'
+        + '-0\n'
+        + '+first\n'
+        + ' x\n'
+        + ' absent\n'
+        + ' also absent\n'
+        + '@@ -17,1 +17,1 @@\n'
+        + '-8\n'
+        + '+second\n';
+
+      expect(applyPatch('0\nx\nz\n3\n4\n5\n6\n7\n8\n9\n', patch, {fuzzFactor: 2}))
+        .to.equal('first\nx\nz\n3\n4\n5\n6\n7\nsecond\n9\n');
+    });
+
+    it('should preserve repeated calls to a custom comparator', function() {
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,9 +1,8 @@\n'
+        + ' a\n'.repeat(8)
+        + '-missing\n';
+      let repeatedComparisons = 0;
+      const options = {
+        fuzzFactor: 8,
+        compareLine(lineNumber, line, operation, patchContent) {
+          delete options.compareLine;
+          if (lineNumber === 4 && operation === '-' && ++repeatedComparisons > 20) {
+            throw new Error('Comparison stopped');
+          }
+          return line === patchContent;
+        }
+      };
+
+      expect(() => applyPatch('b\n'.repeat(8), patch, options)).to['throw']('Comparison stopped');
+    });
+
+    it('should read the custom comparator option only once', function() {
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,1 +1,0 @@\n'
+        + '-a\n';
+      let comparatorReads = 0;
+
+      expect(applyPatch('b\n', patch, {
+        fuzzFactor: 2,
+        get compareLine() {
+          comparatorReads++;
+          return (lineNumber, line, operation, patchContent) => line === patchContent;
+        }
+      })).to.equal(false);
+      expect(comparatorReads).to.equal(1);
+    });
+
     it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
       expect(applyPatch(
         'line1\n'
