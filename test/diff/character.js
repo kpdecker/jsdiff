@@ -64,5 +64,16 @@ describe('diff/character', function() {
       expect(diffChars('whatever', 'whatever', {callback: () => {}})).to.be.undefined;
       expect(diffChars('whatever', 'whatever else', {callback: () => {}})).to.be.undefined;
     });
+
+    it('should not wait for a timer between iterations in async mode', function(done) {
+      // 1000 insertions take 1000 iterations. Waiting for setTimeout between them used to take
+      // at least 1s in Node and 4s in browsers, due to timer clamping.
+      const start = Date.now();
+      diffChars('', 'a'.repeat(1000), function(diffResult) {
+        expect(diffResult).to.have.length(1);
+        expect(Date.now() - start).to.be.below(500);
+        done();
+      });
+    });
   });
 });

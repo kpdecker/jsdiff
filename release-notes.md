@@ -9,6 +9,7 @@
 
   Besides preventing jsdiff from emitting patches that jsdiff itself cannot parse, other compatibility impacts should be fairly limited - essentially only occurring when one generates patches using `includeIndex: true` but `includeFileHeaders: false` (since virtually every tool that works with patches will prefer to use the `---`/`+++` file headers to determine the filenames of files to patch, rather than the `Index:` header. To the extent that this change affects compatibility at all, it should mostly be beneficial; GNU `patch` attempts to unquote quoted index headers if it sees them, so this change makes jsdiff's output more compatible with GNU `patch`.
 - [#707](https://github.com/kpdecker/jsdiff/pull/707) **objects with `toJSON` methods that return arrays are supported properly in `diffJson` now**. (Previously, these would be serialized as objects with numeric keys instead of arrays.)
+- [#710](https://github.com/kpdecker/jsdiff/pull/710) **async mode no longer waits on a timer between iterations of the diff algorithm**. Timer clamping made each iteration take at least 4ms in browsers and 1ms in Node, so async diffs ran many times slower than sync ones. They now take roughly as long.
 
 ## 9.0.0
 
