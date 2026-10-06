@@ -99,14 +99,22 @@ export default class Diff<
     const maxExecutionTime = options.timeout ?? Infinity;
     const abortAfterTimestamp = Date.now() + maxExecutionTime;
 
-    const bestPath: Path[] = [{ oldPos: -1, lastComponent: undefined }];
-
     // Seed editLength = 0, i.e. the content starts with the same values
-    let newPos = this.extractCommon(bestPath[0], newTokens, oldTokens, 0, options);
-    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+    const initialPath: Path = { oldPos: -1, lastComponent: undefined };
+    let newPos = this.extractCommon(initialPath, newTokens, oldTokens, 0, options);
+    if (initialPath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
       // Identity per the equality and tokenizer
-      return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
+      return done(this.buildValues(initialPath.lastComponent, newTokens, oldTokens));
     }
+
+    // bestPath[offset + k] holds the furthest-reaching path on diagonal k. Diagonals go negative,
+    // and JavaScript engines store negative array indices as ordinary named properties rather than
+    // as array elements, which would make every lookup in the loop below a slow dictionary access.
+    // The loop visits diagonals with |k| <= editLength <= maxEditLength <= oldLen + newLen and
+    // reads k - 1 and k + 1, so this offset keeps every index within [0, 2 * offset].
+    const offset = oldLen + newLen + 1;
+    const bestPath: Path[] = new Array(2 * offset + 1);
+    bestPath[offset] = initialPath;
 
     // Once we hit the right edge of the edit graph on some diagonal k, we can
     // definitely reach the end of the edit graph in no more than k edits, so
@@ -135,12 +143,12 @@ export default class Diff<
         diagonalPath += 2
       ) {
         let basePath;
-        const removePath = bestPath[diagonalPath - 1],
-              addPath = bestPath[diagonalPath + 1];
+        const removePath = bestPath[offset + diagonalPath - 1],
+              addPath = bestPath[offset + diagonalPath + 1];
         if (removePath) {
           // No one else is going to attempt to use this value, clear it
           // @ts-expect-error - perf optimisation. This type-violating value will never be read.
-          bestPath[diagonalPath - 1] = undefined;
+          bestPath[offset + diagonalPath - 1] = undefined;
         }
 
         let canAdd = false;
@@ -154,7 +162,7 @@ export default class Diff<
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
           // @ts-expect-error - perf optimisation. This type-violating value will never be read.
-          bestPath[diagonalPath] = undefined;
+          bestPath[offset + diagonalPath] = undefined;
           continue;
         }
 
@@ -173,7 +181,7 @@ export default class Diff<
           // If we have hit the end of both strings, then we are done
           return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens)) || true;
         } else {
-          bestPath[diagonalPath] = basePath;
+          bestPath[offset + diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {
             maxDiagonalToConsider = Math.min(maxDiagonalToConsider, diagonalPath - 1);
           }
