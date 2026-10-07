@@ -107,13 +107,17 @@ export default class Diff<
       return done(this.buildValues(initialPath.lastComponent, newTokens, oldTokens));
     }
 
-    // bestPath[offset + k] holds the furthest-reaching path on diagonal k. Diagonals go negative,
-    // and JavaScript engines store negative array indices as ordinary named properties rather than
-    // as array elements, which would make every lookup in the loop below a slow dictionary access.
-    // The loop visits diagonals with |k| <= editLength <= maxEditLength <= oldLen + newLen and
-    // reads k - 1 and k + 1, so this offset keeps every index within [0, 2 * offset].
-    const offset = oldLen + newLen + 1;
-    const bestPath: Path[] = new Array(2 * offset + 1);
+    // bestPath[offset + k] holds the furthest-reaching path on diagonal k = oldPos - newPos.
+    // Positions range over -1 <= oldPos < oldLen and -1 <= newPos < newLen, so the edit graph has
+    // the oldLen + newLen + 1 diagonals -newLen..oldLen, and the loop below never leaves them: a
+    // path that reaches an edge of the graph stops the exploration beyond it (see
+    // minDiagonalToConsider and maxDiagonalToConsider). The loop also reads k - 1 and k + 1, hence
+    // one spare slot on each side. Diagonals go negative, and JavaScript engines store negative
+    // array indices as ordinary named properties rather than as array elements, which would make
+    // every lookup in the loop a slow dictionary access; the offset keeps every index within
+    // [0, oldLen + newLen + 2].
+    const offset = newLen + 1;
+    const bestPath: Path[] = new Array(oldLen + newLen + 3);
     bestPath[offset] = initialPath;
 
     // Once we hit the right edge of the edit graph on some diagonal k, we can
@@ -134,6 +138,16 @@ export default class Diff<
     // original text of length n, the true Myers algorithm will take O(n+d^2)
     // time while this optimization needs only O(n+d) time.
     let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
+
+    // The seed path may already sit on an edge of the graph (one text empty, or a prefix of the
+    // other). Apply the same rule as the loop below; otherwise the first iteration would read one
+    // slot before the start of bestPath when the new text is empty.
+    if (initialPath.oldPos + 1 >= oldLen) {
+      maxDiagonalToConsider = -1;
+    }
+    if (newPos + 1 >= newLen) {
+      minDiagonalToConsider = 1;
+    }
 
     // Main worker method. checks all permutations of a given edit length for acceptance.
     const execEditLength = () => {
