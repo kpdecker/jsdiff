@@ -151,24 +151,26 @@ export default class Diff<
 
     // Main worker method. checks all permutations of a given edit length for acceptance.
     const execEditLength = () => {
+      // k here represents the number of a diagonal in the edit graph
+      // (The variable name k is chosen to match the Myers diff paper)
       for (
-        let diagonalPath = Math.max(minDiagonalToConsider, -editLength);
-        diagonalPath <= Math.min(maxDiagonalToConsider, editLength);
-        diagonalPath += 2
+        let k = Math.max(minDiagonalToConsider, -editLength);
+        k <= Math.min(maxDiagonalToConsider, editLength);
+        k += 2
       ) {
         let basePath;
-        const removePath = bestPath[offset + diagonalPath - 1],
-              addPath = bestPath[offset + diagonalPath + 1];
+        const removePath = bestPath[offset + k - 1],
+              addPath = bestPath[offset + k + 1];
         if (removePath) {
           // No one else is going to attempt to use this value, clear it
           // @ts-expect-error - perf optimisation. This type-violating value will never be read.
-          bestPath[offset + diagonalPath - 1] = undefined;
+          bestPath[offset + k - 1] = undefined;
         }
 
         let canAdd = false;
         if (addPath) {
           // what newPos will be after we do an insertion:
-          const addPathNewPos = addPath.oldPos - diagonalPath;
+          const addPathNewPos = addPath.oldPos - k;
           canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
         }
 
@@ -176,7 +178,7 @@ export default class Diff<
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
           // @ts-expect-error - perf optimisation. This type-violating value will never be read.
-          bestPath[offset + diagonalPath] = undefined;
+          bestPath[offset + k] = undefined;
           continue;
         }
 
@@ -189,18 +191,18 @@ export default class Diff<
           basePath = this.addToPath(removePath, false, true, 1, options);
         }
 
-        newPos = this.extractCommon(basePath, newTokens, oldTokens, diagonalPath, options);
+        newPos = this.extractCommon(basePath, newTokens, oldTokens, k, options);
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
           return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens)) || true;
         } else {
-          bestPath[offset + diagonalPath] = basePath;
+          bestPath[offset + k] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {
-            maxDiagonalToConsider = Math.min(maxDiagonalToConsider, diagonalPath - 1);
+            maxDiagonalToConsider = Math.min(maxDiagonalToConsider, k - 1);
           }
           if (newPos + 1 >= newLen) {
-            minDiagonalToConsider = Math.max(minDiagonalToConsider, diagonalPath + 1);
+            minDiagonalToConsider = Math.max(minDiagonalToConsider, k + 1);
           }
         }
       }
@@ -259,13 +261,13 @@ export default class Diff<
     basePath: Path,
     newTokens: TokenT[],
     oldTokens: TokenT[],
-    diagonalPath: number,
+    k: number,
     options: AllDiffOptions
   ): number {
     const newLen = newTokens.length,
           oldLen = oldTokens.length;
     let oldPos = basePath.oldPos,
-        newPos = oldPos - diagonalPath,
+        newPos = oldPos - k,
         commonCount = 0;
 
     while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldTokens[oldPos + 1], newTokens[newPos + 1], options)) {
@@ -385,4 +387,3 @@ export default class Diff<
     return components as ChangeObject<ValueT>[];
   }
 }
-
