@@ -27,6 +27,31 @@ describe('diff/character', function() {
       });
     });
 
+    describe('handling of empty strings', function() {
+      it('should emit insertions only when the old text is empty', function() {
+        const diffResult = diffChars('', 'bla');
+        expect(diffResult).to.deep.equal(
+          [
+            { value: 'bla', count: 3, added: true, removed: false }
+          ]
+        );
+      });
+
+      it('should emit deletions only when the new text is empty', function() {
+        const diffResult = diffChars('bla', '');
+        expect(diffResult).to.deep.equal(
+          [
+            { value: 'bla', count: 3, added: false, removed: true }
+          ]
+        );
+      });
+
+      it('should emit an empty change list when both texts are empty strings', function() {
+        const diffResult = diffChars('', '');
+        expect(diffResult).to.deep.equal([]);
+      });
+    });
+
     it('should treat a code point that consists of two UTF-16 code units as a single character, not two', function() {
       const diffResult = diffChars('𝟘𝟙𝟚𝟛', '𝟘𝟙𝟚𝟜𝟝𝟞');
       expect(diffResult.length).to.equal(3);
