@@ -167,13 +167,7 @@ export default class Diff<
           bestPath[offset + k - 1] = undefined;
         }
 
-        let canAdd = false;
-        if (addPath) {
-          // what newPos will be after we do an insertion:
-          const addPathNewPos = addPath.oldPos - k;
-          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
-        }
-
+        const canAdd = addPath && addPath.oldPos - k < newLen;
         const canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
