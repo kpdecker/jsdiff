@@ -143,13 +143,7 @@ export default class Diff<
           bestPath[diagonalPath - 1] = undefined;
         }
 
-        let canAdd = false;
-        if (addPath) {
-          // what newPos will be after we do an insertion:
-          const addPathNewPos = addPath.oldPos - diagonalPath;
-          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
-        }
-
+        const canAdd = addPath && addPath.oldPos - diagonalPath < newLen;
         const canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
           // If this path is a terminal then prune
@@ -363,4 +357,3 @@ export default class Diff<
     return components as ChangeObject<ValueT>[];
   }
 }
-
