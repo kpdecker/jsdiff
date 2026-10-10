@@ -141,6 +141,8 @@ function applyStructuredPatch(
     }
   }
 
+  const failedStatesByHunk = new Map<string[], Set<number>>();
+
   /**
    * Checks if the hunk can be made to fit at the provided location with at most `maxErrors`
    * insertions, substitutions, or deletions, while ensuring also that:
@@ -161,6 +163,40 @@ function applyStructuredPatch(
     lastContextLineMatched: boolean = true,
     patchedLines: string[] = [],
     patchedLinesLength: number = 0
+  ): ApplyHunkReturnType | null {
+    // Whether applyHunk succeeds depends only on hunkLines, toPos, maxErrors, hunkLinesI and
+    // lastContextLineMatched (not on patchedLines, which we only write to). So if we have already
+    // seen a call with these arguments fail, we know this one will fail too. Remembering failures
+    // stops us exploring the same state exponentially many times.
+    const memoKey = (
+      (((toPos + 1) * (hunkLines.length + 1) + hunkLinesI) * (fuzzFactor + 1) + maxErrors) * 2
+      + (lastContextLineMatched ? 1 : 0)
+    );
+    let failedStates = failedStatesByHunk.get(hunkLines);
+    if (!failedStates) {
+      failedStates = new Set();
+      failedStatesByHunk.set(hunkLines, failedStates);
+    }
+    if (failedStates.has(memoKey)) {
+      return null;
+    }
+    const result = applyHunkUnmemoized(
+      hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched, patchedLines, patchedLinesLength
+    );
+    if (!result) {
+      failedStates.add(memoKey);
+    }
+    return result;
+  }
+
+  function applyHunkUnmemoized(
+    hunkLines: string[],
+    toPos: number,
+    maxErrors: number,
+    hunkLinesI: number,
+    lastContextLineMatched: boolean,
+    patchedLines: string[],
+    patchedLinesLength: number
   ): ApplyHunkReturnType | null {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
