@@ -21,6 +21,46 @@ interface Path {
   lastComponent: DraftChangeObject | undefined
 }
 
+/**
+ * Returns a function that schedules a callback to run on a later turn of the event loop.
+ *
+ * Browsers clamp nested `setTimeout(fn, 0)` calls to a delay of at least 4ms (and Node to at
+ * least 1ms), so yielding via `setTimeout` on every iteration of the diffing loop makes async mode
+ * dramatically slower than sync mode. Posting a message to a `MessageChannel` yields to the event
+ * loop without that clamping, so we use it where it is available and fall back to `setTimeout`
+ * where it is not.
+ *
+ * The returned `close` function must be called once no more callbacks will be scheduled, so that
+ * the channel does not keep the process alive.
+ */
+function makeYielder(): {schedule: (fn: () => void) => void, close: () => void} {
+  if (typeof MessageChannel === 'undefined') {
+    return {
+      schedule(fn) { setTimeout(fn, 0); },
+      close() {}
+    };
+  }
+  const channel = new MessageChannel();
+  let pending: (() => void) | undefined;
+  channel.port1.onmessage = () => {
+    const fn = pending;
+    pending = undefined;
+    if (fn) {
+      fn();
+    }
+  };
+  return {
+    schedule(fn) {
+      pending = fn;
+      channel.port2.postMessage(null);
+    },
+    close() {
+      channel.port1.close();
+      channel.port2.close();
+    }
+  };
+}
+
 export default class Diff<
   TokenT,
   ValueT extends Iterable<TokenT> = Iterable<TokenT>,
@@ -209,16 +249,25 @@ export default class Diff<
     // is produced, or until the edit length exceeds options.maxEditLength (if given),
     // in which case it will return undefined.
     if (callback) {
+      const yielder = makeYielder();
       (function exec() {
-        setTimeout(function() {
-          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
-            return (callback as DiffCallbackAbortable<ValueT>)(undefined);
-          }
+        yielder.schedule(function() {
+          try {
+            if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
+              yielder.close();
+              return (callback as DiffCallbackAbortable<ValueT>)(undefined);
+            }
 
-          if (!execEditLength()) {
-            exec();
+            if (execEditLength()) {
+              yielder.close();
+            } else {
+              exec();
+            }
+          } catch (e) {
+            yielder.close();
+            throw e;
           }
-        }, 0);
+        });
       }());
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
