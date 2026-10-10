@@ -1,5 +1,6 @@
 import {applyPatch, applyPatches} from '../../libesm/patch/apply.js';
 import {parsePatch} from '../../libesm/patch/parse.js';
+import {applyPatch as referenceApplyPatch} from './fixtures/apply-reference.js';
 import {createPatch} from '../../libesm/patch/create.js';
 import {structuredPatch} from '../../libesm/patch/create.js';
 
@@ -1849,5 +1850,125 @@ foo3
         complete: done
       });
     });
+  });
+});
+
+describe('patch/apply fuzzy matching performance', function() {
+  // A deterministic PRNG (mulberry32) so that failures are reproducible
+  function makeRng(seed) {
+    return function() {
+      seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  it('should not take exponential time in fuzzFactor when a hunk cannot be applied (#692)', function() {
+    // Every context line mismatches, and the insertion in the middle demands that its neighbours
+    // match exactly, so the only way to find out that the hunk can't fit is to explore every way
+    // of pairing up hunk lines with file lines. This took around 17 seconds before memoization.
+    const n = 20;
+    function context(prefix) { return Array.from({length: n}, (_, i) => ' ' + prefix + i); }
+    const patch = {
+      hunks: [{
+        oldStart: 1,
+        oldLines: 2 * n,
+        newStart: 1,
+        newLines: 2 * n + 1,
+        lines: [...context('a'), '+inserted', ...context('b')]
+      }]
+    };
+    const source = Array.from({length: 2 * n}, (_, i) => 'zzz' + i).join('\n') + '\n';
+
+    const start = Date.now();
+    expect(applyPatch(source, patch, {fuzzFactor: 16})).to.equal(false);
+    expect(Date.now() - start).to.be.below(1000);
+  });
+
+  it('should give exactly the same results as the original exhaustive search', function() {
+    // The reference implementation is a verbatim copy of applyPatch from before the fuzzy search
+    // was memoized. Compare outputs (including `false`) over lots of random files and patches.
+    this.timeout(60000);
+    const rng = makeRng(692);
+    function int(n) { return Math.floor(rng() * n); }
+    function word() { return 'abc'[int(3)]; }
+
+    let nApplied = 0, nFailed = 0, nNeededFuzz = 0;
+    for (let iteration = 0; iteration < 4000; iteration++) {
+      const nFileLines = 1 + int(14);
+      const fileLines = Array.from({length: nFileLines}, word);
+      const endsWithNewline = rng() < 0.7;
+      const source = fileLines.join('\n') + (endsWithNewline ? '\n' : '');
+
+      // Build 1-3 hunks with random contents, deliberately not tied to the file, so that we get a
+      // healthy mix of exact matches, fuzzy matches and failures
+      const hunks = [];
+      let oldStart = 1 + int(4);
+      const nHunks = 1 + int(3);
+      for (let h = 0; h < nHunks; h++) {
+        const lines = [];
+        let oldLines = 0, newLines = 0;
+        const nHunkLines = 1 + int(8);
+        for (let l = 0; l < nHunkLines; l++) {
+          const r = rng();
+          const content = word();
+          if (r < 0.55) {
+            lines.push(' ' + content);
+            oldLines++; newLines++;
+          } else if (r < 0.8) {
+            lines.push('-' + content);
+            oldLines++;
+          } else {
+            lines.push('+' + content);
+            newLines++;
+          }
+        }
+        if (rng() < 0.15) {
+          lines.push('\\ No newline at end of file');
+        }
+        hunks.push({oldStart, oldLines, newStart: oldStart, newLines, lines});
+        oldStart += oldLines + int(4);
+      }
+      const patch = {hunks};
+
+      for (let fuzzFactor = 0; fuzzFactor <= 6; fuzzFactor++) {
+        const expected = referenceApplyPatch(source, patch, {fuzzFactor});
+        const actual = applyPatch(source, patch, {fuzzFactor});
+        expect(actual).to.equal(expected, JSON.stringify({source, patch, fuzzFactor}));
+        if (fuzzFactor === 6) {
+          expected === false ? nFailed++ : nApplied++;
+        }
+        if (fuzzFactor > 0 && expected !== false
+            && referenceApplyPatch(source, patch, {fuzzFactor: fuzzFactor - 1}) === false) {
+          nNeededFuzz++;
+        }
+      }
+    }
+
+    // Make sure the test is actually exercising all of the interesting paths
+    expect(nApplied).to.be.above(200);
+    expect(nFailed).to.be.above(200);
+    expect(nNeededFuzz).to.be.above(200);
+  });
+
+  it('should give the same results as the original search when compareLine is supplied', function() {
+    const rng = makeRng(1234);
+    function int(n) { return Math.floor(rng() * n); }
+    for (let iteration = 0; iteration < 500; iteration++) {
+      const fileLines = Array.from({length: 1 + int(10)}, () => 'abc'[int(3)]);
+      const source = fileLines.join('\n') + '\n';
+      const lines = Array.from({length: 1 + int(6)}, () => ' -+'[int(3)] + 'abc'[int(3)]);
+      const nOld = lines.filter(l => l[0] !== '+').length;
+      const nNew = lines.filter(l => l[0] !== '-').length;
+      const patch = {hunks: [{oldStart: 1 + int(3), oldLines: nOld, newStart: 1, newLines: nNew, lines}]};
+      function compareLine(lineNumber, line, operation, content) {
+        return (line || '').toLowerCase() === content || lineNumber === 3;
+      }
+      for (let fuzzFactor = 0; fuzzFactor <= 4; fuzzFactor++) {
+        expect(applyPatch(source, patch, {fuzzFactor, compareLine}))
+          .to.equal(referenceApplyPatch(source, patch, {fuzzFactor, compareLine}));
+      }
+    }
   });
 });
