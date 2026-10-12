@@ -141,7 +141,15 @@ function applyStructuredPatch(
     }
   }
 
-  const failedStatesByHunk = new Map<string[], Set<number>>();
+  // The memo for the hunk currently being fitted (it is replaced with a fresh one for each hunk,
+  // so it never needs to be keyed by the hunk; `applyHunk` only ever recurses with the same
+  // `hunkLines`). Maps a state of the search, encoded as a number by `memoKey` below, to the
+  // largest `maxErrors` for which we have seen `applyHunk` fail from that state.
+  let failedStates = new Map<number, number>();
+  // Remembering a failure is only ever an optimization, so we simply stop remembering new states
+  // if the memo gets this big (at most ~2(H+1)(L+F+H) states exist for a hunk of H lines in a file
+  // of L lines, so this takes a huge file *and* hunk), which keeps memory bounded.
+  const MAX_FAILED_STATES = 1 << 23;
 
   /**
    * Checks if the hunk can be made to fit at the provided location with at most `maxErrors`
@@ -165,26 +173,28 @@ function applyStructuredPatch(
     patchedLinesLength: number = 0
   ): ApplyHunkReturnType | null {
     // Whether applyHunk succeeds depends only on hunkLines, toPos, maxErrors, hunkLinesI and
-    // lastContextLineMatched (not on patchedLines, which we only write to). So if we have already
-    // seen a call with these arguments fail, we know this one will fail too. Remembering failures
-    // stops us exploring the same state exponentially many times.
-    const memoKey = (
-      (((toPos + 1) * (hunkLines.length + 1) + hunkLinesI) * (fuzzFactor + 1) + maxErrors) * 2
-      + (lastContextLineMatched ? 1 : 0)
-    );
-    let failedStates = failedStatesByHunk.get(hunkLines);
-    if (!failedStates) {
-      failedStates = new Set();
-      failedStatesByHunk.set(hunkLines, failedStates);
-    }
-    if (failedStates.has(memoKey)) {
+    // lastContextLineMatched (not on patchedLines, which we only write to). Also, if it fails with
+    // some value of maxErrors then it fails with any smaller one. So if we have already seen a
+    // call fail from the same state with at least as large a maxErrors, we know this one will fail
+    // too. Remembering failures stops us exploring the same state exponentially many times.
+    //
+    // The key is a mixed-radix encoding of toPos, hunkLinesI and lastContextLineMatched, which is
+    // unique because 0 <= hunkLinesI <= hunkLines.length and toPos can be any integer. We only use
+    // it if it is also exactly representable, which in practice always holds. We also skip states
+    // with maxErrors == 0, which never recurse, so there is little to save and so the default
+    // fuzzFactor of 0 does no memoization work at all.
+    const memoKey = ((toPos + 1) * (hunkLines.length + 1) + hunkLinesI) * 2
+      + (lastContextLineMatched ? 1 : 0);
+    const memoize = maxErrors > 0 && Number.isInteger(toPos) && Number.isSafeInteger(memoKey);
+    const failedWith = memoize ? failedStates.get(memoKey) : undefined;
+    if (failedWith !== undefined && failedWith >= maxErrors) {
       return null;
     }
     const result = applyHunkUnmemoized(
       hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched, patchedLines, patchedLinesLength
     );
-    if (!result) {
-      failedStates.add(memoKey);
+    if (!result && memoize && failedStates.size < MAX_FAILED_STATES) {
+      failedStates.set(memoKey, maxErrors);
     }
     return result;
   }
@@ -306,6 +316,7 @@ function applyStructuredPatch(
   let prevHunkOffset = 0;
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
+    failedStates = new Map();
     let hunkResult;
     const maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos: number | undefined;

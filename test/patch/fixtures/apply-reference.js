@@ -1,50 +1,12 @@
 /* eslint-disable */
-// Verbatim copy of applyPatch from before the fuzzy search was memoized (see #692). Used only by
-// differential tests in ../apply.js to check that the optimized version gives identical results.
-// Do not "fix" or modernize this file.
+// Verbatim copy of the body of applyPatch (a.k.a. applyStructuredPatch) from before the fuzzy search
+// was memoized (see #692), minus its JSDoc and the string/array handling of its argument. Used only
+// by the differential tests in ../apply.js to check that the optimized version gives identical
+// results. Do not "fix" or modernize this file.
 import { hasOnlyWinLineEndings, hasOnlyUnixLineEndings } from '../../../libesm/util/string.js';
 import { isWin, isUnix, unixToWin, winToUnix } from '../../../libesm/patch/line-endings.js';
-import { parsePatch } from '../../../libesm/patch/parse.js';
 import distanceIterator from '../../../libesm/util/distance-iterator.js';
-/**
- * attempts to apply a unified diff patch.
- *
- * Hunks are applied first to last.
- * `applyPatch` first tries to apply the first hunk at the line number specified in the hunk header, and with all context lines matching exactly.
- * If that fails, it tries scanning backwards and forwards, one line at a time, to find a place to apply the hunk where the context lines match exactly.
- * If that still fails, and `fuzzFactor` is greater than zero, it increments the maximum number of mismatches (missing, extra, or changed context lines) that there can be between the hunk context and a region where we are trying to apply the patch such that the hunk will still be considered to match.
- * Regardless of `fuzzFactor`, lines to be deleted in the hunk *must* be present for a hunk to match, and the context lines *immediately* before and after an insertion must match exactly.
- *
- * Once a hunk is successfully fitted, the process begins again with the next hunk.
- * Regardless of `fuzzFactor`, later hunks must be applied later in the file than earlier hunks.
- *
- * If a hunk cannot be successfully fitted *anywhere* with fewer than `fuzzFactor` mismatches, `applyPatch` fails and returns `false`.
- *
- * If a hunk is successfully fitted but not at the line number specified by the hunk header, all subsequent hunks have their target line number adjusted accordingly.
- * (e.g. if the first hunk is applied 10 lines below where the hunk header said it should fit, `applyPatch` will *start* looking for somewhere to apply the second hunk 10 lines below where its hunk header says it goes.)
- *
- * If the patch was applied successfully, returns a string containing the patched text.
- * If the patch could not be applied (because some hunks in the patch couldn't be fitted to the text in `source`), `applyPatch` returns false.
- *
- * @param patch a string diff or the output from the `parsePatch` or `structuredPatch` methods.
- */
 export function applyPatch(source, patch, options = {}) {
-    let patches;
-    if (typeof patch === 'string') {
-        patches = parsePatch(patch);
-    }
-    else if (Array.isArray(patch)) {
-        patches = patch;
-    }
-    else {
-        patches = [patch];
-    }
-    if (patches.length > 1) {
-        throw new Error('applyPatch only works with a single input.');
-    }
-    return applyStructuredPatch(source, patches[0], options);
-}
-function applyStructuredPatch(source, patch, options = {}) {
     if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
         if (hasOnlyWinLineEndings(source) && isUnix(patch)) {
             patch = unixToWin(patch);
@@ -223,39 +185,4 @@ function applyStructuredPatch(source, patch, options = {}) {
         resultLines.push(lines[i]);
     }
     return resultLines.join('\n');
-}
-/**
- * applies one or more patches.
- *
- * `patch` may be either an array of structured patch objects, or a string representing a patch in unified diff format (which may patch one or more files).
- *
- * This method will iterate over the contents of the patch and apply to data provided through callbacks. The general flow for each patch index is:
- *
- * - `options.loadFile(index, callback)` is called. The caller should then load the contents of the file and then pass that to the `callback(err, data)` callback. Passing an `err` will terminate further patch execution.
- * - `options.patched(index, content, callback)` is called once the patch has been applied. `content` will be the return value from `applyPatch`. When it's ready, the caller should call `callback(err)` callback. Passing an `err` will terminate further patch execution.
- *
- * Once all patches have been applied or an error occurs, the `options.complete(err)` callback is made.
- */
-export function applyPatches(uniDiff, options) {
-    const spDiff = typeof uniDiff === 'string' ? parsePatch(uniDiff) : uniDiff;
-    let currentIndex = 0;
-    function processIndex() {
-        const index = spDiff[currentIndex++];
-        if (!index) {
-            return options.complete();
-        }
-        options.loadFile(index, function (err, data) {
-            if (err) {
-                return options.complete(err);
-            }
-            const updatedContent = applyPatch(data, index, options);
-            options.patched(index, updatedContent, function (err) {
-                if (err) {
-                    return options.complete(err);
-                }
-                processIndex();
-            });
-        });
-    }
-    processIndex();
 }

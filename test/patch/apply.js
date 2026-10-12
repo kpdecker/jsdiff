@@ -1904,7 +1904,7 @@ describe('patch/apply fuzzy matching performance', function() {
       // Build 1-3 hunks with random contents, deliberately not tied to the file, so that we get a
       // healthy mix of exact matches, fuzzy matches and failures
       const hunks = [];
-      let oldStart = 1 + int(4);
+      let oldStart = int(5) - 1; // includes 0 and -1, as can come from hand-built patches
       const nHunks = 1 + int(3);
       for (let h = 0; h < nHunks; h++) {
         const lines = [];
