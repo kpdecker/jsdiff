@@ -123,7 +123,7 @@ describe('async mode scheduling', function() {
       restore();
       try {
         expect(result).to.deep.equal(expected);
-        expect(immediateCalls).to.be.above(10);
+        expect(immediateCalls).to.be.at.least(1);
         expect(channelsCreated).to.equal(0);
         done();
       } catch (e) {
@@ -132,7 +132,7 @@ describe('async mode scheduling', function() {
     }});
   });
 
-  it('uses a MessageChannel when setImmediate is unavailable, and closes it afterwards', function(done) {
+  it('uses a MessageChannel when setImmediate is unavailable, and releases its ports afterwards', function(done) {
     if (!inNode) { return this.skip(); }
     const RealMessageChannel = globalThis.MessageChannel;
     let channelsCreated = 0;
@@ -147,9 +147,9 @@ describe('async mode scheduling', function() {
       restore();
       try {
         expect(result).to.deep.equal(expected);
-        expect(channelsCreated).to.equal(1);
-        // The callback is delivered after the channel has been closed, so a lingering port would
-        // keep the process (and mocha) alive.
+        expect(channelsCreated).to.be.at.least(1);
+        // The callback is delivered after the ports have been closed; a lingering port would keep
+        // the process (and mocha) alive.
         setTimeout(() => {
           try {
             expect(activeMessagePorts()).to.equal(portsBefore);
@@ -164,7 +164,7 @@ describe('async mode scheduling', function() {
     }});
   });
 
-  it('closes the MessageChannel when the timeout option aborts the diff', function(done) {
+  it('releases its MessagePorts when the timeout option aborts the diff', function(done) {
     if (!inNode) { return this.skip(); }
     const portsBefore = activeMessagePorts();
     const restore = stubGlobals({setImmediate: undefined});
@@ -187,7 +187,7 @@ describe('async mode scheduling', function() {
     }});
   });
 
-  it('closes the MessageChannel when something throws mid-diff', function(done) {
+  it('releases its MessagePorts when something throws mid-diff', function(done) {
     if (!inNode) { return this.skip(); }
     const portsBefore = activeMessagePorts();
     const restore = stubGlobals({setImmediate: undefined});
@@ -262,6 +262,126 @@ describe('async mode scheduling', function() {
       restore();
     }
     expect(result).to.deep.equal(diffWords('a b c d e f g', 'a x c y e z g'));
+  });
+
+  // Replaces Date.now with a clock that advances 1ms every `callsPerMs` calls, so that tests of
+  // time slicing do not depend on how fast the machine is. Returns a function that restores it.
+  function fakeClock(callsPerMs) {
+    const realNow = Date.now;
+    let calls = 0;
+    const start = realNow.call(Date);
+    Date.now = function() { return start + Math.floor(calls++ / callsPerMs); };
+    return function restore() { Date.now = realNow; };
+  }
+
+  it('yields once per time slice, not once per iteration', function(done) {
+    if (!inNode) { return this.skip(); }
+    const realSetImmediate = globalThis.setImmediate;
+    let immediateCalls = 0;
+    const restoreGlobals = stubGlobals({
+      setImmediate: function(...args) { immediateCalls++; return realSetImmediate(...args); }
+    });
+    const restoreClock = fakeClock(20);
+    const [oldText, newText] = makeTexts(300);
+    const expected = diffWords(oldText, newText);
+    diffWords(oldText, newText, {callback: (result) => {
+      restoreClock();
+      restoreGlobals();
+      try {
+        expect(result).to.deep.equal(expected);
+        // The diff takes a couple of hundred iterations; a slice covers a dozen or so.
+        expect(immediateCalls).to.be.within(2, 60);
+        done();
+      } catch (e) {
+        done(e);
+      }
+    }});
+  });
+
+  it('terminates in a single turn when the clock never advances', function() {
+    // Fake timers that freeze Date (Jest, Vitest and Sinon do by default) mean a time slice never
+    // ends. The diff must still complete, rather than loop forever.
+    const queue = [];
+    let schedulings = 0;
+    const realNow = Date.now;
+    const frozen = realNow.call(Date);
+    Date.now = function() { return frozen; };
+    const restore = stubGlobals({
+      setTimeout: function(fn) { queue.push(fn); return 0; },
+      setImmediate: function(fn) { schedulings++; queue.push(fn); return 0; }
+    });
+    let result;
+    const [oldText, newText] = makeTexts(300);
+    try {
+      diffWords(oldText, newText, {callback: (r) => { result = r; }});
+      let guard = 0;
+      while (queue.length && guard++ < 10000) {
+        queue.shift()();
+      }
+    } finally {
+      restore();
+      Date.now = realNow;
+    }
+    expect(result).to.deep.equal(diffWords(oldText, newText));
+    expect(schedulings).to.equal(1);
+  });
+
+  it('checks the timeout before every iteration, not just at the start of a slice', function(done) {
+    // With this clock a slice would cover many iterations, and the whole diff would take far
+    // longer than the 5ms timeout. The diff must give up at the first iteration past the deadline.
+    const restoreClock = fakeClock(10);
+    const [oldText, newText] = makeTexts(2000);
+    let comparisons = 0;
+    class CountingDiff extends Diff {
+      tokenize(value) { return value.split(' '); }
+      equals(left, right) { comparisons++; return left === right; }
+    }
+    const fullDiffComparisons = (() => {
+      const d = new CountingDiff();
+      comparisons = 0;
+      d.diff(oldText, newText);
+      return comparisons;
+    })();
+    restoreClock();
+    const restoreClock2 = fakeClock(10);
+    comparisons = 0;
+    new CountingDiff().diff(oldText, newText, {timeout: 5, callback: (result) => {
+      restoreClock2();
+      try {
+        expect(result).to.be.undefined;
+        expect(comparisons).to.be.below(fullDiffComparisons / 2);
+        done();
+      } catch (e) {
+        done(e);
+      }
+    }});
+  });
+
+  it('hops through setTimeout now and then while using a MessageChannel', function(done) {
+    if (!inNode) { return this.skip(); }
+    // In several runtimes a chain of MessageChannel tasks starves timers, so the MessageChannel
+    // path must let timers run from time to time.
+    const realSetTimeout = globalThis.setTimeout;
+    let timeoutCalls = 0;
+    const restoreGlobals = stubGlobals({
+      setImmediate: undefined,
+      setTimeout: function(...args) { timeoutCalls++; return realSetTimeout.apply(this, args); }
+    });
+    const restoreClock = fakeClock(3);
+    const [oldText, newText] = makeTexts(1500);
+    const expected = diffWords(oldText, newText);
+    diffWords(oldText, newText, {callback: (result) => {
+      restoreClock();
+      restoreGlobals();
+      try {
+        expect(result).to.deep.equal(expected);
+        // At least one hop, plus the one that delivers the final result.
+        expect(timeoutCalls).to.be.at.least(2);
+        done();
+      } catch (e) {
+        done(e);
+      }
+    }});
   });
 
   it('does not starve timers while it runs', function(done) {

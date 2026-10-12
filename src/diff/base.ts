@@ -22,64 +22,69 @@ interface Path {
 }
 
 /**
- * Returns a function that schedules a callback to run on a later turn of the event loop.
+ * In async mode, the diffing loop runs for a slice of time before yielding to the event loop, so
+ * that the cost of yielding is amortised over many iterations (a diff can need thousands of
+ * iterations of a few microseconds each). The slice length bounds how long a timer, an I/O
+ * callback, a frame or an input event can be held up by a running diff, so it is kept short: 2ms
+ * after `setImmediate`, which is cheap to yield through, and 5ms (the slice React's scheduler
+ * uses) after the other primitives, which cost more per hop. A slice ends at the first iteration
+ * boundary after the time is up, as measured with `Date.now()`.
+ */
+const IMMEDIATE_SLICE_MS = 2;
+const OTHER_SLICE_MS = 5;
+
+/**
+ * Returns a function that schedules a callback to run on a later turn of the event loop, and the
+ * slice length to use with it.
  *
- * We cannot simply use `setTimeout(fn, 0)` on every iteration of the diffing loop: browsers clamp
- * nested timers to a delay of at least 4ms (and Node to at least 1ms), which makes async mode
- * dramatically slower than sync mode. So we prefer, in order:
+ * We cannot simply use `setTimeout(fn, 0)` for this: browsers clamp nested timers to a delay of at
+ * least 4ms (and Node to at least 1ms). So we prefer, in order:
  *
- * 1. `setImmediate`, where it exists (Node, Bun, ...). It yields to the event loop properly, so
- *    timers and I/O keep running between iterations. (A chain of `MessageChannel` messages in
- *    Node does not: it starves timers and I/O until the diff is done.) Test frameworks' fake
- *    timers also replace it, so tests that advance fake timers keep working. We look it up on
- *    every call, rather than capturing it at load time, so that fake timers that get installed
- *    later are honoured.
+ * 1. `setImmediate`, where it exists (Node, Bun, Deno, ...). It yields to the event loop properly,
+ *    so timers and I/O keep running between slices. Test frameworks' fake timers also replace it,
+ *    so tests that advance fake timers keep working. We look it up on every call, rather than
+ *    capturing it at load time, so that fake timers that get installed later are honoured.
  * 2. `MessageChannel`, which is what browsers and workers have instead. It has no minimum delay.
+ *    A chain of its messages starves timers completely in some environments (Web Workers in
+ *    WebKit, Node, Bun, Cloudflare Workers), so every fourth yield goes through `setTimeout`
+ *    instead, which lets timers run every 20ms or so. (A timer scheduled from a message handler
+ *    is not nested, so it is not clamped.)
  * 3. `setTimeout`, where neither is available.
- *
- * This is the same order of preference that React's scheduler uses.
  *
  * (We access `setImmediate` as a property of `globalThis`, rather than as a free variable, because
  * webpack 4 would otherwise see the free variable and bundle a `setImmediate` polyfill into every
  * browser build that includes jsdiff.)
- *
- * The returned `close` function must be called once no more callbacks will be scheduled, so that
- * a channel (which would otherwise keep a Node process alive) is released.
  */
-function makeYielder(): {schedule: (fn: () => void) => void, close: () => void} {
+function makeYielder(): {schedule: (fn: () => void) => void, sliceMs: number} {
   const g = typeof globalThis !== 'undefined' ?
     globalThis as {setImmediate?: (fn: () => void) => unknown} :
     undefined;
   if (g && typeof g.setImmediate === 'function') {
     return {
       schedule(fn) { (g.setImmediate as (fn: () => void) => unknown)(fn); },
-      close() {}
+      sliceMs: IMMEDIATE_SLICE_MS
     };
   }
   if (typeof MessageChannel === 'undefined') {
-    return {
-      schedule(fn) { setTimeout(fn, 0); },
-      close() {}
-    };
+    return {schedule(fn) { setTimeout(fn, 0); }, sliceMs: OTHER_SLICE_MS};
   }
-  const channel = new MessageChannel();
-  let pending: (() => void) | undefined;
-  channel.port1.onmessage = () => {
-    const fn = pending;
-    pending = undefined;
-    if (fn) {
-      fn();
-    }
-  };
+  let yields = 0;
   return {
     schedule(fn) {
-      pending = fn;
+      if (++yields % 4 === 0) {
+        setTimeout(fn, 0);
+        return;
+      }
+      const channel = new MessageChannel();
+      channel.port1.onmessage = () => {
+        // Close first, so that the port is released even if fn throws. (An open port would keep
+        // a Node process alive.)
+        channel.port1.close();
+        fn();
+      };
       channel.port2.postMessage(null);
     },
-    close() {
-      channel.port1.close();
-      channel.port2.close();
-    }
+    sliceMs: OTHER_SLICE_MS
   };
 }
 
@@ -274,21 +279,21 @@ export default class Diff<
       const yielder = makeYielder();
       (function exec() {
         yielder.schedule(function() {
-          try {
+          // Run iterations until the time slice is used up, then yield. The abort checks still
+          // happen before every iteration, so `timeout` and `maxEditLength` behave exactly as in
+          // sync mode. If the clock never advances (e.g. fake timers with a frozen Date), the
+          // slice never ends and the diff simply completes in this one turn.
+          const sliceEnd = Date.now() + yielder.sliceMs;
+          do {
             if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
-              yielder.close();
               return (callback as DiffCallbackAbortable<ValueT>)(undefined);
             }
 
             if (execEditLength()) {
-              yielder.close();
-            } else {
-              exec();
+              return;
             }
-          } catch (e) {
-            yielder.close();
-            throw e;
-          }
+          } while (Date.now() < sliceEnd);
+          exec();
         });
       }());
     } else {
