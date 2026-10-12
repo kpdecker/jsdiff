@@ -24,16 +24,38 @@ interface Path {
 /**
  * Returns a function that schedules a callback to run on a later turn of the event loop.
  *
- * Browsers clamp nested `setTimeout(fn, 0)` calls to a delay of at least 4ms (and Node to at
- * least 1ms), so yielding via `setTimeout` on every iteration of the diffing loop makes async mode
- * dramatically slower than sync mode. Posting a message to a `MessageChannel` yields to the event
- * loop without that clamping, so we use it where it is available and fall back to `setTimeout`
- * where it is not.
+ * We cannot simply use `setTimeout(fn, 0)` on every iteration of the diffing loop: browsers clamp
+ * nested timers to a delay of at least 4ms (and Node to at least 1ms), which makes async mode
+ * dramatically slower than sync mode. So we prefer, in order:
+ *
+ * 1. `setImmediate`, where it exists (Node, Bun, ...). It yields to the event loop properly, so
+ *    timers and I/O keep running between iterations. (A chain of `MessageChannel` messages in
+ *    Node does not: it starves timers and I/O until the diff is done.) Test frameworks' fake
+ *    timers also replace it, so tests that advance fake timers keep working. We look it up on
+ *    every call, rather than capturing it at load time, so that fake timers that get installed
+ *    later are honoured.
+ * 2. `MessageChannel`, which is what browsers and workers have instead. It has no minimum delay.
+ * 3. `setTimeout`, where neither is available.
+ *
+ * This is the same order of preference that React's scheduler uses.
+ *
+ * (We access `setImmediate` as a property of `globalThis`, rather than as a free variable, because
+ * webpack 4 would otherwise see the free variable and bundle a `setImmediate` polyfill into every
+ * browser build that includes jsdiff.)
  *
  * The returned `close` function must be called once no more callbacks will be scheduled, so that
- * the channel does not keep the process alive.
+ * a channel (which would otherwise keep a Node process alive) is released.
  */
 function makeYielder(): {schedule: (fn: () => void) => void, close: () => void} {
+  const g = typeof globalThis !== 'undefined' ?
+    globalThis as {setImmediate?: (fn: () => void) => unknown} :
+    undefined;
+  if (g && typeof g.setImmediate === 'function') {
+    return {
+      schedule(fn) { (g.setImmediate as (fn: () => void) => unknown)(fn); },
+      close() {}
+    };
+  }
   if (typeof MessageChannel === 'undefined') {
     return {
       schedule(fn) { setTimeout(fn, 0); },
