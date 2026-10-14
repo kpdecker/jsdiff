@@ -22,9 +22,6 @@
     "type": "git",
     "url": "https://github.com/kpdecker/jsdiff.git"
   },
-  "engines": {
-    "node": ">=0.3.1"
-  },
   "main": "./libcjs/index.js",
   "module": "./libesm/index.js",
   "browser": "./dist/diff.js",
