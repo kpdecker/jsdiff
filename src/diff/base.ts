@@ -1,4 +1,5 @@
 import type {ChangeObject, AllDiffOptions, AbortableDiffOptions, DiffCallbackNonabortable, CallbackOptionAbortable, CallbackOptionNonabortable, DiffCallbackAbortable, TimeoutOption, MaxEditLengthOption} from '../types.js';
+import {enqueueTask} from '../util/yield.js';
 
 /**
  * Like a ChangeObject, but with no value and an extra `previousComponent` property.
@@ -83,7 +84,7 @@ export default class Diff<
     const done = (value: ChangeObject<ValueT>[]) => {
       value = this.postProcess(value, options);
       if (callback) {
-        setTimeout(function() { callback(value); }, 0);
+        enqueueTask(function() { callback(value); });
         return undefined;
       } else {
         return value;
@@ -210,7 +211,7 @@ export default class Diff<
     // in which case it will return undefined.
     if (callback) {
       (function exec() {
-        setTimeout(function() {
+        enqueueTask(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
             return (callback as DiffCallbackAbortable<ValueT>)(undefined);
           }
@@ -218,7 +219,7 @@ export default class Diff<
           if (!execEditLength()) {
             exec();
           }
-        }, 0);
+        });
       }());
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {

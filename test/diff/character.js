@@ -84,10 +84,37 @@ describe('diff/character', function() {
       diffChars('whatever', 'whatever', {ignoreCase: true});
       diffChars('whatever', 'whatever', {ignoreCase: true, callback: () => {}});
     });
+  });
 
+  describe('async mode', function() {
     it('should return undefined when called in async mode', function() {
       expect(diffChars('whatever', 'whatever', {callback: () => {}})).to.be.undefined;
       expect(diffChars('whatever', 'whatever else', {callback: () => {}})).to.be.undefined;
+    });
+
+    it('should not wait for a timer between iterations in async mode', function(done) {
+      // 1000 insertions take 1000 iterations. Waiting for setTimeout between them used to take
+      // at least 1s in Node and 4s in browsers, due to timer clamping.
+      const start = Date.now();
+      diffChars('', 'a'.repeat(1000), function(diffResult) {
+        expect(diffResult).to.have.length(1);
+        expect(Date.now() - start).to.be.below(500);
+        done();
+      });
+    });
+
+    it('does not starve timers while it runs', function(done) {
+      // Confirm that we're actually yielding control back to the event loop in a way that allows
+      // other stuff to run - that is after all the point of async mode!
+      const oldText = 'ax'.repeat(1000);
+      const newText = 'ay'.repeat(1000);
+      let ticks = 0;
+      const interval = setInterval(() => { ticks++; }, 1);
+      diffChars(oldText, newText, {callback: () => {
+        clearInterval(interval);
+          expect(ticks).to.be.at.least(100);
+          done();
+      }});
     });
   });
 });
