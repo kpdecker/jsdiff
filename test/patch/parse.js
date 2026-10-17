@@ -1479,11 +1479,84 @@ rename to z`))
         }]);
     });
 
+    it('should parse `diff --git` headers without a/ and b/ prefixes', function() {
+      // As output by `git diff --no-prefix` or with the `diff.noprefix` config option set
+      expect(parsePatch(
+`diff --git script.sh script.sh
+old mode 100644
+new mode 100755
+diff --git docs/read me.txt docs/read me.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git image.png image.png
+index abc1234..def5678 100644
+Binary files image.png and image.png differ`))
+        .to.eql([{
+          oldFileName: 'script.sh',
+          newFileName: 'script.sh',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }, {
+          oldFileName: 'docs/read me.txt',
+          newFileName: 'docs/read me.txt',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
+          hunks: []
+        }, {
+          oldFileName: 'image.png',
+          newFileName: 'image.png',
+          isGit: true,
+          isBinary: true,
+          hunks: []
+        }]);
+    });
+
+    it('should parse `diff --git` headers with prefixes other than a/ and b/', function() {
+      // As output with the `diff.mnemonicPrefix` config option set, or with
+      // `--src-prefix` and `--dst-prefix`
+      expect(parsePatch(
+`diff --git c/script.sh i/script.sh
+old mode 100644
+new mode 100755
+diff --git i/file with spaces.txt w/file with spaces.txt
+deleted file mode 100644
+index e69de29..0000000
+diff --git old/image.png new/image.png
+index abc1234..def5678 100644
+Binary files old/image.png and new/image.png differ`))
+        .to.eql([{
+          oldFileName: 'c/script.sh',
+          newFileName: 'i/script.sh',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        }, {
+          oldFileName: 'i/file with spaces.txt',
+          newFileName: 'w/file with spaces.txt',
+          isGit: true,
+          isDelete: true,
+          oldMode: '100644',
+          hunks: []
+        }, {
+          oldFileName: 'old/image.png',
+          newFileName: 'new/image.png',
+          isGit: true,
+          isBinary: true,
+          hunks: []
+        }]);
+    });
+
     describe('unparseable `diff --git headers', function() {
       // So far as we know, Git never actually produces diff --git headers that
-      // can't be parsed (e.g. with unterminated quotes or missing a/b prefixes).
-      // But we test these cases to confirm parsePatch doesn't crash and instead
-      // gracefully falls back to getting filenames from --- / +++ lines.
+      // can't be parsed (e.g. with unterminated quotes, or with different old
+      // and new filenames that lack a/ and b/ prefixes but no rename or copy
+      // headers). But we test these cases to confirm parsePatch doesn't crash
+      // and instead gracefully falls back to getting filenames from --- / +++
+      // lines.
       it('should handle an unparseable `diff --git` header with unterminated quote', function() {
         expect(parsePatch(
         `diff --git "a/unterminated
@@ -1510,7 +1583,7 @@ rename to z`))
 
       it('should handle an unparseable `diff --git` header with no a/b prefixes', function() {
         expect(parsePatch(
-        `diff --git file.txt file.txt
+        `diff --git file.txt other.txt
 --- a/file.txt
 +++ b/file.txt
 @@ -1 +1 @@
@@ -1564,7 +1637,7 @@ rename to z`))
         // When both the `diff --git` header is unparseable AND there are no
         // --- / +++ lines, filenames remain undefined.
         expect(parsePatch(
-        `diff --git file.txt file.txt
+        `diff --git file.txt other.txt
 old mode 100644
 new mode 100755`))
           .to.eql([{

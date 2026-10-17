@@ -1481,6 +1481,26 @@ describe('patch/create', function() {
         expect(parsed).to.have.length(1);
         expect(parsed[0]).to.deep.equal(original);
       });
+
+      it('should round-trip a hunkless Git patch without a/ and b/ prefixes through formatPatch and parsePatch', function() {
+        const original = {
+          oldFileName: 'script.sh',
+          newFileName: 'script.sh',
+          isGit: true,
+          oldMode: '100644',
+          newMode: '100755',
+          hunks: []
+        };
+        const formatted = formatPatch(original);
+        expect(formatted).to.equal(
+          'diff --git script.sh script.sh\n' +
+          'old mode 100644\n' +
+          'new mode 100755\n'
+        );
+        const parsed = parsePatch(formatted);
+        expect(parsed).to.have.length(1);
+        expect(parsed[0]).to.deep.equal(original);
+      });
     });
   });
 });
