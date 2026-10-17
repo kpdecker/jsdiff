@@ -106,7 +106,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
 
         // Consume Git extended headers (`old mode`, `new mode`, `rename from`,
         // `rename to`, `similarity index`, `index`, `Binary files ... differ`,
-        // etc.)
+        // `GIT binary patch` and the binary data that follows it, etc.)
         i++;
         while (i < diffstr.length) {
           const extLine = diffstr[i];
@@ -166,7 +166,10 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
             index.newMode = newModeMatch[1];
           }
 
-          if ((/^Binary files /).test(extLine)) {
+          // Git indicates a binary file change either with a `Binary files ... differ` line
+          // or, when invoked with `--binary` (which `git format-patch` is by default), with a
+          // `GIT binary patch` line followed by the binary content in Git's own encoding.
+          if ((/^(?:Binary files |GIT binary patch)/).test(extLine)) {
             index.isBinary = true;
           }
 
