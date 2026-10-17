@@ -248,6 +248,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * When filenames don't contain special characters and the old and new names
    * are the same, we can unambiguously split on ` b/` by finding where the
    * two halves (including their a/ and b/ prefixes) yield matching bare names.
+   * Likewise if Git was configured to use different prefixes, or none.
    *
    * A pathological case exists in which we cannot reliably determine the paths
    * from the `diff --git` header. This case is when the following are true:
@@ -266,9 +267,9 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
    * and will discard the result returned by this function.
    *
    * Returns null if the header can't be parsed at all — e.g. a quoted filename
-   * has an unterminated quote, or if the unquoted header doesn't match the
-   * expected `a/... b/...` format. In that case, the caller (parseIndex)
-   * skips setting oldFileName/newFileName from this header, but they may
+   * has an unterminated quote, or if the unquoted header lacks a/ and b/
+   * prefixes and has different old and new names. In that case, the caller
+   * (parseIndex) skips setting oldFileName/newFileName from this header, but they may
    * still be set later from `---`/`+++` lines or `rename from`/`rename to`
    * extended headers; if none of those are present either, they'll remain
    * undefined in the output.
@@ -312,16 +313,31 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     }
 
     // Unquoted paths. Try to find the split point.
-    // The format is: a/<old-path> b/<new-path>
+    // The format is usually: a/<old-path> b/<new-path>
+    // But Git can also be told to use prefixes other than a/ and b/ (e.g. by
+    // the `diff.mnemonicPrefix` config option, which makes it use prefixes
+    // like c/ and i/, or by `--src-prefix`/`--dst-prefix`), or no prefixes at
+    // all (by `--no-prefix` or the `diff.noprefix` config option).
     //
     // Note the potential ambiguity caused by the possibility of the file paths
     // themselves containing the substring ` b/`, plus the pathological case
     // described in the comment above.
     //
-    // Strategy: find all occurrences of " b/" and split on the middle
-    // one. When old and new names are the same (which is the only case where
-    // we can't rely on extended headers later in the patch so HAVE to get
-    // this right), this will always be the correct split.
+    // If there are no prefixes and the old and new paths are the same, the
+    // two halves of the header are identical, so we check for that first.
+    // (This can never be the case for a header that uses a/ and b/ prefixes.)
+    const half = (rest.length - 1) / 2;
+    if (rest[half] === ' ' && rest.substring(0, half) === rest.substring(half + 1)) {
+      return {
+        oldFileName: rest.substring(0, half),
+        newFileName: rest.substring(half + 1)
+      };
+    }
+
+    // For a/ and b/ prefixes, find all occurrences of " b/" and split on the
+    // middle one. When old and new names are the same (which is the only case
+    // where we can't rely on extended headers later in the patch so HAVE to
+    // get this right), this will always be the correct split.
     if (rest.startsWith('a/')) {
       const splits = [];
       let idx = 0;
@@ -336,6 +352,20 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
           oldFileName: rest.substring(0, mid),
           newFileName: rest.substring(mid + 1)
         };
+      }
+    }
+
+    // For other prefixes, when the old and new paths are the same, the two
+    // halves of the header are identical once the prefixes are removed.
+    function stripPrefix(path: string): string {
+      return path.substring(path.indexOf('/') + 1);
+    }
+    for (let idx = rest.indexOf(' '); idx !== -1; idx = rest.indexOf(' ', idx + 1)) {
+      const oldFileName = rest.substring(0, idx),
+            newFileName = rest.substring(idx + 1);
+      if (oldFileName.includes('/') && newFileName.includes('/')
+          && stripPrefix(oldFileName) === stripPrefix(newFileName)) {
+        return {oldFileName, newFileName};
       }
     }
 
