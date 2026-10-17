@@ -77,7 +77,7 @@
     "run-mocha": "mocha --require ./runtime 'test/**/*.js'"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
+    "@arethetypeswrong/cli": "^0.18.5",
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.2",
     "@babel/register": "^7.28.6",

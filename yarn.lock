@@ -12,11 +12,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@arethetypeswrong/cli@npm:^0.18.2":
-  version: 0.18.2
-  resolution: "@arethetypeswrong/cli@npm:0.18.2"
+"@arethetypeswrong/cli@npm:^0.18.5":
+  version: 0.18.5
+  resolution: "@arethetypeswrong/cli@npm:0.18.5"
   dependencies:
-    "@arethetypeswrong/core": "npm:0.18.2"
+    "@arethetypeswrong/core": "npm:0.18.5"
     chalk: "npm:^4.1.2"
     cli-table3: "npm:^0.6.3"
     commander: "npm:^10.0.1"
@@ -24,24 +24,24 @@ __metadata:
     marked-terminal: "npm:^7.1.0"
     semver: "npm:^7.5.4"
   bin:
-    attw: dist/index.js
-  checksum: 10c0/15fa8ee8659aa7b163c08f3d739247fe44d838b1aa5cefe125d8c90c03955fbc1e5a7c76885c354ec217a07c8fdcb5f5dc297188cadf626b303b1ae85232c51e
+    attw: ./dist/index.js
+  checksum: 10c0/c9550aadb461d913c5f42f6a75a655b310e500d20804aa2c266f87c4b89c33dfd47cd6f56cc8061624c309ac4a6620cf2e84ccdaaf66877a8dcb78dd519b40c7
   languageName: node
   linkType: hard
 
-"@arethetypeswrong/core@npm:0.18.2":
-  version: 0.18.2
-  resolution: "@arethetypeswrong/core@npm:0.18.2"
+"@arethetypeswrong/core@npm:0.18.5":
+  version: 0.18.5
+  resolution: "@arethetypeswrong/core@npm:0.18.5"
   dependencies:
     "@andrewbranch/untar.js": "npm:^1.0.3"
     "@loaderkit/resolve": "npm:^1.0.2"
     cjs-module-lexer: "npm:^1.2.3"
-    fflate: "npm:^0.8.2"
+    fflate: "npm:^0.8.3"
     lru-cache: "npm:^11.0.1"
     semver: "npm:^7.5.4"
     typescript: "npm:5.6.1-rc"
     validate-npm-package-name: "npm:^5.0.0"
-  checksum: 10c0/465b4e6bf41a236b265108d21e88e75f6940959d6611d7daf989b69c875cf84fdaf77a539d0d5ce1d2602b7eadeba22da54994247a4825d8ad473685ad7e860e
+  checksum: 10c0/fae68eb6ee9324692a427f288bc2db7a85a80b98f028a02fb5dc302edcb7a46c7dce51afb9b83d85e17c19f346b8741ed6b23c25fe9011ed83fd713ce7c029a9
   languageName: node
   linkType: hard
 
@@ -3783,7 +3783,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "diff@workspace:."
   dependencies:
-    "@arethetypeswrong/cli": "npm:^0.18.2"
+    "@arethetypeswrong/cli": "npm:^0.18.5"
     "@babel/core": "npm:^7.29.0"
     "@babel/preset-env": "npm:^7.29.2"
     "@babel/register": "npm:^7.28.6"
@@ -4353,10 +4353,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:^0.8.2":
-  version: 0.8.2
-  resolution: "fflate@npm:0.8.2"
-  checksum: 10c0/03448d630c0a583abea594835a9fdb2aaf7d67787055a761515bf4ed862913cfd693b4c4ffd5c3f3b355a70cf1e19033e9ae5aedcca103188aaff91b8bd6e293
+"fflate@npm:^0.8.3":
+  version: 0.8.3
+  resolution: "fflate@npm:0.8.3"
+  checksum: 10c0/eab181ca37f5348ae76d4b6f840e0026e30220e33153289ac942222d8b9638237d486507dbcc09878d724095bd354993a2ee48bbee99c8f2c6440d4448719aa7
   languageName: node
   linkType: hard
 
