@@ -198,7 +198,7 @@ jsdiff's diff functions all take an old text and a new text and perform three st
     - `isDelete` - set to `true` when parsing a Git diff that includes a `deleted file mode` extended header, indicating the file was deleted.
     - `oldMode` - the file mode (e.g. `'100644'`, `'100755'`) of the old file, parsed from Git extended headers (`old mode` or `deleted file mode`).
     - `newMode` - the file mode (e.g. `'100644'`, `'100755'`) of the new file, parsed from Git extended headers (`new mode` or `new file mode`).
-    - `isBinary` - set to `true` when parsing a Git diff that includes a `Binary files ... differ` line, indicating a binary file change. Binary patches have no hunks, so the patch content alone is not sufficient to apply the change; consumers should handle this case specially (e.g. by warning the user or fetching the binary content separately).
+    - `isBinary` - set to `true` when parsing a Git diff that includes a `Binary files ... differ` line or a `GIT binary patch` line (as output by `git diff --binary` and `git format-patch`), indicating a binary file change. Binary patches have no hunks, so the patch content alone is not sufficient to apply the change; consumers should handle this case specially (e.g. by warning the user or fetching the binary content separately).
 
 * `reversePatch(patch)` - Returns a new structured patch which when applied will undo the original `patch`.
 

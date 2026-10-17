@@ -1133,6 +1133,66 @@ Binary files a/image.png and b/image.png differ`))
         }]);
     });
 
+    it('should parse a `diff --git` binary file change in `GIT binary patch` form', function() {
+      // As output by `git diff --binary`, and by `git format-patch` by default
+      expect(parsePatch(
+`diff --git a/image.png b/image.png
+index f584f4041fdb85307f985f76fce8c128a0d12921..23753768bb600005216588c5e1daa8c86bd1143a 100644
+GIT binary patch
+literal 7
+OcmeAS@N;KiVg>*RPXTlQ
+
+literal 6
+NcmeAS@N;Ki1ONuw0dN2S
+
+diff --git a/new.bin b/new.bin
+new file mode 100644
+index 0000000000000000000000000000000000000000..ba01f6b05bdbb386b35f4d086e268c5d422cafb9
+GIT binary patch
+literal 2
+JcmZSh4*&rH0RR91
+
+literal 0
+HcmV?d00001
+
+diff --git a/file.txt b/file.txt
+index 3367afd..3e75765 100644
+--- a/file.txt
++++ b/file.txt
+@@ -1 +1 @@
+-old
++new
+`))
+        .to.eql([{
+          oldFileName: 'a/image.png',
+          newFileName: 'b/image.png',
+          isGit: true,
+          isBinary: true,
+          hunks: []
+        }, {
+          oldFileName: 'a/new.bin',
+          newFileName: 'b/new.bin',
+          isGit: true,
+          isCreate: true,
+          newMode: '100644',
+          isBinary: true,
+          hunks: []
+        }, {
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: 'b/file.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 1,
+              newStart: 1, newLines: 1,
+              lines: ['-old', '+new']
+            }
+          ]
+        }]);
+    });
+
     it('should not lose files when a hunkless `diff --git` file is followed by one with hunks', function() {
       expect(parsePatch(
 `diff --git a/file1.txt b/file1.txt
