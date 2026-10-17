@@ -28,6 +28,9 @@ export type ArrayChange<T> = ChangeObject<T[]>;
 export interface CommonDiffOptions {
   /**
    * If `true`, the array of change objects returned will contain one change object per token (e.g. one per line if calling `diffLines`), instead of runs of consecutive tokens that are all added / all removed / all conserved being combined into a single change object.
+   *
+   * In `diffWords`'s default whitespace-insensitive mode, tokens retain surrounding whitespace that can overlap between change objects.
+   * Use `diffWordsWithSpace` if you need whitespace represented as separate tokens.
    */
   oneChangePerToken?: boolean,
 }

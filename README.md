@@ -224,6 +224,8 @@ Certain options can be provided in the `options` object of *any* method that cal
 
 * `oneChangePerToken`: if `true`, the array of change objects returned will contain one change object per token (e.g. one per line if calling `diffLines`), instead of runs of consecutive tokens that are all added / all removed / all conserved being combined into a single change object.
 
+    In `diffWords`'s default whitespace-insensitive mode, each token includes its surrounding whitespace. With `oneChangePerToken: true`, this whitespace is not deduplicated between change objects, so concatenating their values can duplicate whitespace. For example, `diffWords('a b', 'a c', {oneChangePerToken: true}).map(change => change.value)` returns `['a ', ' b', ' c']`. Use `diffWordsWithSpace` if you need whitespace represented as separate tokens.
+
 ### Defining custom diffing behaviors
 
 If you need behavior a little different to what any of the text diffing functions above offer, you can roll your own by customizing both the tokenization behavior used and the notion of equality used to determine if two tokens are equal.
