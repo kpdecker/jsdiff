@@ -1,4 +1,3 @@
-.babelrc
 .eslint.config.mjs
 .gitignore
 .npmignore

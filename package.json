@@ -78,13 +78,8 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@babel/core": "^8.0.7",
-    "@babel/preset-env": "^8.0.7",
-    "@babel/register": "^8.0.6",
     "@colors/colors": "^1.6.0",
     "@eslint/js": "^10.0.1",
-    "babel-loader": "^10.1.1",
-    "babel-plugin-istanbul": "8.0.0",
     "chai": "^6.3.0",
     "cross-env": "^10.1.0",
     "eslint": "^10.13.0",
@@ -105,9 +100,6 @@
     "webpack-dev-server": "^6.0.0"
   },
   "nyc": {
-    "require": [
-      "@babel/register"
-    ],
     "reporter": [
       "lcov",
       "text"
