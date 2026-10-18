@@ -3727,7 +3727,7 @@ __metadata:
     babel-plugin-istanbul: "npm:8.0.0"
     chai: "npm:^6.2.2"
     cross-env: "npm:^10.1.0"
-    eslint: "npm:^10.2.0"
+    eslint: "npm:^10.13.0"
     globals: "npm:^17.13.0"
     karma: "npm:^6.4.4"
     karma-mocha: "npm:^2.0.1"
@@ -4026,7 +4026,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^10.2.0":
+"eslint@npm:^10.13.0":
   version: 10.13.0
   resolution: "eslint@npm:10.13.0"
   dependencies:
