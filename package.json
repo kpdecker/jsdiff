@@ -74,7 +74,7 @@
     "run-tsd": "yarn tsd --typings libesm/ && yarn tsd --files test-d/",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
-    "run-mocha": "mocha --require ./runtime 'test/**/*.js'"
+    "run-mocha": "mocha 'test/**/*.js'"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",

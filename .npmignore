@@ -13,7 +13,6 @@ images
 index.html
 karma.conf.js
 rollup.config.mjs
-runtime.js
 src
 tasks
 test
