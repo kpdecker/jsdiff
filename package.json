@@ -22,9 +22,6 @@
     "type": "git",
     "url": "https://github.com/kpdecker/jsdiff.git"
   },
-  "engines": {
-    "node": ">=0.3.1"
-  },
   "main": "./libcjs/index.js",
   "module": "./libesm/index.js",
   "browser": "./dist/diff.js",
@@ -77,40 +74,32 @@
     "run-tsd": "yarn tsd --typings libesm/ && yarn tsd --files test-d/",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
-    "run-mocha": "mocha --require ./runtime 'test/**/*.js'"
+    "run-mocha": "mocha 'test/**/*.js'"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
-    "@babel/register": "^7.28.6",
-    "@colors/colors": "^1.6.0",
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@colors/colors": "^1.6.1",
     "@eslint/js": "^10.0.1",
-    "babel-loader": "^10.1.1",
-    "babel-plugin-istanbul": "8.0.0",
-    "chai": "^6.2.2",
+    "chai": "^6.3.0",
     "cross-env": "^10.1.0",
-    "eslint": "^10.2.0",
-    "globals": "^17.5.0",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
     "karma": "^6.4.4",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.1",
-    "mocha": "^11.7.5",
+    "mocha": "^12.0.3",
     "nyc": "^18.0.0",
-    "rollup": "^4.60.1",
+    "rollup": "^4.64.10",
     "tsd": "^0.33.0",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.1",
     "uglify-js": "^3.19.3",
-    "webpack": "^5.106.1",
-    "webpack-dev-server": "^5.2.3"
+    "webpack": "^5.112.0",
+    "webpack-dev-server": "^6.0.0"
   },
   "nyc": {
-    "require": [
-      "@babel/register"
-    ],
     "reporter": [
       "lcov",
       "text"
@@ -123,5 +112,5 @@
     "functions": 100,
     "statements": 100
   },
-  "packageManager": "yarn@4.12.0"
+  "packageManager": "yarn@4.18.1"
 }
