@@ -3196,7 +3196,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^6.2.2":
+"chai@npm:^6.3.0":
   version: 6.3.0
   resolution: "chai@npm:6.3.0"
   checksum: 10c0/fd1bf7fc41295ba1eba18a44d68e204b3cb11b79c9ad51fd071de3ee85323c20d94afc07a386f1f5ff44a5da4a116614d419fc44a2d459e4b5b574aef9af4431
@@ -3725,7 +3725,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     babel-loader: "npm:^10.1.1"
     babel-plugin-istanbul: "npm:8.0.0"
-    chai: "npm:^6.2.2"
+    chai: "npm:^6.3.0"
     cross-env: "npm:^10.1.0"
     eslint: "npm:^10.13.0"
     globals: "npm:^17.13.0"

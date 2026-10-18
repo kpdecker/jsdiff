@@ -85,7 +85,7 @@
     "@eslint/js": "^10.0.1",
     "babel-loader": "^10.1.1",
     "babel-plugin-istanbul": "8.0.0",
-    "chai": "^6.2.2",
+    "chai": "^6.3.0",
     "cross-env": "^10.1.0",
     "eslint": "^10.13.0",
     "globals": "^17.13.0",
