@@ -78,12 +78,8 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
     "@colors/colors": "^1.6.0",
     "@eslint/js": "^10.0.1",
-    "babel-loader": "^10.1.1",
-    "babel-plugin-istanbul": "8.0.0",
     "chai": "^6.2.2",
     "cross-env": "^10.1.0",
     "eslint": "^10.2.0",

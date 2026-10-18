@@ -23,7 +23,6 @@ export default function(config) {
           {
             test: /\.jsx?$/,
             exclude: /node_modules/,
-            loader: 'babel-loader'
           }
         ]
       }
