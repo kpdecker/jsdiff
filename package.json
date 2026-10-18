@@ -74,13 +74,13 @@
     "run-tsd": "yarn tsd --typings libesm/ && yarn tsd --files test-d/",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
-    "run-mocha": "mocha --require ./runtime 'test/**/*.js'"
+    "run-mocha": "mocha 'test/**/*.js'"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
-    "@babel/register": "^7.28.6",
+    "@babel/core": "^8.0.7",
+    "@babel/preset-env": "^8.0.7",
+    "@babel/register": "^8.0.6",
     "@colors/colors": "^1.6.0",
     "@eslint/js": "^10.0.1",
     "babel-loader": "^10.1.1",
@@ -94,7 +94,7 @@
     "karma-mocha-reporter": "^2.2.5",
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.1",
-    "mocha": "^11.7.5",
+    "mocha": "^12.0.3",
     "nyc": "^18.0.0",
     "rollup": "^4.64.10",
     "tsd": "^0.33.0",
