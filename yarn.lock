@@ -3736,7 +3736,7 @@ __metadata:
     karma-webpack: "npm:^5.0.1"
     mocha: "npm:^11.7.5"
     nyc: "npm:^18.0.0"
-    rollup: "npm:^4.60.1"
+    rollup: "npm:^4.64.10"
     tsd: "npm:^0.33.0"
     typescript: "npm:^6.0.2"
     typescript-eslint: "npm:^8.58.1"
@@ -6856,7 +6856,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.60.1":
+"rollup@npm:^4.64.10":
   version: 4.64.10
   resolution: "rollup@npm:4.64.10"
   dependencies:
