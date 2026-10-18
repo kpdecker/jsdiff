@@ -88,7 +88,7 @@
     "chai": "^6.2.2",
     "cross-env": "^10.1.0",
     "eslint": "^10.2.0",
-    "globals": "^17.5.0",
+    "globals": "^17.13.0",
     "karma": "^6.4.4",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",

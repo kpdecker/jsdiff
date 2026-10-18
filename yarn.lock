@@ -3728,7 +3728,7 @@ __metadata:
     chai: "npm:^6.2.2"
     cross-env: "npm:^10.1.0"
     eslint: "npm:^10.2.0"
-    globals: "npm:^17.5.0"
+    globals: "npm:^17.13.0"
     karma: "npm:^6.4.4"
     karma-mocha: "npm:^2.0.1"
     karma-mocha-reporter: "npm:^2.2.5"
@@ -4611,7 +4611,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^17.5.0":
+"globals@npm:^17.13.0":
   version: 17.13.0
   resolution: "globals@npm:17.13.0"
   checksum: 10c0/8371d9e4e5581640141b5cce70a098edd765d2e3ab063b14998e590698071e0afb4a4a6739ccfbdcbdeb2565c5553697ba07d95703c51039912cf341a7dba7a7
