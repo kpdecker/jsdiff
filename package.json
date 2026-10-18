@@ -101,8 +101,8 @@
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.1",
     "uglify-js": "^3.19.3",
-    "webpack": "^5.106.1",
-    "webpack-dev-server": "^5.2.3"
+    "webpack": "^5.112.0",
+    "webpack-dev-server": "^6.0.0"
   },
   "nyc": {
     "require": [
