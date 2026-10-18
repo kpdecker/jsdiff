@@ -78,7 +78,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
-    "@colors/colors": "^1.6.0",
+    "@colors/colors": "^1.6.1",
     "@eslint/js": "^10.0.1",
     "chai": "^6.3.0",
     "cross-env": "^10.1.0",

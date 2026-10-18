@@ -256,7 +256,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@colors/colors@npm:^1.6.0":
+"@colors/colors@npm:^1.6.1":
   version: 1.6.1
   resolution: "@colors/colors@npm:1.6.1"
   checksum: 10c0/8fb995f2421210284305fd07b4b70e9873a417cda8b0d66ba3f7beccd2e0f4ebbe0b2ba3afbef8f07740ad707c379d94e836cffd6a8df394387e210b4338b4c9
@@ -2703,7 +2703,7 @@ __metadata:
   resolution: "diff@workspace:."
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.5"
-    "@colors/colors": "npm:^1.6.0"
+    "@colors/colors": "npm:^1.6.1"
     "@eslint/js": "npm:^10.0.1"
     chai: "npm:^6.3.0"
     cross-env: "npm:^10.1.0"
