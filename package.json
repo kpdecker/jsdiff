@@ -62,13 +62,13 @@
   "type": "module",
   "types": "libcjs/index.d.ts",
   "scripts": {
-    "clean": "rm -rf libcjs/ libesm/ dist/ coverage/ .nyc_output/",
+    "clean": "rm -rf libcjs/ libesm/ dist/ coverage/",
     "lint": "yarn eslint",
     "build": "yarn lint && yarn generate-esm && yarn generate-cjs && yarn check-types && yarn run-rollup && yarn run-uglify",
     "generate-cjs": "yarn tsc --module commonjs --outDir libcjs && node --eval \"fs.writeFileSync('libcjs/package.json', JSON.stringify({type:'commonjs',sideEffects:false}))\"",
     "generate-esm": "yarn tsc --module nodenext --outDir libesm --target es6 && node --eval \"fs.writeFileSync('libesm/package.json', JSON.stringify({type:'module',sideEffects:false}))\"",
     "check-types": "yarn run-tsd && yarn run-attw",
-    "test": "nyc yarn _test",
+    "test": "c8 yarn _test",
     "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
     "run-attw": "yarn attw --pack --entrypoints . && yarn attw --pack --entrypoints lib/diff/word.js --profile node16",
     "run-tsd": "yarn tsd --typings libesm/ && yarn tsd --files test-d/",
@@ -80,6 +80,7 @@
     "@arethetypeswrong/cli": "^0.18.5",
     "@colors/colors": "^1.6.1",
     "@eslint/js": "^10.0.1",
+    "c8": "^12.0.0",
     "chai": "^6.3.0",
     "cross-env": "^10.1.0",
     "eslint": "^10.13.0",
@@ -90,7 +91,6 @@
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.1",
     "mocha": "^12.0.3",
-    "nyc": "^18.0.0",
     "rollup": "^4.64.10",
     "tsd": "^0.33.0",
     "typescript": "^6.0.2",
@@ -99,14 +99,15 @@
     "webpack": "^5.112.0",
     "webpack-dev-server": "^6.0.0"
   },
-  "nyc": {
+  "c8": {
+    "include": [
+      "libesm/**"
+    ],
     "reporter": [
       "lcov",
       "text"
     ],
-    "sourceMap": false,
-    "instrument": false,
-    "check-coverage": true,
+    "check-coverage": false,
     "branches": 100,
     "lines": 100,
     "functions": 100,
