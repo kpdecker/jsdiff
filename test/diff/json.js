@@ -319,6 +319,30 @@ describe('diff/json', function() {
       expect(calls).to.deep.equal(jsonStringifyCalls);
     });
 
+    it('should call toJSON before the replacer, like JSON.stringify does', function() {
+      const obj = {
+        at: new Date('2026-01-02T03:04:05Z'),
+        named: {toJSON: (k) => `key: ${k}`}
+      };
+      const calls = [];
+      diffJson(obj, {}, {stringifyReplacer: (k, v) => {
+        calls.push([k, v]);
+        return v;
+      }});
+
+      const jsonStringifyCalls = [];
+      JSON.stringify(obj, (k, v) => {
+        jsonStringifyCalls.push([k, v]);
+        return v;
+      });
+
+      expect(calls.slice(0, 3)).to.deep.equal(jsonStringifyCalls);
+      expect(jsonStringifyCalls.slice(1)).to.deep.equal([
+        ['at', '2026-01-02T03:04:05.000Z'],
+        ['named', 'key: named']
+      ]);
+    });
+
     it("doesn't throw on Object.create(null)", function() {
       let diff;
       expect(function() {

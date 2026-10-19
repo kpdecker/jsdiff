@@ -71,6 +71,10 @@ export function canonicalize(
   stack = stack || [];
   replacementStack = replacementStack || [];
 
+  if (obj && typeof obj.toJSON === 'function') {
+    obj = obj.toJSON(key === undefined ? '' : key);
+  }
+
   if (replacer) {
     obj = replacer(key === undefined ? '' : key, obj);
   }
@@ -84,10 +88,6 @@ export function canonicalize(
   }
 
   let canonicalizedObj: any;
-
-  if (obj && typeof obj.toJSON === 'function') {
-    obj = obj.toJSON();
-  }
 
   if ('[object Array]' === Object.prototype.toString.call(obj)) {
     stack.push(obj);
