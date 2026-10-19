@@ -106,9 +106,6 @@
     "include": [
       "libesm/**/*.js"
     ],
-    "exclude": [
-      "**/*.d.ts"
-    ],
     "check-coverage": true,
     "branches": 95,
     "lines": 98,
