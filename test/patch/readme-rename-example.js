@@ -4,6 +4,9 @@ import {expect} from 'chai';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import {fileURLToPath} from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe('README Git rename example', function() {
   let tmpDir;
