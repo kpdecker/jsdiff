@@ -1,7 +1,6 @@
 .eslint.config.mjs
 .gitignore
 .npmignore
-.nyc_output
 .vscode
 .zed
 test-d
