@@ -88,7 +88,8 @@ function applyStructuredPatch(
   // Apply the diff to the input
   const lines = source.split('\n'),
         hunks = patch.hunks,
-        compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
+        customCompareLine = options.compareLine,
+        compareLine = customCompareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
         fuzzFactor = options.fuzzFactor || 0;
   let minLine = 0;
 
@@ -141,6 +142,8 @@ function applyStructuredPatch(
     }
   }
 
+  let failedHunkMatches: Map<string, number> | undefined;
+
   /**
    * Checks if the hunk can be made to fit at the provided location with at most `maxErrors`
    * insertions, substitutions, or deletions, while ensuring also that:
@@ -161,6 +164,41 @@ function applyStructuredPatch(
     lastContextLineMatched: boolean = true,
     patchedLines: string[] = [],
     patchedLinesLength: number = 0
+  ): ApplyHunkReturnType | null {
+    if (!failedHunkMatches) {
+      return tryApplyHunk(
+        hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched,
+        patchedLines, patchedLinesLength
+      );
+    }
+
+    // A failed suffix match does not depend on the lines already written to patchedLines.
+    // If it failed with this many errors allowed, it also fails with fewer errors allowed.
+    // Include lastContextLineMatched because it controls whether an insertion is permitted.
+    const key = `${toPos},${hunkLinesI},${lastContextLineMatched}`,
+        failedErrors = failedHunkMatches.get(key);
+    if (failedErrors !== undefined && failedErrors >= maxErrors) {
+      return null;
+    }
+
+    const result = tryApplyHunk(
+      hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched,
+      patchedLines, patchedLinesLength
+    );
+    if (!result) {
+      failedHunkMatches.set(key, maxErrors);
+    }
+    return result;
+  }
+
+  function tryApplyHunk(
+    hunkLines: string[],
+    toPos: number,
+    maxErrors: number,
+    hunkLinesI: number,
+    lastContextLineMatched: boolean,
+    patchedLines: string[],
+    patchedLinesLength: number
   ): ApplyHunkReturnType | null {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
@@ -270,10 +308,16 @@ function applyStructuredPatch(
   let prevHunkOffset = 0;
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
+    failedHunkMatches = undefined;
     let hunkResult;
     const maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos: number | undefined;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
+      // Only memoize when matching actually needs multiple errors. Keep separate caches for
+      // each hunk, and preserve the calls to custom comparators, which may be stateful.
+      if (maxErrors === 2 && !customCompareLine) {
+        failedHunkMatches = new Map();
+      }
       toPos = hunk.oldStart + prevHunkOffset - 1;
       const iterator = distanceIterator(toPos, minLine, maxLine);
       for (; toPos !== undefined; toPos = iterator()) {
