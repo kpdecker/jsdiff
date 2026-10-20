@@ -157,7 +157,7 @@ class WordDiff extends Diff<string, string> {
     });
 
     // Run the same whitespace deduping that would've happened in the non-oneChangePerToken case
-    dedupeWhitespaceInDiff(changes, options.intlSegmenter);
+    dedupeWhitespaceInDiff(groupedChanges, options.intlSegmenter);
 
     // And now split everything up into single-token change objects again!
     const result: ChangeObject<string>[] = [];
