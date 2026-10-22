@@ -398,7 +398,7 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
               bytes.push(parseInt(s.substring(j + 1, j + 4), 8));
               j += 4;
             }
-            result += new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+            result += new TextDecoder('utf-8', {ignoreBOM: true}).decode(new Uint8Array(bytes));
             continue; // j already points at the next character
           }
           // Note that in C, there are also three kinds of hex escape sequences:
