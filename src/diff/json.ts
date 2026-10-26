@@ -94,7 +94,15 @@ export function canonicalize(
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
+      const canonicalizedValue = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
+      // Just like JSON.stringify, render array elements that can't be represented in JSON
+      // (undefined, functions, symbols) as null rather than including them as-is. Doing this
+      // ourselves - rather than leaving it to a final, unreplaced JSON.stringify call to sort
+      // out - matters because a value in this situation could in principle be an object with its
+      // own (real, own-property) "toJSON" method, e.g. if a user's stringifyReplacer returns such
+      // an object; if we let it through unchanged, the final JSON.stringify(canonicalizedObj) call
+      // we do in castInput() would invoke that toJSON method a second time, which we don't want.
+      canonicalizedObj[i] = isUnrepresentableInJson(canonicalizedValue) ? null : canonicalizedValue;
     }
     stack.pop();
     replacementStack.pop();
@@ -119,7 +127,17 @@ export function canonicalize(
     sortedKeys.sort();
     for (i = 0; i < sortedKeys.length; i += 1) {
       key = sortedKeys[i];
-      canonicalizedObj[key] = canonicalize(obj[key], stack, replacementStack, replacer, key);
+      const canonicalizedValue = canonicalize(obj[key], stack, replacementStack, replacer, key);
+      // Just like JSON.stringify, omit object properties whose value can't be represented in JSON
+      // (undefined, functions, symbols) instead of including them as-is. See the comment in the
+      // array-handling code above for why we do this ourselves instead of leaving it to the final
+      // JSON.stringify(canonicalizedObj) call in castInput() to sort out: if we didn't, a property
+      // whose value happens to be a function - most notably one named "toJSON" - could cause that
+      // final call to misinterpret the (already fully resolved) canonicalized object as having its
+      // own "toJSON" method and call it, running the function a second time.
+      if (!isUnrepresentableInJson(canonicalizedValue)) {
+        canonicalizedObj[key] = canonicalizedValue;
+      }
     }
     stack.pop();
     replacementStack.pop();
@@ -127,4 +145,11 @@ export function canonicalize(
     canonicalizedObj = obj;
   }
   return canonicalizedObj;
+}
+
+// Values of these types aren't valid JSON values, and JSON.stringify() omits them when they're
+// encountered as object property values (or replaces them with null when encountered as array
+// elements). We replicate that behavior ourselves in canonicalize() above.
+function isUnrepresentableInJson(value: any): boolean {
+  return typeof value === 'undefined' || typeof value === 'function' || typeof value === 'symbol';
 }
