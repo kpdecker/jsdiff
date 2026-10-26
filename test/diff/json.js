@@ -364,6 +364,32 @@ describe('diff/json', function() {
       expect(diffResult[0].value).to.eql(JSON.stringify(obj, replacer, '  '));
     });
 
+    it('does not invoke "toJSON" on a replacer-returned function in an array slot', function() {
+      // Regression test for the array branch in canonicalize(). If the replacer returns a function
+      // with an own `toJSON` property for an array element, JSON.stringify with that replacer would
+      // serialize the element as null. But if we copy the function through unchanged and then do a
+      // final replacer-less JSON.stringify call, that final call would invoke function.toJSON() and
+      // produce a string instead. We must pre-convert unrepresentable array values to null to avoid
+      // this second-pass toJSON call.
+      const obj = ['original'];
+      function replacementFunction() {}
+      replacementFunction.toJSON = function() {
+        return 'unexpected-second-pass-call';
+      };
+      function replacer(k, v) {
+        return k === '0' ? replacementFunction : v;
+      }
+
+      const diffResult = diffJson(obj, obj, {
+        stringifyReplacer: replacer
+      });
+      expect(diffResult).to.eql([
+        { count: 3, value: JSON.stringify([null], null, '  '), added: false, removed: false }
+      ]);
+      // Proof that the result above is consistent with JSON.stringify:
+      expect(diffResult[0].value).to.eql(JSON.stringify(obj, replacer, '  '));
+    });
+
     it('does not invoke a "toJSON" method an object returned by a "toJSON" method', function() {
       // Regression test: previously, if a `toJSON` method returned an object which itself had a
       // toJSON method, we'd call the first `toJSON` in `canonicalize`, then pass the resulting
