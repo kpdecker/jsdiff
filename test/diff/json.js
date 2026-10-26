@@ -343,19 +343,29 @@ describe('diff/json', function() {
       ]);
     });
 
-    it('does not invoke an own "toJSON" property of a replacer-returned object a second time', function() {
-      // Regression test: canonicalize() used to build a mirror object tree by calling toJSON and
-      // the replacer itself, and then hand that tree to a final, replacer-less JSON.stringify()
-      // call to actually serialize it to text. If a property's canonicalized value was a function
-      // - most notably when that property happened to be named "toJSON" - that final call would
-      // misinterpret the function as a genuine toJSON method of its containing (canonicalized)
-      // object and invoke it, running the function an extra, unwanted time with the wrong `this`
-      // and no guarantee the key it's called with matches what a real toJSON call would receive.
-      const diffResult = diffJson({x: 'original'}, {x: 'original'}, {
-        stringifyReplacer: (k, v) => k === 'x' ? {kept: 'value', toJSON() { return 'unexpected'; }} : v
+    it('does not invoke a "toJSON" method of a replacer-returned object', function() {
+      // Regression test: previously, if a replacer returned an object with a toJSON method, we'd
+      // call the replacer, then pass the resulting object to JSON.stringify, which would call the
+      // toJSON method. Thus the result would be inconsistent with what would happen if you just
+      // called JSON.stringify. That's undesirable; this test confirms it no longer happens.
+      const diffResult = diffJson({x: 'bla'}, {x: 'bla'}, {
+        stringifyReplacer: (k, v) => k === 'x' ? {y: 'bla', toJSON() { return 'unexpected'; }} : v
       });
       expect(diffResult).to.eql([
-        { count: 5, value: JSON.stringify({x: {kept: 'value'}}, null, '  '), added: false, removed: false }
+        { count: 5, value: JSON.stringify({x: {y: 'bla'}}, null, '  '), added: false, removed: false }
+      ]);
+    });
+
+    it('does not invoke a "toJSON" method an object returned by a "toJSON" method', function() {
+      // Regression test: previously, if a `toJSON` method returned an object which itself had a
+      // toJSON method, we'd call the first `toJSON` in `canonicalize`, then pass the resulting
+      // object to JSON.stringify, which would call the second toJSON method. Thus the result
+      // would be inconsistent with what would happen if you just called JSON.stringify (which
+      // would only invoke the first `toJSON`). That's undesirable; this test confirms it no
+      // longer happens.
+      const diffResult = diffJson({ toJSON: () => ({x: 'bla', toJSON: () => 'foo'}) }, {x: 'bla'});
+      expect(diffResult).to.eql([
+        { count: 3, value: JSON.stringify({x: 'bla'}, null, '  '), added: false, removed: false }
       ]);
     });
 
