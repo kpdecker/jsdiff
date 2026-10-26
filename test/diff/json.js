@@ -348,12 +348,20 @@ describe('diff/json', function() {
       // call the replacer, then pass the resulting object to JSON.stringify, which would call the
       // toJSON method. Thus the result would be inconsistent with what would happen if you just
       // called JSON.stringify. That's undesirable; this test confirms it no longer happens.
-      const diffResult = diffJson({x: 'bla'}, {x: 'bla'}, {
-        stringifyReplacer: (k, v) => k === 'x' ? {y: 'bla', toJSON() { return 'unexpected'; }} : v
+      const obj = { x: 'bla' };
+      function replacer(k, v) {
+        return k === 'x'
+          ? { y: 'bla', toJSON() { return 'unexpected'; } }
+          : v;
+      }
+      const diffResult = diffJson(obj, obj, {
+        stringifyReplacer: replacer
       });
       expect(diffResult).to.eql([
         { count: 5, value: JSON.stringify({x: {y: 'bla'}}, null, '  '), added: false, removed: false }
       ]);
+      // Proof that the result above is consistent with JSON.stringify:
+      expect(diffResult[0].value).to.eql(JSON.stringify(obj, replacer, '  '));
     });
 
     it('does not invoke a "toJSON" method an object returned by a "toJSON" method', function() {
@@ -363,10 +371,26 @@ describe('diff/json', function() {
       // would be inconsistent with what would happen if you just called JSON.stringify (which
       // would only invoke the first `toJSON`). That's undesirable; this test confirms it no
       // longer happens.
-      const diffResult = diffJson({ toJSON: () => ({x: 'bla', toJSON: () => 'foo'}) }, {x: 'bla'});
+      const oldObj = { toJSON: () => ({ x: 'bla', toJSON: () => 'foo' }) };
+      const newObj = { x: 'bla' };
+      const diffResult = diffJson(oldObj, newObj);
       expect(diffResult).to.eql([
         { count: 3, value: JSON.stringify({x: 'bla'}, null, '  '), added: false, removed: false }
       ]);
+      // Proof that the result above is consistent with JSON.stringify:
+      expect(diffResult[0].value).to.eql(JSON.stringify(oldObj, null, '  '));
+      expect(diffResult[0].value).to.eql(JSON.stringify(newObj, null, '  '));
+    });
+
+    it('DOES invoke a "toJSON" method NESTED in an object returned by a "toJSON" method', function() {
+      // Like the test above, this is just confirming that our behaviour is consistent with JSON.stringify
+      const obj = { toJSON: () => ({ x: { toJSON: () => 'foo' } }) };
+      const diffResult = diffJson(obj, obj);
+      expect(diffResult).to.eql([
+        { count: 3, value: JSON.stringify({ x: 'foo' }, null, '  '), added: false, removed: false }
+      ]);
+      // Proof that the result above is consistent with JSON.stringify:
+      expect(diffResult[0].value).to.eql(JSON.stringify(obj, null, '  '));
     });
 
     it("doesn't throw on Object.create(null)", function() {
