@@ -183,6 +183,35 @@ describe('diff/json', function() {
   });
 
   describe('#canonicalize', function() {
+    it('should leave top-level primitive strings unchanged', function() {
+      expect(canonicalize('abc')).to.equal('abc');
+    });
+
+    it('should not call String.prototype.toJSON for primitive strings', function() {
+      // JSON.stringify only calls toJSON on objects. Primitive strings should not invoke
+      // String.prototype.toJSON even if it exists.
+      const stringPrototype = Object.getPrototypeOf('');
+      const hadOwnToJSON = Object.prototype.hasOwnProperty.call(stringPrototype, 'toJSON');
+      const oldToJSON = stringPrototype.toJSON;
+      let callCount = 0;
+
+      try {
+        stringPrototype.toJSON = function() {
+          callCount += 1;
+          return 'unexpected';
+        };
+
+        expect(canonicalize('abc')).to.equal('abc');
+        expect(callCount).to.equal(0);
+      } finally {
+        if (hadOwnToJSON) {
+          stringPrototype.toJSON = oldToJSON;
+        } else {
+          delete stringPrototype.toJSON;
+        }
+      }
+    });
+
     it('should put the keys in canonical order', function() {
       expect(Object.keys(canonicalize({b: 456, a: 123}))).to.eql(['a', 'b']);
     });
@@ -437,6 +466,168 @@ describe('diff/json', function() {
         { count: 3, value: JSON.stringify({x: 'abc'}, null, '  '), added: false, removed: false }
       ]);
       expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
+    });
+
+    it('unboxes a replacer-returned String object even if toJSON is inherited from its prototype', function() {
+      // This simulates someone having patched String.prototype.toJSON. For values returned by
+      // replacer, JSON.stringify does not run toJSON a second time; it first unboxes String objects
+      // to primitives. We should do the same.
+      function makeReplacementStringObjectWithInheritedToJSON() {
+        const replacementStringObject = Object('abc');
+        const prototypeWithToJSON = Object.create(String.prototype, {
+          toJSON: {
+            value: function() {
+              return 'unexpected-second-pass-call';
+            },
+            configurable: true,
+            enumerable: false,
+            writable: true
+          }
+        });
+        Object.setPrototypeOf(replacementStringObject, prototypeWithToJSON);
+        return replacementStringObject;
+      }
+
+      const arrayObj = ['orig'];
+      function arrayReplacer(k, v) {
+        return k === '0' && v === 'orig' ? makeReplacementStringObjectWithInheritedToJSON() : v;
+      }
+      const arrayDiffResult = diffJson(arrayObj, arrayObj, {
+        stringifyReplacer: arrayReplacer
+      });
+      expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
+      expect(arrayDiffResult[0].value).to.eql(JSON.stringify(['abc'], null, '  '));
+
+      const objectObj = {x: 'orig'};
+      function objectReplacer(k, v) {
+        return k === 'x' && v === 'orig' ? makeReplacementStringObjectWithInheritedToJSON() : v;
+      }
+      const objectDiffResult = diffJson(objectObj, objectObj, {
+        stringifyReplacer: objectReplacer
+      });
+      expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
+      expect(objectDiffResult[0].value).to.eql(JSON.stringify({x: 'abc'}, null, '  '));
+    });
+
+    it('unboxes replacer-returned Number/Boolean objects (and does not call their toJSON)', function() {
+      const cases = [
+        {
+          expectedPrimitiveValue: 7,
+          inputMarkerValue: 1,
+          makeReplacementWrapperObject: function() {
+            const replacementNumberObject = Object(7);
+            replacementNumberObject.toJSON = function() {
+              return 999;
+            };
+            return replacementNumberObject;
+          }
+        },
+        {
+          expectedPrimitiveValue: false,
+          inputMarkerValue: true,
+          makeReplacementWrapperObject: function() {
+            const replacementBooleanObject = Object(false);
+            replacementBooleanObject.toJSON = function() {
+              return 'unexpected-second-pass-call';
+            };
+            return replacementBooleanObject;
+          }
+        }
+      ];
+
+      let i;
+      for (i = 0; i < cases.length; i += 1) {
+        const testCase = cases[i];
+
+        const arrayObj = [testCase.inputMarkerValue];
+        function arrayReplacer(k, v) {
+          return k === '0' && v === testCase.inputMarkerValue ? testCase.makeReplacementWrapperObject() : v;
+        }
+        const arrayDiffResult = diffJson(arrayObj, arrayObj, {
+          stringifyReplacer: arrayReplacer
+        });
+        expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
+        expect(arrayDiffResult[0].value).to.eql(JSON.stringify([testCase.expectedPrimitiveValue], null, '  '));
+
+        const objectObj = {x: testCase.inputMarkerValue};
+        function objectReplacer(k, v) {
+          return k === 'x' && v === testCase.inputMarkerValue ? testCase.makeReplacementWrapperObject() : v;
+        }
+        const objectDiffResult = diffJson(objectObj, objectObj, {
+          stringifyReplacer: objectReplacer
+        });
+        expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
+        expect(objectDiffResult[0].value).to.eql(JSON.stringify({x: testCase.expectedPrimitiveValue}, null, '  '));
+      }
+    });
+
+    it('matches JSON.stringify when replacer returns a boxed BigInt value', function() {
+      function makeReplacementBigIntWrapperObject() {
+        const replacementBigIntObject = Object(1n);
+        replacementBigIntObject.toJSON = function() {
+          return 123;
+        };
+        return replacementBigIntObject;
+      }
+
+      const arrayObj = ['orig'];
+      function arrayReplacer(k, v) {
+        return k === '0' && v === 'orig' ? makeReplacementBigIntWrapperObject() : v;
+      }
+      expect(function() {
+        JSON.stringify(arrayObj, arrayReplacer, '  ');
+      }).to['throw'](TypeError);
+      expect(function() {
+        diffJson(arrayObj, arrayObj, { stringifyReplacer: arrayReplacer });
+      }).to['throw'](TypeError);
+
+      const objectObj = {x: 'orig'};
+      function objectReplacer(k, v) {
+        return k === 'x' && v === 'orig' ? makeReplacementBigIntWrapperObject() : v;
+      }
+      expect(function() {
+        JSON.stringify(objectObj, objectReplacer, '  ');
+      }).to['throw'](TypeError);
+      expect(function() {
+        diffJson(objectObj, objectObj, { stringifyReplacer: objectReplacer });
+      }).to['throw'](TypeError);
+
+      const rootObj = {x: 'orig'};
+      function rootReplacer(k, v) {
+        return k === '' ? makeReplacementBigIntWrapperObject() : v;
+      }
+      expect(function() {
+        JSON.stringify(rootObj, rootReplacer, '  ');
+      }).to['throw'](TypeError);
+      expect(function() {
+        diffJson(rootObj, rootObj, { stringifyReplacer: rootReplacer });
+      }).to['throw'](TypeError);
+    });
+
+    it('matches JSON.stringify when the root value becomes unrepresentable after toJSON/replacer', function() {
+      function replacementFunction() {}
+      replacementFunction.toJSON = function() {
+        return 'unexpected-second-pass-call';
+      };
+
+      const rootFromReplacer = {x: 1};
+      function replacerReturningFunctionAtRoot(k, v) {
+        return k === '' ? replacementFunction : v;
+      }
+      const canonicalizedReplacerRoot = canonicalize(rootFromReplacer, null, null, replacerReturningFunctionAtRoot);
+      expect(canonicalizedReplacerRoot).to.equal(undefined);
+      expect(JSON.stringify(canonicalizedReplacerRoot)).to.equal(JSON.stringify(rootFromReplacer, replacerReturningFunctionAtRoot));
+
+      const rootFromToJSON = {
+        toJSON: function() {
+          return replacementFunction;
+        }
+      };
+      const canonicalizedToJSONRoot = canonicalize(rootFromToJSON, null, null, function(k, v) {
+        return v;
+      });
+      expect(canonicalizedToJSONRoot).to.equal(undefined);
+      expect(JSON.stringify(canonicalizedToJSONRoot)).to.equal(JSON.stringify(rootFromToJSON));
     });
 
     it('does not invoke a "toJSON" method an object returned by a "toJSON" method', function() {

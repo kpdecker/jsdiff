@@ -71,7 +71,10 @@ export function canonicalize(
   stack = stack || [];
   replacementStack = replacementStack || [];
 
-  if (obj && typeof obj.toJSON === 'function') {
+  // JSON.stringify only applies the toJSON step to objects (including functions), not
+  // to primitive values. That distinction matters if, for example, String.prototype has
+  // been monkey-patched with a toJSON method: primitive strings must not call it.
+  if ((typeof obj === 'object' && obj !== null || typeof obj === 'function') && typeof obj.toJSON === 'function') {
     obj = obj.toJSON(key === undefined ? '' : key);
   }
 
@@ -85,6 +88,14 @@ export function canonicalize(
   // we'd recurse into wrapper objects and canonicalize them as plain objects with numeric
   // keys, diverging from JSON.stringify.
   obj = unboxJsonPrimitiveWrapper(obj);
+
+  // For the root value only, if the post-toJSON/post-replacer value is not representable in JSON
+  // (undefined/function/symbol), JSON.stringify returns undefined and does not try to call toJSON
+  // again on that value. Returning undefined here preserves that behaviour and prevents the final
+  // JSON.stringify(canonicalizedRoot) call in castInput() from invoking a second-pass toJSON.
+  if (key === undefined && isUnrepresentableInJson(obj)) {
+    return undefined;
+  }
 
   let i;
 
@@ -102,13 +113,10 @@ export function canonicalize(
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
       const canonicalizedValue = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
-      // Just like JSON.stringify, render array elements that can't be represented in JSON
-      // (undefined, functions, symbols) as null rather than including them as-is. Doing this
-      // ourselves - rather than leaving it to a final, unreplaced JSON.stringify call to sort
-      // out - matters because a value in this situation could in principle be an object with its
-      // own (real, own-property) "toJSON" method, e.g. if a user's stringifyReplacer returns such
-      // an object; if we let it through unchanged, the final JSON.stringify(canonicalizedObj) call
-      // we do in castInput() would invoke that toJSON method a second time, which we don't want.
+      // JSON.stringify turns unrepresentable array-element values (undefined/function/symbol)
+      // into null. We do that here for parity, and also so the final replacer-less stringify call
+      // in castInput() doesn't see function-valued entries and accidentally invoke second-pass
+      // toJSON methods on them.
       canonicalizedObj[i] = isUnrepresentableInJson(canonicalizedValue) ? null : canonicalizedValue;
     }
     stack.pop();
@@ -135,13 +143,10 @@ export function canonicalize(
     for (i = 0; i < sortedKeys.length; i += 1) {
       key = sortedKeys[i];
       const canonicalizedValue = canonicalize(obj[key], stack, replacementStack, replacer, key);
-      // Just like JSON.stringify, omit object properties whose value can't be represented in JSON
-      // (undefined, functions, symbols) instead of including them as-is. See the comment in the
-      // array-handling code above for why we do this ourselves instead of leaving it to the final
-      // JSON.stringify(canonicalizedObj) call in castInput() to sort out: if we didn't, a property
-      // whose value happens to be a function - most notably one named "toJSON" - could cause that
-      // final call to misinterpret the (already fully resolved) canonicalized object as having its
-      // own "toJSON" method and call it, running the function a second time.
+      // JSON.stringify omits object properties whose value is undefined/function/symbol.
+      // We do that here for parity, and also so the final replacer-less stringify call in
+      // castInput() doesn't see function-valued properties and accidentally invoke second-pass
+      // toJSON methods on them.
       if (!isUnrepresentableInJson(canonicalizedValue)) {
         canonicalizedObj[key] = canonicalizedValue;
       }
