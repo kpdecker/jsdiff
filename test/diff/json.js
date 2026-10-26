@@ -402,6 +402,43 @@ describe('diff/json', function() {
       expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
     });
 
+    it('unboxes a replacer-returned String object before serialization (array: value kept, object: property kept)', function() {
+      // Regression test: when replacer returns a boxed primitive wrapper object (e.g. new String()),
+      // JSON.stringify unboxes it after replacer runs. We need to mirror that; if we recurse into the
+      // wrapper as a plain object, we'd emit character-index keys instead of the primitive string.
+      function makeReplacementStringObject() {
+        const replacementStringObject = Object('abc');
+        replacementStringObject.toJSON = function() {
+          return 'unexpected-second-pass-call';
+        };
+        return replacementStringObject;
+      }
+
+      const arrayObj = ['orig'];
+      function arrayReplacer(k, v) {
+        return k === '0' && v === 'orig' ? makeReplacementStringObject() : v;
+      }
+      const arrayDiffResult = diffJson(arrayObj, arrayObj, {
+        stringifyReplacer: arrayReplacer
+      });
+      expect(arrayDiffResult).to.eql([
+        { count: 3, value: JSON.stringify(['abc'], null, '  '), added: false, removed: false }
+      ]);
+      expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
+
+      const objectObj = {x: 'orig'};
+      function objectReplacer(k, v) {
+        return k === 'x' && v === 'orig' ? makeReplacementStringObject() : v;
+      }
+      const objectDiffResult = diffJson(objectObj, objectObj, {
+        stringifyReplacer: objectReplacer
+      });
+      expect(objectDiffResult).to.eql([
+        { count: 3, value: JSON.stringify({x: 'abc'}, null, '  '), added: false, removed: false }
+      ]);
+      expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
+    });
+
     it('does not invoke a "toJSON" method an object returned by a "toJSON" method', function() {
       // Regression test: previously, if a `toJSON` method returned an object which itself had a
       // toJSON method, we'd call the first `toJSON` in `canonicalize`, then pass the resulting

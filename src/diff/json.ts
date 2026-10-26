@@ -79,6 +79,13 @@ export function canonicalize(
     obj = replacer(key === undefined ? '' : key, obj);
   }
 
+  // JSON.stringify special-cases boxed primitive wrapper objects (e.g. new String('x'))
+  // *after* applying the replacer, by unboxing them back to primitives before deciding
+  // whether to treat the value as an object/array. We need to mirror that here; otherwise
+  // we'd recurse into wrapper objects and canonicalize them as plain objects with numeric
+  // keys, diverging from JSON.stringify.
+  obj = unboxJsonPrimitiveWrapper(obj);
+
   let i;
 
   for (i = 0; i < stack.length; i += 1) {
@@ -152,4 +159,31 @@ export function canonicalize(
 // elements). We replicate that behavior ourselves in canonicalize() above.
 function isUnrepresentableInJson(value: any): boolean {
   return typeof value === 'undefined' || typeof value === 'function' || typeof value === 'symbol';
+}
+
+function unboxJsonPrimitiveWrapper(value: any): any {
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+
+  // This uses the same built-in unboxing methods JSON.stringify is conceptually based on.
+  // We guard with try/catch so that objects spoofing Symbol.toStringTag as one of these
+  // wrapper types still behave like ordinary objects.
+  const objectTag = Object.prototype.toString.call(value);
+  try {
+    switch (objectTag) {
+      case '[object String]':
+        return String.prototype.valueOf.call(value);
+      case '[object Number]':
+        return Number.prototype.valueOf.call(value);
+      case '[object Boolean]':
+        return Boolean.prototype.valueOf.call(value);
+      case '[object BigInt]':
+        return BigInt.prototype.valueOf.call(value);
+      default:
+        return value;
+    }
+  } catch {
+    return value;
+  }
 }
