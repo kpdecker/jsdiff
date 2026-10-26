@@ -71,12 +71,30 @@ export function canonicalize(
   stack = stack || [];
   replacementStack = replacementStack || [];
 
-  if (obj && typeof obj.toJSON === 'function') {
+  // JSON.stringify only applies the toJSON step to objects (including functions), not
+  // to primitive values. That distinction matters if, for example, String.prototype has
+  // been monkey-patched with a toJSON method: primitive strings must not call it.
+  if ((typeof obj === 'object' && obj !== null || typeof obj === 'function') && typeof obj.toJSON === 'function') {
     obj = obj.toJSON(key === undefined ? '' : key);
   }
 
   if (replacer) {
     obj = replacer(key === undefined ? '' : key, obj);
+  }
+
+  // JSON.stringify special-cases boxed primitive wrapper objects (e.g. new String('x'))
+  // *after* applying the replacer, by unboxing them back to primitives before deciding
+  // whether to treat the value as an object/array. We need to mirror that here; otherwise
+  // we'd recurse into wrapper objects and canonicalize them as plain objects with numeric
+  // keys, diverging from JSON.stringify.
+  obj = unboxJsonPrimitiveWrapper(obj);
+
+  // For the root value only, if the post-toJSON/post-replacer value is not representable in JSON
+  // (undefined/function/symbol), JSON.stringify returns undefined and does not try to call toJSON
+  // again on that value. Returning undefined here preserves that behaviour and prevents the final
+  // JSON.stringify(canonicalizedRoot) call in castInput() from invoking a second-pass toJSON.
+  if (key === undefined && isUnrepresentableInJson(obj)) {
+    return undefined;
   }
 
   let i;
@@ -94,7 +112,12 @@ export function canonicalize(
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
+      const canonicalizedValue = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
+      // JSON.stringify turns unrepresentable array-element values (undefined/function/symbol)
+      // into null. We do that here for parity, and also so the final replacer-less stringify call
+      // in castInput() doesn't see function-valued entries and accidentally invoke second-pass
+      // toJSON methods on them.
+      canonicalizedObj[i] = isUnrepresentableInJson(canonicalizedValue) ? null : canonicalizedValue;
     }
     stack.pop();
     replacementStack.pop();
@@ -119,7 +142,14 @@ export function canonicalize(
     sortedKeys.sort();
     for (i = 0; i < sortedKeys.length; i += 1) {
       key = sortedKeys[i];
-      canonicalizedObj[key] = canonicalize(obj[key], stack, replacementStack, replacer, key);
+      const canonicalizedValue = canonicalize(obj[key], stack, replacementStack, replacer, key);
+      // JSON.stringify omits object properties whose value is undefined/function/symbol.
+      // We do that here for parity, and also so the final replacer-less stringify call in
+      // castInput() doesn't see function-valued properties and accidentally invoke second-pass
+      // toJSON methods on them.
+      if (!isUnrepresentableInJson(canonicalizedValue)) {
+        canonicalizedObj[key] = canonicalizedValue;
+      }
     }
     stack.pop();
     replacementStack.pop();
@@ -127,4 +157,38 @@ export function canonicalize(
     canonicalizedObj = obj;
   }
   return canonicalizedObj;
+}
+
+// Values of these types aren't valid JSON values, and JSON.stringify() omits them when they're
+// encountered as object property values (or replaces them with null when encountered as array
+// elements). We replicate that behavior ourselves in canonicalize() above.
+function isUnrepresentableInJson(value: any): boolean {
+  return typeof value === 'undefined' || typeof value === 'function' || typeof value === 'symbol';
+}
+
+function unboxJsonPrimitiveWrapper(value: any): any {
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+
+  // This uses the same built-in unboxing methods JSON.stringify is conceptually based on.
+  // We guard with try/catch so that objects spoofing Symbol.toStringTag as one of these
+  // wrapper types still behave like ordinary objects.
+  const objectTag = Object.prototype.toString.call(value);
+  try {
+    switch (objectTag) {
+      case '[object String]':
+        return String.prototype.valueOf.call(value);
+      case '[object Number]':
+        return Number.prototype.valueOf.call(value);
+      case '[object Boolean]':
+        return Boolean.prototype.valueOf.call(value);
+      case '[object BigInt]':
+        return BigInt.prototype.valueOf.call(value);
+      default:
+        return value;
+    }
+  } catch {
+    return value;
+  }
 }
