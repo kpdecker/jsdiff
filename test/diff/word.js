@@ -240,9 +240,9 @@ describe('WordDiff', function() {
       expect(diffResult).to.eql([
         {added: false, removed: false, value: 'Foo ', count: 1},
         {added: false, removed: true, value: 'Bar ', count: 1},
-        {added: false, removed: true, value: ' Baz', count: 1},
+        {added: false, removed: true, value: 'Baz', count: 1},
         {added: true, removed: false, value: 'Quux ', count: 1},
-        {added: true, removed: false, value: ' Corge', count: 1},
+        {added: true, removed: false, value: 'Corge', count: 1},
         {added: false, removed: false, value: ' End', count: 1}
       ]);
     });
