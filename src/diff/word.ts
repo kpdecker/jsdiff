@@ -162,11 +162,11 @@ class WordDiff extends Diff<string, string> {
     // And now split everything up into single-token change objects again!
     const result: ChangeObject<string>[] = [];
     for (const change of groupedChanges) {
-      for (const token of this.tokenize(change.value, options)) {
+      for (const [i, token] of this.tokenize(change.value, options).entries()) {
         result.push({
           added: change.added,
           removed: change.removed,
-          value: token,
+          value: i == 0 ? token : token.substring(leadingWs(token, options.intlSegmenter).length),
           count: 1
         });
       }
