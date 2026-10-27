@@ -301,8 +301,10 @@ export default class Diff<
   // Subclasses that override this should build on super.normalizeToken() so that ignoreCase keeps
   // working.
   normalizeToken(token: TokenT, options: AllDiffOptions): TokenT {
-    if (options.ignoreCase) {
-      return (token as string).toLowerCase() as TokenT;
+    // Only strings have a case. Tokens can be any value in diffArrays, which has no ignoreCase
+    // option but may still be passed one, so leave other tokens alone rather than throwing.
+    if (options.ignoreCase && typeof token === 'string') {
+      return token.toLowerCase() as TokenT;
     }
     return token;
   }
