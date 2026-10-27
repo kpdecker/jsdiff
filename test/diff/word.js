@@ -235,11 +235,16 @@ describe('WordDiff', function() {
       });
     });
 
-    it('should skip postprocessing of change objects in one-change-object-per-token mode', function() {
-      const diffResult = diffWords('Foo Bar', 'Foo Baz', {oneChangePerToken: true});
-      expect(convertChangesToXML(diffResult)).to.equal(
-        'Foo <del> Bar</del><ins> Baz</ins>'
-      );
+    it('should still dedupe whitespace in one-change-object-per-token mode, while keeping one change object per token', function() {
+      const diffResult = diffWords('Foo Bar Baz End', 'Foo Quux Corge End', {oneChangePerToken: true});
+      expect(diffResult).to.eql([
+        {added: false, removed: false, value: 'Foo ', count: 1},
+        {added: false, removed: true, value: 'Bar ', count: 1},
+        {added: false, removed: true, value: 'Baz', count: 1},
+        {added: true, removed: false, value: 'Quux ', count: 1},
+        {added: true, removed: false, value: 'Corge', count: 1},
+        {added: false, removed: false, value: ' End', count: 1}
+      ]);
     });
 
     it('should respect options.ignoreCase', function() {
