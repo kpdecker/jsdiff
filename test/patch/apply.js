@@ -355,6 +355,40 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    it('should apply a patch produced by `git format-patch`', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          'From 6e7f6fce09cfc088fe20446ebcfd02fc35541947 Mon Sep 17 00:00:00 2001\n'
+          + 'From: A U Thor <author@example.com>\n'
+          + 'Date: Fri, 23 Oct 2026 12:56:36 +0300\n'
+          + 'Subject: [PATCH] Add line4\n'
+          + '\n'
+          + '---\n'
+          + ' test | 1 +\n'
+          + ' 1 file changed, 1 insertion(+)\n'
+          + '\n'
+          + 'diff --git a/test b/test\n'
+          + 'index cc8654b..84275f9 100644\n'
+          + '--- a/test\n'
+          + '+++ b/test\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n'
+          + '-- \n'
+          + '2.50.1\n'
+          + '\n'))
+        .to.equal(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
     it('should apply single line patches with zero context and zero removed', function() {
       expect(applyPatch(
           'line2\n'
