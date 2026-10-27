@@ -100,9 +100,14 @@ export default class Diff<
     const maxExecutionTime = options.timeout ?? Infinity;
     const abortAfterTimestamp = Date.now() + maxExecutionTime;
 
+    // Tokens are compared in normalized form, but the returned change objects are built from the
+    // original tokens.
+    const oldNormalized = oldTokens.map(token => this.normalizeToken(token, options)),
+          newNormalized = newTokens.map(token => this.normalizeToken(token, options));
+
     // Seed editLength = 0, i.e. the content starts with the same values
     const initialPath: Path = { oldPos: -1, lastComponent: undefined };
-    let newPos = this.extractCommon(initialPath, newTokens, oldTokens, 0, options);
+    let newPos = this.extractCommon(initialPath, newNormalized, oldNormalized, 0, options);
     if (initialPath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
       // Identity per the equality and tokenizer
       return done(this.buildValues(initialPath.lastComponent, newTokens, oldTokens));
@@ -186,7 +191,7 @@ export default class Diff<
           basePath = this.addToPath(removePath, false, true, 1, options);
         }
 
-        newPos = this.extractCommon(basePath, newTokens, oldTokens, k, options);
+        newPos = this.extractCommon(basePath, newNormalized, oldNormalized, k, options);
 
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // If we have hit the end of both strings, then we are done
@@ -282,13 +287,24 @@ export default class Diff<
     return newPos;
   }
 
+  // Receives tokens that have already been through normalizeToken().
   equals(left: TokenT, right: TokenT, options: AllDiffOptions): boolean {
     if (options.comparator) {
       return options.comparator(left, right);
     } else {
-      return left === right
-        || (!!options.ignoreCase && (left as string).toLowerCase() === (right as string).toLowerCase());
+      return left === right;
     }
+  }
+
+  // Maps a token to the form it should be compared in (e.g. lowercased). Called once per token up
+  // front, rather than on every call to equals(), which the diff loop makes many times per token.
+  // Subclasses that override this should build on super.normalizeToken() so that ignoreCase keeps
+  // working.
+  normalizeToken(token: TokenT, options: AllDiffOptions): TokenT {
+    if (options.ignoreCase) {
+      return (token as string).toLowerCase() as TokenT;
+    }
+    return token;
   }
 
   removeEmpty(array: TokenT[]): TokenT[] {
