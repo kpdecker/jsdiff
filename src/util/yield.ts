@@ -1,11 +1,5 @@
 let enqueueTaskCalls = 0;
 
-// Use setImmediate which yields without 1ms minimum in runtimes where it exists, setTimeout as fallback
-const yieldToTimers: (callback: () => void) => void =
-  typeof (globalThis as any).setImmediate === 'function'
-    ? (globalThis as any).setImmediate
-    : (callback) => setTimeout(callback, 0);
-
 // Adds `callback` to the event queue as a macrotask, much like setTimeout(callback, 0) would.
 // Unlike setTimeout(callback, 0), this MessageChannel-based approach isn't delayed by timer
 // clamping (at least 4ms per nested timer in browsers, 1ms per timer in Node). We want to avoid
@@ -19,7 +13,14 @@ export function enqueueTask(callback: () => void): void {
   // occasionally yield in Safari. That still eliminates 90% of the clamping where we have to fall
   // back to setTimeout, and all of it where setImmediate exists.
   if (++enqueueTaskCalls % 10 == 0) {
-    yieldToTimers(callback);
+    // Use setImmediate which yields without 1ms minimum in runtimes where it exists, setTimeout
+    // as fallback
+    const setImmediate = (globalThis as any).setImmediate;
+    if (typeof setImmediate === 'function') {
+      setImmediate(callback);
+    } else {
+      setTimeout(callback, 0);
+    }
     return;
   }
 
