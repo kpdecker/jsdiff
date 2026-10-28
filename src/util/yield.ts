@@ -12,7 +12,14 @@ export function enqueueTask(callback: () => void): void {
   // Instead, we very occasionally yield just so that really long-running async diffs will
   // occasionally yield in Safari, while still eliminating 90% of the clamping in all environments.
   if (++enqueueTaskCalls % 10 == 0) {
-    setTimeout(callback, 0);
+    // setImmediate (Node, Bun, Deno) yields to timers and I/O too, without the 1ms minimum that
+    // Node applies to setTimeout(callback, 0).
+    const setImmediate = (globalThis as any).setImmediate;
+    if (typeof setImmediate === 'function') {
+      setImmediate(callback);
+    } else {
+      setTimeout(callback, 0);
+    }
     return;
   }
 
