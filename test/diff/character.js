@@ -108,12 +108,17 @@ describe('diff/character', function() {
       // other stuff to run - that is after all the point of async mode!
       const oldText = 'ax'.repeat(1000);
       const newText = 'ay'.repeat(1000);
+      // A 1ms interval should tick roughly once per millisecond while the diff runs. We compare
+      // against the elapsed time rather than a fixed count, since how long the diff takes depends
+      // on the machine.
+      const start = Date.now();
       let ticks = 0;
       const interval = setInterval(() => { ticks++; }, 1);
       diffChars(oldText, newText, {callback: () => {
         clearInterval(interval);
-          expect(ticks).to.be.at.least(100);
-          done();
+        const elapsed = Date.now() - start;
+        expect(ticks).to.be.at.least(elapsed / 2);
+        done();
       }});
     });
   });
