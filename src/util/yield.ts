@@ -1,5 +1,12 @@
 let enqueueTaskCalls = 0;
 
+// setImmediate (Node, Bun, Deno) yields to timers and I/O too, without the 1ms minimum that Node
+// applies to setTimeout(callback, 0).
+const yieldToTimers: (callback: () => void) => void =
+  typeof (globalThis as any).setImmediate === 'function'
+    ? (globalThis as any).setImmediate
+    : (callback) => setTimeout(callback, 0);
+
 // Adds `callback` to the event queue as a macrotask, much like setTimeout(callback, 0) would.
 // Unlike setTimeout(callback, 0), this MessageChannel-based approach isn't delayed by timer
 // clamping (at least 4ms per nested timer in browsers, 1ms per timer in Node). We want to avoid
@@ -12,14 +19,7 @@ export function enqueueTask(callback: () => void): void {
   // Instead, we very occasionally yield just so that really long-running async diffs will
   // occasionally yield in Safari, while still eliminating 90% of the clamping in all environments.
   if (++enqueueTaskCalls % 10 == 0) {
-    // setImmediate (Node, Bun, Deno) yields to timers and I/O too, without the 1ms minimum that
-    // Node applies to setTimeout(callback, 0).
-    const setImmediate = (globalThis as any).setImmediate;
-    if (typeof setImmediate === 'function') {
-      setImmediate(callback);
-    } else {
-      setTimeout(callback, 0);
-    }
+    yieldToTimers(callback);
     return;
   }
 
