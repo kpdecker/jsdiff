@@ -1,7 +1,6 @@
 let enqueueTaskCalls = 0;
 
-// setImmediate (Node, Bun, Deno) yields to timers and I/O too, without the 1ms minimum that Node
-// applies to setTimeout(callback, 0).
+// Use setImmediate which yields without 1ms minimum in runtimes where it exists, setTimeout as fallback
 const yieldToTimers: (callback: () => void) => void =
   typeof (globalThis as any).setImmediate === 'function'
     ? (globalThis as any).setImmediate
