@@ -61,6 +61,17 @@ describe('diff/array', function() {
         expect(diffResult2[0].value).to.not.equal(input2);
       });
     });
+    it('Should not throw on non-string items when passed ignoreCase', function() {
+      const a = {a: 0}, b = {a: 1}, c = {a: 2};
+      expect(diffArrays([a, b], [a, b], { ignoreCase: true })).to.deep.equals([
+          {count: 2, value: [a, b], removed: false, added: false}
+      ]);
+      expect(diffArrays([a, b], [a, c], { ignoreCase: true })).to.deep.equals([
+          {count: 1, value: [a], removed: false, added: false},
+          {count: 1, value: [b], removed: true, added: false},
+          {count: 1, value: [c], removed: false, added: true}
+      ]);
+    });
     it('Should diff arrays with comparator', function() {
       const a = {a: 0}, b = {a: 1}, c = {a: 2}, d = {a: 3};
       function comparator(left, right) {
