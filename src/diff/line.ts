@@ -105,6 +105,10 @@ export function diffTrimmedLines(oldStr: string, newStr: string, options?: any):
 
 // Exported standalone so it can be used from jsonDiff too.
 export function tokenize(value: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
+  if (typeof value !== 'string' && !((value as unknown) instanceof String)) {
+    // Without this, non-string input would silently be diffed as if it were empty
+    throw new TypeError(`Expected a string to split into lines, got ${typeof value}`);
+  }
   if(options.stripTrailingCr) {
     // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
     value = value.replace(/\r\n/g, '\n');
