@@ -105,28 +105,35 @@ export function diffTrimmedLines(oldStr: string, newStr: string, options?: any):
 
 // Exported standalone so it can be used from jsonDiff too.
 export function tokenize(value: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
+  if (typeof value !== 'string' && !((value as unknown) instanceof String)) {
+    // Without this, non-string input would silently be diffed as if it were empty
+    throw new TypeError(`Expected a string to split into lines, got ${typeof value}`);
+  }
   if(options.stripTrailingCr) {
     // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
     value = value.replace(/\r\n/g, '\n');
   }
 
-  const retLines = [],
-      linesAndNewlines = value.split(/(\n|\r\n)/);
+  const retLines = [];
+  let lineStart = 0;
 
-  // Ignore the final empty token that occurs if the string ends with a new line
-  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-    linesAndNewlines.pop();
-  }
-
-  // Merge the content and line separators into single tokens
-  for (let i = 0; i < linesAndNewlines.length; i++) {
-    const line = linesAndNewlines[i];
-
-    if (i % 2 && !options.newlineIsToken) {
-      retLines[retLines.length - 1] += line;
-    } else {
-      retLines.push(line);
+  while (lineStart < value.length) {
+    const newlineIndex = value.indexOf('\n', lineStart);
+    if (newlineIndex === -1) {
+      // The last line has no line break
+      retLines.push(value.slice(lineStart));
+      break;
     }
+
+    const lineEnd = newlineIndex + 1;
+    if (options.newlineIsToken) {
+      // The line break (\n or \r\n) is a token of its own
+      const lineBreak = value.endsWith('\r\n', lineEnd) ? '\r\n' : '\n';
+      retLines.push(value.slice(lineStart, lineEnd - lineBreak.length), lineBreak);
+    } else {
+      retLines.push(value.slice(lineStart, lineEnd));
+    }
+    lineStart = lineEnd;
   }
 
   return retLines;
