@@ -304,7 +304,13 @@ export default class Diff<
     // Only strings have a case. Tokens can be any value in diffArrays, which has no ignoreCase
     // option but may still be passed one, so leave other tokens alone rather than throwing.
     if (options.ignoreCase && typeof token === 'string') {
-      return token.toLowerCase() as TokenT;
+      // toLowerCase() returns a new string even when nothing changed (at least in V8), and the
+      // normalized tokens are kept for the whole diff. Returning the original token where we can
+      // means only tokens that contained uppercase letters cost extra memory.
+      const lower = token.toLowerCase();
+      if(lower !== token) {
+        return lower as TokenT;
+      }
     }
     return token;
   }
