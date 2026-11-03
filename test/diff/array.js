@@ -73,6 +73,17 @@ describe('diff/array', function() {
           {count: 1, value: [d], removed: false, added: true}
       ]);
     });
+    it('Should produce the full diff for wholly dissimilar arrays even with a comparator, where the fast path is not taken', function() {
+      // With a comparator the no-common-tokens fast path is skipped, but the
+      // regular loop must still produce the correct result here.
+      const diffResult = diffArrays([{a: 1}], [{b: 2}], {
+        comparator: (left, right) => JSON.stringify(left) === JSON.stringify(right)
+      });
+      expect(diffResult).to.deep.equals([
+          {count: 1, value: [{a: 1}], removed: true, added: false},
+          {count: 1, value: [{b: 2}], removed: false, added: true}
+      ]);
+    });
     it('Should pass old/new tokens as the left/right comparator args respectively', function() {
       diffArrays(
         ['a', 'b', 'c'],

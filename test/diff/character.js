@@ -71,6 +71,73 @@ describe('diff/character', function() {
       });
     });
 
+    describe('diff of strings with no characters in common', function() {
+      // Inputs like these used to run the full O(n^2) Myers loop over the
+      // maximal edit distance; they now take the no-common-tokens fast path.
+      // See https://github.com/kpdecker/jsdiff/issues/720.
+      it('emits all deletions followed by all insertions', function() {
+        const diffResult = diffChars('aaa', 'bbb');
+        expect(diffResult).to.deep.equal([
+          { value: 'aaa', count: 3, added: false, removed: true },
+          { value: 'bbb', count: 3, added: true, removed: false }
+        ]);
+      });
+
+      it('emits one change per character with oneChangePerToken', function() {
+        const diffResult = diffChars('ab', 'cd', { oneChangePerToken: true });
+        expect(diffResult).to.deep.equal([
+          { value: 'a', count: 1, added: false, removed: true },
+          { value: 'b', count: 1, added: false, removed: true },
+          { value: 'c', count: 1, added: true, removed: false },
+          { value: 'd', count: 1, added: true, removed: false }
+        ]);
+      });
+
+      it('stays fast on large dissimilar inputs', function() {
+        // This pair took ~11 seconds before the fast path existed.
+        const oldStr = 'a'.repeat(8000);
+        const newStr = 'b'.repeat(8000);
+        const start = Date.now();
+        const diffResult = diffChars(oldStr, newStr);
+        expect(Date.now() - start).to.be.below(2000);
+        expect(diffResult).to.deep.equal([
+          { value: oldStr, count: 8000, added: false, removed: true },
+          { value: newStr, count: 8000, added: true, removed: false }
+        ]);
+      });
+
+      it('still honours a maxEditLength below the total edit distance', function() {
+        const diffResult = diffChars('aaa', 'bbb', { maxEditLength: 5 });
+        expect(diffResult).to.be.undefined;
+      });
+
+      it('still returns the diff for a maxEditLength equal to the total edit distance', function() {
+        const diffResult = diffChars('aaa', 'bbb', { maxEditLength: 6 });
+        expect(diffResult).to.deep.equal([
+          { value: 'aaa', count: 3, added: false, removed: true },
+          { value: 'bbb', count: 3, added: true, removed: false }
+        ]);
+      });
+
+      it('does not fire when ignoreCase makes the strings equal', function() {
+        const diffResult = diffChars('AAA', 'aaa', { ignoreCase: true });
+        expect(diffResult).to.deep.equal([
+          { value: 'aaa', count: 3, added: false, removed: false }
+        ]);
+      });
+
+      it('works in async mode', function(done) {
+        function callback(diffResult) {
+          expect(diffResult).to.deep.equal([
+            { value: 'aaa', count: 3, added: false, removed: true },
+            { value: 'bbb', count: 3, added: true, removed: false }
+          ]);
+          done();
+        }
+        diffChars('aaa', 'bbb', { callback });
+      });
+    });
+
     it('should not be susceptible to race conditions in async mode when called with different options', function(done) {
       // (regression test for https://github.com/kpdecker/jsdiff/issues/477)
       diffChars('wibblywobbly', 'WIBBLYWOBBLY', {ignoreCase: false, callback: (diffResult) => {

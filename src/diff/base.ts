@@ -108,6 +108,37 @@ export default class Diff<
       return done(this.buildValues(initialPath.lastComponent, newTokens, oldTokens));
     }
 
+    // Fast path for inputs with no tokens in common: the only possible edit
+    // script then removes every old token and inserts every new token, so we
+    // can build and return that directly instead of letting the Myers loop
+    // below grind through the full edit distance, which costs
+    // O((oldLen + newLen)^2) on such inputs - e.g. a diff of two completely
+    // unrelated multi-kilobyte strings used to pin the CPU for many seconds.
+    // See https://github.com/kpdecker/jsdiff/issues/720. The edit script built
+    // here is exactly the one the loop below produces for such inputs (all old
+    // tokens removed first, then all new tokens inserted), and the
+    // oldLen + newLen <= maxEditLength guard preserves the documented
+    // maxEditLength abort behaviour for callers who set it below that sum.
+    if (oldLen + newLen <= maxEditLength && this.hasNoTokensInCommon(oldTokens, newTokens, options)) {
+      let lastComponent: DraftChangeObject | undefined;
+      if (options.oneChangePerToken) {
+        for (let i = 0; i < oldLen; i++) {
+          lastComponent = {count: 1, added: false, removed: true, previousComponent: lastComponent};
+        }
+        for (let i = 0; i < newLen; i++) {
+          lastComponent = {count: 1, added: true, removed: false, previousComponent: lastComponent};
+        }
+      } else {
+        if (oldLen) {
+          lastComponent = {count: oldLen, added: false, removed: true, previousComponent: lastComponent};
+        }
+        if (newLen) {
+          lastComponent = {count: newLen, added: true, removed: false, previousComponent: lastComponent};
+        }
+      }
+      return done(this.buildValues(lastComponent, newTokens, oldTokens));
+    }
+
     // bestPath[offset + k] holds the furthest-reaching path on diagonal k = oldPos - newPos.
     // Positions range over -1 <= oldPos < oldLen and -1 <= newPos < newLen, so the edit graph has
     // the oldLen + newLen + 1 diagonals -newLen..oldLen, and the loop below never leaves them: a
@@ -289,6 +320,40 @@ export default class Diff<
       return left === right
         || (!!options.ignoreCase && (left as string).toLowerCase() === (right as string).toLowerCase());
     }
+  }
+
+  // Conservative check for whether the fast path above may fire: true only if
+  // no token from one array equals (per options) any token from the other.
+  // False negatives - i.e. seeing equality where equals() sees none, which
+  // would produce a wrong diff - are impossible, because the lookup below can
+  // only report tokens as equal that === (or, with ignoreCase, a lowercasing
+  // that matches equals()'s own comparison) also reports as equal; anything
+  // subtler (a custom comparator, NaN values) just makes the check report a
+  // shared token that isn't there, skipping the fast path and falling through
+  // to the regular loop.
+  private hasNoTokensInCommon(
+    oldTokens: TokenT[],
+    newTokens: TokenT[],
+    options: AllDiffOptions
+  ): boolean {
+    if (options.comparator) {
+      // An arbitrary comparator cannot be mapped onto set lookups.
+      return false;
+    }
+    // Dedupe the smaller array so the set is as small as possible.
+    const [tokensToDedupe, tokensToScan] = oldTokens.length <= newTokens.length
+      ? [oldTokens, newTokens]
+      : [newTokens, oldTokens];
+    const seen: Set<unknown> = options.ignoreCase
+      ? new Set(tokensToDedupe.map(token => (token as string).toLowerCase()))
+      : new Set(tokensToDedupe);
+    for (let i = 0; i < tokensToScan.length; i++) {
+      const token = options.ignoreCase ? (tokensToScan[i] as string).toLowerCase() : tokensToScan[i];
+      if (seen.has(token)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   removeEmpty(array: TokenT[]): TokenT[] {
