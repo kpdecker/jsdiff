@@ -450,6 +450,40 @@ describe('diff/json', function() {
         expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
       });
 
+      it('unboxes String objects in the original input, ignoring their extra properties', function() {
+        // eslint-disable-next-line no-new-wrappers
+        const boxed = new String('abc');
+        boxed.someKey = 'bla';
+        const input = { array: [boxed], object: { x: boxed } };
+        const diffResult = diffJson(input, input);
+
+        expect(diffResult).to.eql([
+          { count: 8, value: JSON.stringify({ array: ['abc'], object: { x: 'abc' } }, null, '  '), added: false, removed: false }
+        ]);
+        expect(diffResult[0].value).to.equal(JSON.stringify(input, null, '  '));
+      });
+
+      it('calls toJSON on String objects in the original input before unboxing', function() {
+        // eslint-disable-next-line no-new-wrappers
+        const boxed = new String('abc');
+        const keys = [];
+        boxed.toJSON = function(key) {
+          keys.push(key);
+          return `key: ${key}`;
+        };
+        boxed.someKey = 'bla';
+        const input = { array: [boxed], object: { x: boxed } };
+        const diffResult = diffJson(input, input);
+
+        expect(diffResult).to.eql([
+          { count: 8, value: JSON.stringify({ array: ['key: 0'], object: { x: 'key: x' } }, null, '  '), added: false, removed: false }
+        ]);
+        expect(keys).to.eql(['0', 'x', '0', 'x']);
+        keys.length = 0;
+        expect(diffResult[0].value).to.equal(JSON.stringify(input, null, '  '));
+        expect(keys).to.eql(['0', 'x']);
+      });
+
       it('unboxes a replacer-returned String object before serialization (array: value kept, object: property kept)', function() {
         // Regression test: when replacer returns a boxed primitive wrapper object (e.g. new String()),
         // JSON.stringify unboxes it after replacer runs. We need to mirror that; if we recurse into the
