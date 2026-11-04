@@ -190,25 +190,27 @@ describe('diff/json', function() {
     it('should not call String.prototype.toJSON for primitive strings', function() {
       // JSON.stringify only calls toJSON on objects. Primitive strings should not invoke
       // String.prototype.toJSON even if it exists.
-      const stringPrototype = Object.getPrototypeOf('');
-      const hadOwnToJSON = Object.prototype.hasOwnProperty.call(stringPrototype, 'toJSON');
-      const oldToJSON = stringPrototype.toJSON;
       let callCount = 0;
 
+      expect(String.prototype.toJSON).to.equal(undefined);
+
       try {
-        stringPrototype.toJSON = function() {
+        // eslint-disable-next-line no-extend-native
+        String.prototype.toJSON = function() {
           callCount += 1;
           return 'unexpected';
         };
 
-        expect(canonicalize('abc')).to.equal('abc');
+        const canonicalized = canonicalize('abc');
+        expect(canonicalized).to.equal('abc');
+        expect(callCount).to.equal(0);
+
+        // Proof this matches JSON.stringify semantics for primitive strings.
+        expect(JSON.stringify(canonicalized)).to.equal(JSON.stringify('abc'));
+        JSON.stringify('abc');
         expect(callCount).to.equal(0);
       } finally {
-        if (hadOwnToJSON) {
-          stringPrototype.toJSON = oldToJSON;
-        } else {
-          delete stringPrototype.toJSON;
-        }
+        delete String.prototype.toJSON;
       }
     });
 
