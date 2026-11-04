@@ -460,6 +460,7 @@ describe('diff/json', function() {
           replacementStringObject.toJSON = function() {
             return 'unexpected-second-pass-call';
           };
+          replacementStringObject.someKey = 'bla';
           return replacementStringObject;
         }
 
