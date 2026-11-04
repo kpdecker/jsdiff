@@ -423,7 +423,7 @@ describe('diff/json', function() {
           return 'unexpected-second-pass-call';
         };
 
-        const arrayObj = ['original'];
+        const arrayObj = ['x', 'y'];
         function arrayReplacer(k, v) {
           return k === '0' ? replacementFunction : v;
         }
@@ -431,8 +431,9 @@ describe('diff/json', function() {
           stringifyReplacer: arrayReplacer
         });
         expect(arrayDiffResult).to.eql([
-          { count: 3, value: JSON.stringify([null], null, '  '), added: false, removed: false }
+          { count: 4, value: JSON.stringify([null, 'y'], null, '  '), added: false, removed: false }
         ]);
+        // Proof that this behaviour matches that of JSON.stringify:
         expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
 
         const objectObj = { x: 'original' };
@@ -445,6 +446,7 @@ describe('diff/json', function() {
         expect(objectDiffResult).to.eql([
           { count: 1, value: JSON.stringify({}, null, '  '), added: false, removed: false }
         ]);
+        // Proof that this behaviour matches that of JSON.stringify:
         expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
       });
 
