@@ -523,45 +523,41 @@ describe('diff/json', function() {
       });
 
       it('unboxes a replacer-returned String object even if toJSON is inherited from its prototype', function() {
-        // This simulates someone having patched String.prototype.toJSON. For values returned by
-        // replacer, JSON.stringify does not run toJSON a second time; it first unboxes String objects
-        // to primitives. We should do the same.
-        function makeReplacementStringObjectWithInheritedToJSON() {
-          // eslint-disable-next-line no-new-wrappers
-          const replacementStringObject = new String('abc');
-          const prototypeWithToJSON = Object.create(String.prototype, {
-            toJSON: {
-              value: function() {
-                return 'unexpected-second-pass-call';
-              },
-              configurable: true,
-              enumerable: false,
-              writable: true
-            }
+        // JSON.stringify does not call toJSON on a value returned by the replacer.
+        // eslint-disable-next-line no-new-wrappers
+        const replacementStringObject = new String('abc');
+        let callCount = 0;
+
+        try {
+          // eslint-disable-next-line no-extend-native
+          String.prototype.toJSON = function() {
+            callCount += 1;
+            return 'unexpected-second-pass-call';
+          };
+
+          const arrayObj = ['orig'];
+          function arrayReplacer(k, v) {
+            return k === '0' && v === 'orig' ? replacementStringObject : v;
+          }
+          const arrayDiffResult = diffJson(arrayObj, arrayObj, {
+            stringifyReplacer: arrayReplacer
           });
-          Object.setPrototypeOf(replacementStringObject, prototypeWithToJSON);
-          return replacementStringObject;
-        }
+          expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
+          expect(arrayDiffResult[0].value).to.eql(JSON.stringify(['abc'], null, '  '));
 
-        const arrayObj = ['orig'];
-        function arrayReplacer(k, v) {
-          return k === '0' && v === 'orig' ? makeReplacementStringObjectWithInheritedToJSON() : v;
+          const objectObj = { x: 'orig' };
+          function objectReplacer(k, v) {
+            return k === 'x' && v === 'orig' ? replacementStringObject : v;
+          }
+          const objectDiffResult = diffJson(objectObj, objectObj, {
+            stringifyReplacer: objectReplacer
+          });
+          expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
+          expect(objectDiffResult[0].value).to.eql(JSON.stringify({ x: 'abc' }, null, '  '));
+          expect(callCount).to.equal(0);
+        } finally {
+          delete String.prototype.toJSON;
         }
-        const arrayDiffResult = diffJson(arrayObj, arrayObj, {
-          stringifyReplacer: arrayReplacer
-        });
-        expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
-        expect(arrayDiffResult[0].value).to.eql(JSON.stringify(['abc'], null, '  '));
-
-        const objectObj = { x: 'orig' };
-        function objectReplacer(k, v) {
-          return k === 'x' && v === 'orig' ? makeReplacementStringObjectWithInheritedToJSON() : v;
-        }
-        const objectDiffResult = diffJson(objectObj, objectObj, {
-          stringifyReplacer: objectReplacer
-        });
-        expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
-        expect(objectDiffResult[0].value).to.eql(JSON.stringify({ x: 'abc' }, null, '  '));
       });
 
       it('unboxes replacer-returned Number/Boolean objects (and does not call their toJSON)', function() {
