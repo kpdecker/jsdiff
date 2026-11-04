@@ -109,7 +109,8 @@ export default class Diff<
     const initialPath: Path = { oldPos: -1, lastComponent: undefined };
     let newPos = this.extractCommon(initialPath, newNormalized, oldNormalized, 0, options);
     if (initialPath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-      // Identity per the equality and tokenizer
+      // The texts are identical (per the definition of "identical" implied by
+      // tokenize, normalizeToken, and equals).
       return done(this.buildValues(initialPath.lastComponent, newTokens, oldTokens));
     }
 
