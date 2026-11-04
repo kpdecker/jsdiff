@@ -600,8 +600,9 @@ describe('diff/json', function() {
           const arrayDiffResult = diffJson(arrayObj, arrayObj, {
             stringifyReplacer: arrayReplacer
           });
-          expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
           expect(arrayDiffResult[0].value).to.eql(JSON.stringify([testCase.expectedPrimitiveValue], null, '  '));
+          // Proof that the result above is consistent with JSON.stringify:
+          expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
 
           const objectObj = { x: testCase.inputMarkerValue };
           function objectReplacer(k, v) {
@@ -610,8 +611,9 @@ describe('diff/json', function() {
           const objectDiffResult = diffJson(objectObj, objectObj, {
             stringifyReplacer: objectReplacer
           });
-          expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
           expect(objectDiffResult[0].value).to.eql(JSON.stringify({ x: testCase.expectedPrimitiveValue }, null, '  '));
+          // Proof that the result above is consistent with JSON.stringify:
+          expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
         }
       });
 
