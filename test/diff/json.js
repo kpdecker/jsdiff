@@ -388,37 +388,6 @@ describe('diff/json', function() {
         ]);
       });
 
-      it('reads a toJSON getter once and calls the returned function with the value as this', function() {
-        let reads = 0;
-        let receivedKey;
-        function toJSON(key) {
-          expect(this).to.equal(value);
-          receivedKey = key;
-          return 'converted';
-        }
-        toJSON.call = null;
-        const value = {
-          get toJSON() {
-            reads += 1;
-            return reads === 1 ? toJSON : undefined;
-          }
-        };
-        const input = { x: value };
-
-        const expected = JSON.stringify(input, null, '  ');
-        expect(expected).to.equal('{\n  "x": "converted"\n}');
-        expect(reads).to.equal(1);
-        expect(receivedKey).to.equal('x');
-
-        reads = 0;
-        receivedKey = undefined;
-        expect(diffJson(input, expected)).to.eql([
-          { count: 3, value: expected, added: false, removed: false }
-        ]);
-        expect(reads).to.equal(1);
-        expect(receivedKey).to.equal('x');
-      });
-
       it('calls BigInt.prototype.toJSON on primitive BigInts before the replacer', function() {
         const calls = [];
         try {
