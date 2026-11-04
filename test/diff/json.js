@@ -623,24 +623,24 @@ describe('diff/json', function() {
           return 'unexpected-second-pass-call';
         };
 
-        const rootFromReplacer = { x: 1 };
+        const input = { x: 1 };
         function replacerReturningFunctionAtRoot(k, v) {
           return k === '' ? replacementFunction : v;
         }
-        const canonicalizedReplacerRoot = canonicalize(rootFromReplacer, null, null, replacerReturningFunctionAtRoot);
-        expect(canonicalizedReplacerRoot).to.equal(undefined);
-        expect(JSON.stringify(canonicalizedReplacerRoot)).to.equal(JSON.stringify(rootFromReplacer, replacerReturningFunctionAtRoot));
+        const canonicalizedWithReplacer = canonicalize(input, null, null, replacerReturningFunctionAtRoot);
+        expect(canonicalizedWithReplacer).to.equal(undefined);
+        expect(JSON.stringify(canonicalizedWithReplacer)).to.equal(JSON.stringify(input, replacerReturningFunctionAtRoot));
 
-        const rootFromToJSON = {
+        const inputWithToJSON = {
           toJSON: function() {
             return replacementFunction;
           }
         };
-        const canonicalizedToJSONRoot = canonicalize(rootFromToJSON, null, null, function(k, v) {
+        const canonicalizedWithToJSON = canonicalize(inputWithToJSON, null, null, function(k, v) {
           return v;
         });
-        expect(canonicalizedToJSONRoot).to.equal(undefined);
-        expect(JSON.stringify(canonicalizedToJSONRoot)).to.equal(JSON.stringify(rootFromToJSON));
+        expect(canonicalizedWithToJSON).to.equal(undefined);
+        expect(JSON.stringify(canonicalizedWithToJSON)).to.equal(JSON.stringify(inputWithToJSON));
       });
 
       it('does not invoke a "toJSON" method an object returned by a "toJSON" method', function() {
