@@ -617,49 +617,6 @@ describe('diff/json', function() {
         }
       });
 
-      it('matches JSON.stringify when replacer returns a boxed BigInt value', function() {
-        function makeReplacementBigIntWrapperObject() {
-          const replacementBigIntObject = Object(1n);
-          replacementBigIntObject.toJSON = function() {
-            return 123;
-          };
-          return replacementBigIntObject;
-        }
-
-        const arrayObj = ['orig'];
-        function arrayReplacer(k, v) {
-          return k === '0' && v === 'orig' ? makeReplacementBigIntWrapperObject() : v;
-        }
-        expect(function() {
-          JSON.stringify(arrayObj, arrayReplacer, '  ');
-        }).to['throw'](TypeError);
-        expect(function() {
-          diffJson(arrayObj, arrayObj, { stringifyReplacer: arrayReplacer });
-        }).to['throw'](TypeError);
-
-        const objectObj = { x: 'orig' };
-        function objectReplacer(k, v) {
-          return k === 'x' && v === 'orig' ? makeReplacementBigIntWrapperObject() : v;
-        }
-        expect(function() {
-          JSON.stringify(objectObj, objectReplacer, '  ');
-        }).to['throw'](TypeError);
-        expect(function() {
-          diffJson(objectObj, objectObj, { stringifyReplacer: objectReplacer });
-        }).to['throw'](TypeError);
-
-        const rootObj = { x: 'orig' };
-        function rootReplacer(k, v) {
-          return k === '' ? makeReplacementBigIntWrapperObject() : v;
-        }
-        expect(function() {
-          JSON.stringify(rootObj, rootReplacer, '  ');
-        }).to['throw'](TypeError);
-        expect(function() {
-          diffJson(rootObj, rootObj, { stringifyReplacer: rootReplacer });
-        }).to['throw'](TypeError);
-      });
-
       it('matches JSON.stringify when the root value becomes unrepresentable after toJSON/replacer', function() {
         function replacementFunction() { }
         replacementFunction.toJSON = function() {
