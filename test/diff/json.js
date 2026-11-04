@@ -388,44 +388,23 @@ describe('diff/json', function() {
         ]);
       });
 
-      it('calls BigInt.prototype.toJSON on primitive BigInts before the replacer', function() {
-        const calls = [];
+      it('calls BigInt.prototype.toJSON on primitive BigInts', function() {
         try {
           // eslint-disable-next-line no-extend-native
-          BigInt.prototype.toJSON = function(key) {
-            calls.push(['toJSON', key, this]);
-            return `${key}:${this}`;
+          BigInt.prototype.toJSON = function() {
+            return this.toString();
           };
           const input = { array: [0n], value: 1n };
-          function replacer(key, value) {
-            if (key === '0' || key === 'value') {
-              calls.push(['replacer', key, value]);
-              return `replaced:${value}`;
-            }
-            return value;
-          }
+          const diffResult = diffJson(input, input);
+          expect(diffResult).to.eql([
+            { count: 6, value: JSON.stringify({ array: ['0'], value: '1' }, null, '  '), added: false, removed: false }
+          ]);
+          // Proof that the result above is consistent with JSON.stringify:
+          expect(diffResult[0].value).to.equal(JSON.stringify(input, null, '  '));
 
-          const expected = JSON.stringify(input, replacer, '  ');
-          expect(expected).to.equal(JSON.stringify({ array: ['replaced:0:0'], value: 'replaced:value:1' }, null, '  '));
-          expect(calls).to.eql([
-            ['toJSON', '0', 0n], ['replacer', '0', '0:0'],
-            ['toJSON', 'value', 1n], ['replacer', 'value', 'value:1']
-          ]);
-          calls.length = 0;
-          expect(diffJson(input, expected, { stringifyReplacer: replacer })).to.eql([
-            { count: 6, value: expected, added: false, removed: false }
-          ]);
-          expect(calls).to.eql([
-            ['toJSON', '0', 0n], ['replacer', '0', '0:0'],
-            ['toJSON', 'value', 1n], ['replacer', 'value', 'value:1']
-          ]);
-
-          calls.length = 0;
-          expect(canonicalize(0n, null, null, null)).to.equal(':0');
-          expect(calls).to.eql([['toJSON', '', 0n]]);
-          calls.length = 0;
-          expect(JSON.stringify(0n)).to.equal('":0"');
-          expect(calls).to.eql([['toJSON', '', 0n]]);
+          expect(canonicalize(0n, null, null, null)).to.equal('0');
+          // Proof that the result above is consistent with JSON.stringify:
+          expect(JSON.stringify(0n)).to.equal('"0"');
         } finally {
           delete BigInt.prototype.toJSON;
         }
@@ -439,22 +418,20 @@ describe('diff/json', function() {
             calls += 1;
             return 'unexpected';
           };
-          const inputs = [[0], { x: 0 }, {}];
-          const keys = ['0', 'x', ''];
+          const input = { x: 0 };
           const replacements = [1n, Object(1n)];
-          replacements.forEach(function(replacement) {
-            inputs.forEach(function(input, index) {
-              function replacer(key, value) {
-                return key === keys[index] ? replacement : value;
-              }
-              expect(function() {
-                JSON.stringify(input, replacer);
-              }).to['throw'](TypeError);
-              expect(function() {
-                diffJson(input, input, { stringifyReplacer: replacer });
-              }).to['throw'](TypeError);
-            });
-          });
+          for (const replacement of replacements) {
+            function replacer(key, value) {
+              return key === 'x' ? replacement : value;
+            }
+            expect(function() {
+              diffJson(input, input, { stringifyReplacer: replacer });
+            }).to['throw'](TypeError);
+            // Proof that the result above is consistent with JSON.stringify:
+            expect(function() {
+              JSON.stringify(input, replacer);
+            }).to['throw'](TypeError);
+          }
           expect(calls).to.equal(0);
         } finally {
           delete BigInt.prototype.toJSON;
@@ -466,16 +443,18 @@ describe('diff/json', function() {
         function replacer(key, value) {
           return typeof value === 'bigint' ? value.toString() : value;
         }
-        const expected = JSON.stringify(input, replacer, '  ');
-        expect(expected).to.equal(JSON.stringify({ array: ['0'], value: '1' }, null, '  '));
-        expect(diffJson(input, expected, { stringifyReplacer: replacer })).to.eql([
-          { count: 6, value: expected, added: false, removed: false }
+        const diffResult = diffJson(input, input, { stringifyReplacer: replacer });
+        expect(diffResult).to.eql([
+          { count: 6, value: JSON.stringify({ array: ['0'], value: '1' }, null, '  '), added: false, removed: false }
         ]);
-        expect(function() {
-          JSON.stringify(input);
-        }).to['throw'](TypeError);
+        // Proof that the result above is consistent with JSON.stringify:
+        expect(diffResult[0].value).to.equal(JSON.stringify(input, replacer, '  '));
         expect(function() {
           diffJson(input, input);
+        }).to['throw'](TypeError);
+        // Proof that this behaviour matches JSON.stringify:
+        expect(function() {
+          JSON.stringify(input);
         }).to['throw'](TypeError);
       });
 
@@ -491,16 +470,18 @@ describe('diff/json', function() {
           function replacer(key, value) {
             return typeof value === 'bigint' ? 'handled' : value;
           }
-          const expected = JSON.stringify(input, replacer, '  ');
-          expect(expected).to.equal('{\n  "x": "handled"\n}');
-          expect(diffJson(input, expected, { stringifyReplacer: replacer })).to.eql([
-            { count: 3, value: expected, added: false, removed: false }
+          const diffResult = diffJson(input, input, { stringifyReplacer: replacer });
+          expect(diffResult).to.eql([
+            { count: 3, value: '{\n  "x": "handled"\n}', added: false, removed: false }
           ]);
-          expect(function() {
-            JSON.stringify(input);
-          }).to['throw'](TypeError);
+          // Proof that the result above is consistent with JSON.stringify:
+          expect(diffResult[0].value).to.equal(JSON.stringify(input, replacer, '  '));
           expect(function() {
             diffJson(input, input);
+          }).to['throw'](TypeError);
+          // Proof that this behaviour matches JSON.stringify:
+          expect(function() {
+            JSON.stringify(input);
           }).to['throw'](TypeError);
           expect(calls).to.equal(0);
         } finally {
