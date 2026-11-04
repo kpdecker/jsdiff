@@ -73,7 +73,7 @@ export function canonicalize(
 
   // JSON.stringify only applies the toJSON step to objects (including functions), not
   // to primitive values. That distinction matters if, for example, String.prototype has
-  // been monkey-patched with a toJSON method: primitive strings must not call it.
+  // been monkey-patched with a toJSON method; we must not call it for primitive strings.
   if ((typeof obj === 'object' && obj !== null || typeof obj === 'function') && typeof obj.toJSON === 'function') {
     obj = obj.toJSON(key === undefined ? '' : key);
   }
