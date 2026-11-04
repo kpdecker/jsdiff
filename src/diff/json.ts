@@ -71,11 +71,13 @@ export function canonicalize(
   stack = stack || [];
   replacementStack = replacementStack || [];
 
-  // JSON.stringify only applies the toJSON step to objects (including functions), not
-  // to primitive values. That distinction matters if, for example, String.prototype has
-  // been monkey-patched with a toJSON method; we must not call it for primitive strings.
-  if ((typeof obj === 'object' && obj !== null || typeof obj === 'function') && typeof obj.toJSON === 'function') {
-    obj = obj.toJSON(key === undefined ? '' : key);
+  // SerializeJSONProperty calls toJSON for objects (including functions) and primitive BigInts,
+  // but not for other primitives: https://tc39.es/ecma262/#sec-serializejsonproperty
+  if (typeof obj === 'object' && obj !== null || typeof obj === 'function' || typeof obj === 'bigint') {
+    const toJSON = obj.toJSON;
+    if (typeof toJSON === 'function') {
+      obj = Reflect.apply(toJSON, obj, [key === undefined ? '' : key]);
+    }
   }
 
   if (replacer) {
@@ -88,6 +90,12 @@ export function canonicalize(
   // we'd recurse into wrapper objects and canonicalize them as plain objects with numeric
   // keys, diverging from JSON.stringify.
   obj = unboxJsonPrimitiveWrapper(obj);
+
+  // A BigInt remaining after toJSON, the replacer and unboxing must throw. Leaving it for the
+  // final JSON.stringify would incorrectly call BigInt.prototype.toJSON a second time.
+  if (typeof obj === 'bigint') {
+    throw new TypeError('Do not know how to serialize a BigInt');
+  }
 
   // For the root value only, if the post-toJSON/post-replacer value is not representable in JSON
   // (undefined/function/symbol), JSON.stringify returns undefined and does not try to call toJSON

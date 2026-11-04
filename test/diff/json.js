@@ -337,8 +337,7 @@ describe('diff/json', function() {
 
     describe('consistency with JSON.stringify in obscure and unlikely scenarios', function() {
       it('should not call String.prototype.toJSON for primitive strings', function() {
-        // JSON.stringify only calls toJSON on objects. Primitive strings should not invoke
-        // String.prototype.toJSON even if it exists.
+        // JSON.stringify calls toJSON on objects and BigInts, but not on primitive strings.
         let callCount = 0;
 
         expect(String.prototype.toJSON).to.equal(undefined);
@@ -387,6 +386,157 @@ describe('diff/json', function() {
           ['at', '2026-01-02T03:04:05.000Z'],
           ['named', 'key: named']
         ]);
+      });
+
+      it('reads a toJSON getter once and calls the returned function with the value as this', function() {
+        let reads = 0;
+        let receivedKey;
+        function toJSON(key) {
+          expect(this).to.equal(value);
+          receivedKey = key;
+          return 'converted';
+        }
+        toJSON.call = null;
+        const value = {
+          get toJSON() {
+            reads += 1;
+            return reads === 1 ? toJSON : undefined;
+          }
+        };
+        const input = { x: value };
+
+        const expected = JSON.stringify(input, null, '  ');
+        expect(expected).to.equal('{\n  "x": "converted"\n}');
+        expect(reads).to.equal(1);
+        expect(receivedKey).to.equal('x');
+
+        reads = 0;
+        receivedKey = undefined;
+        expect(diffJson(input, expected)).to.eql([
+          { count: 3, value: expected, added: false, removed: false }
+        ]);
+        expect(reads).to.equal(1);
+        expect(receivedKey).to.equal('x');
+      });
+
+      it('calls BigInt.prototype.toJSON on primitive BigInts before the replacer', function() {
+        const calls = [];
+        try {
+          // eslint-disable-next-line no-extend-native
+          BigInt.prototype.toJSON = function(key) {
+            calls.push(['toJSON', key, this]);
+            return `${key}:${this}`;
+          };
+          const input = { array: [0n], value: 1n };
+          function replacer(key, value) {
+            if (key === '0' || key === 'value') {
+              calls.push(['replacer', key, value]);
+              return `replaced:${value}`;
+            }
+            return value;
+          }
+
+          const expected = JSON.stringify(input, replacer, '  ');
+          expect(expected).to.equal(JSON.stringify({ array: ['replaced:0:0'], value: 'replaced:value:1' }, null, '  '));
+          expect(calls).to.eql([
+            ['toJSON', '0', 0n], ['replacer', '0', '0:0'],
+            ['toJSON', 'value', 1n], ['replacer', 'value', 'value:1']
+          ]);
+          calls.length = 0;
+          expect(diffJson(input, expected, { stringifyReplacer: replacer })).to.eql([
+            { count: 6, value: expected, added: false, removed: false }
+          ]);
+          expect(calls).to.eql([
+            ['toJSON', '0', 0n], ['replacer', '0', '0:0'],
+            ['toJSON', 'value', 1n], ['replacer', 'value', 'value:1']
+          ]);
+
+          calls.length = 0;
+          expect(canonicalize(0n, null, null, null)).to.equal(':0');
+          expect(calls).to.eql([['toJSON', '', 0n]]);
+          calls.length = 0;
+          expect(JSON.stringify(0n)).to.equal('":0"');
+          expect(calls).to.eql([['toJSON', '', 0n]]);
+        } finally {
+          delete BigInt.prototype.toJSON;
+        }
+      });
+
+      it('throws when a replacer returns a primitive or boxed BigInt, without calling toJSON', function() {
+        let calls = 0;
+        try {
+          // eslint-disable-next-line no-extend-native
+          BigInt.prototype.toJSON = function() {
+            calls += 1;
+            return 'unexpected';
+          };
+          const inputs = [[0], { x: 0 }, {}];
+          const keys = ['0', 'x', ''];
+          const replacements = [1n, Object(1n)];
+          replacements.forEach(function(replacement) {
+            inputs.forEach(function(input, index) {
+              function replacer(key, value) {
+                return key === keys[index] ? replacement : value;
+              }
+              expect(function() {
+                JSON.stringify(input, replacer);
+              }).to['throw'](TypeError);
+              expect(function() {
+                diffJson(input, input, { stringifyReplacer: replacer });
+              }).to['throw'](TypeError);
+            });
+          });
+          expect(calls).to.equal(0);
+        } finally {
+          delete BigInt.prototype.toJSON;
+        }
+      });
+
+      it('lets the replacer handle BigInt inputs without a toJSON method', function() {
+        const input = { array: [0n], value: 1n };
+        function replacer(key, value) {
+          return typeof value === 'bigint' ? value.toString() : value;
+        }
+        const expected = JSON.stringify(input, replacer, '  ');
+        expect(expected).to.equal(JSON.stringify({ array: ['0'], value: '1' }, null, '  '));
+        expect(diffJson(input, expected, { stringifyReplacer: replacer })).to.eql([
+          { count: 6, value: expected, added: false, removed: false }
+        ]);
+        expect(function() {
+          JSON.stringify(input);
+        }).to['throw'](TypeError);
+        expect(function() {
+          diffJson(input, input);
+        }).to['throw'](TypeError);
+      });
+
+      it('lets the replacer handle a BigInt returned by toJSON, otherwise throws', function() {
+        let calls = 0;
+        try {
+          // eslint-disable-next-line no-extend-native
+          BigInt.prototype.toJSON = function() {
+            calls += 1;
+            return 'unexpected';
+          };
+          const input = { x: { toJSON: () => 1n } };
+          function replacer(key, value) {
+            return typeof value === 'bigint' ? 'handled' : value;
+          }
+          const expected = JSON.stringify(input, replacer, '  ');
+          expect(expected).to.equal('{\n  "x": "handled"\n}');
+          expect(diffJson(input, expected, { stringifyReplacer: replacer })).to.eql([
+            { count: 3, value: expected, added: false, removed: false }
+          ]);
+          expect(function() {
+            JSON.stringify(input);
+          }).to['throw'](TypeError);
+          expect(function() {
+            diffJson(input, input);
+          }).to['throw'](TypeError);
+          expect(calls).to.equal(0);
+        } finally {
+          delete BigInt.prototype.toJSON;
+        }
       });
 
       it('does not invoke a "toJSON" method of a replacer-returned object', function() {
