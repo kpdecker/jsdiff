@@ -460,6 +460,7 @@ describe('diff/json', function() {
         expect(diffResult).to.eql([
           { count: 8, value: JSON.stringify({ array: ['abc'], object: { x: 'abc' } }, null, '  '), added: false, removed: false }
         ]);
+        // Proof that the result above is consistent with JSON.stringify:
         expect(diffResult[0].value).to.equal(JSON.stringify(input, null, '  '));
       });
 
@@ -476,6 +477,7 @@ describe('diff/json', function() {
         expect(diffResult).to.eql([
           { count: 8, value: JSON.stringify({ array: ['key: 0'], object: { x: 'key: x' } }, null, '  '), added: false, removed: false }
         ]);
+        // Proof that the result above is consistent with JSON.stringify:
         expect(diffResult[0].value).to.equal(JSON.stringify(input, null, '  '));
       });
 
@@ -503,6 +505,7 @@ describe('diff/json', function() {
         expect(arrayDiffResult).to.eql([
           { count: 3, value: JSON.stringify(['abc'], null, '  '), added: false, removed: false }
         ]);
+        // Proof that the result above is consistent with JSON.stringify:
         expect(arrayDiffResult[0].value).to.eql(JSON.stringify(arrayObj, arrayReplacer, '  '));
 
         const objectObj = { x: 'orig' };
@@ -515,6 +518,7 @@ describe('diff/json', function() {
         expect(objectDiffResult).to.eql([
           { count: 3, value: JSON.stringify({ x: 'abc' }, null, '  '), added: false, removed: false }
         ]);
+        // Proof that the result above is consistent with JSON.stringify:
         expect(objectDiffResult[0].value).to.eql(JSON.stringify(objectObj, objectReplacer, '  '));
       });
 
