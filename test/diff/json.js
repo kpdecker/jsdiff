@@ -455,7 +455,8 @@ describe('diff/json', function() {
         // JSON.stringify unboxes it after replacer runs. We need to mirror that; if we recurse into the
         // wrapper as a plain object, we'd emit character-index keys instead of the primitive string.
         function makeReplacementStringObject() {
-          const replacementStringObject = Object('abc');
+          // eslint-disable-next-line no-new-wrappers
+          const replacementStringObject = new String('abc');
           replacementStringObject.toJSON = function() {
             return 'unexpected-second-pass-call';
           };
@@ -492,7 +493,8 @@ describe('diff/json', function() {
         // replacer, JSON.stringify does not run toJSON a second time; it first unboxes String objects
         // to primitives. We should do the same.
         function makeReplacementStringObjectWithInheritedToJSON() {
-          const replacementStringObject = Object('abc');
+          // eslint-disable-next-line no-new-wrappers
+          const replacementStringObject = new String('abc');
           const prototypeWithToJSON = Object.create(String.prototype, {
             toJSON: {
               value: function() {
