@@ -59,9 +59,29 @@ export function diffJson(oldStr: string | object, newStr: string | object, optio
   return jsonDiff.diff(oldStr, newStr, options);
 }
 
-
-// This function handles the presence of circular references by bailing out when encountering an
-// object that is already on the "stack" of items being processed. Accepts an optional replacer
+// The purpose of this function is simple: we sort the keys of all objects in the input
+// alphabetically. This is so that, when we diff their JSON representations, we won't get
+// different results due to differences in key ordering.
+// If we knew we would always be dealing with simple types (plain objects, ordinary arrays,
+// and JSON-supported primitives) and we didn't have to think about toJSON methods or replacer
+// functions, this would be a very short function.
+// Unfortunately, doing this simple operation WITHOUT butchering the input in any of the non-simple
+// cases requires a hideous mess of complexity. Remember:
+// * We should not mutate the input we get; that would be unexpected
+// * Replacers and toJSON exist and need to be handled in the same way as JSON.stringify would
+//   handle them (so that AFTER they're called, we can sort keys on their return values)
+// * We should avoid hanging forever if given a circular structure
+// * Some things appear like objects when checked with `typeof`, but SHOULDN'T be treated as normal
+//   objects (and replaced with plain objects with the same keys, but sorted) because they have a
+//   special meaning to JSON.stringify, and should instead be left alone. (These include rawJSON
+//   objects and boxed primitives.)
+// See the test cases for something of a listing of behaviours we're trying to ensure with all the
+// horrendous complexity here.
+// We can't even avoid all of this mess by first running the input through
+//     JSON.parse(JSON.stringify(obj, replacer))
+// which naively seems like a simple hack to get us to nothing but simple JSON-native types to work
+// with, because doing this will irrevocably lose precision of large numbers represented as
+// JSON.rawJSON objects. So instead, we have to settle for this horror.
 export function canonicalize(
   obj: any,
   stack: Array<any> | null, replacementStack: Array<any> | null,
@@ -82,6 +102,17 @@ export function canonicalize(
 
   if (replacer) {
     obj = replacer(key === undefined ? '' : key, obj);
+  }
+
+  // If we've got a JSON.rawJSON object (and are in an environment where that's a concept the
+  // JSON interface supports at all) then leave it alone. (Otherwise we'd treat it like a normal
+  // object we need to normalise, and in doing so, make a "copy" with the wrong prototype that
+  // would no longer function as a rawJSON object.)
+  if ('isRawJSON' in JSON) {
+    const isRawJSON = JSON.isRawJSON as (_: any) => boolean;
+    if (isRawJSON(obj)) {
+      return obj;
+    }
   }
 
   // JSON.stringify special-cases boxed primitive wrapper objects (e.g. new String('x'))
