@@ -8,43 +8,23 @@ import type {
   DiffSentencesOptionsNonabortable
 } from '../types.js';
 
-function isSentenceEndPunct(char: string) {
-  return char == '.' || char == '!' || char == '?';
-}
-
 class SentenceDiff extends Diff<string, string> {
   tokenize(value: string) {
     // If in future we drop support for environments that don't support lookbehinds, we can replace
     // this entire function with:
     //     return value.split(/(?<=[.!?])(\s+|$)/);
-    // but until then, for similar reasons to the trailingWs function in string.ts, we are forced
-    // to do this verbosely "by hand" instead of using a regex.
-    const result = [];
-    let tokenStartI = 0;
-    for (let i = 0; i < value.length; i++) {
-      if (i == value.length - 1) {
-        result.push(value.slice(tokenStartI));
-        break;
-      }
-
-      if (isSentenceEndPunct(value[i]) && value[i + 1].match(/\s/)) {
-        // We've hit a sentence break - i.e. a punctuation mark followed by whitespace.
-        // We now want to push TWO tokens to the result:
-        // 1. the sentence
-        result.push(value.slice(tokenStartI, i + 1));
-
-        // 2. the whitespace
-        i = tokenStartI = i + 1;
-        while (value[i + 1]?.match(/\s/)) {
-          i++;
-        }
-        result.push(value.slice(tokenStartI, i + 1));
-
-        // Then the next token (a sentence) starts on the character after the whitespace.
-        // (It's okay if this is off the end of the string - then the outer loop will terminate
-        // here anyway.)
-        tokenStartI = i + 1;
-      }
+    // Until then, we find each sentence break - a punctuation mark followed by whitespace - with a
+    // regex without lookbehind, and push TWO tokens for it: the sentence and the whitespace.
+    const result = [],
+        sentenceBreak = /[.!?](\s+)/g;
+    let tokenStartI = 0,
+        match;
+    while ((match = sentenceBreak.exec(value))) {
+      result.push(value.slice(tokenStartI, match.index + 1), match[1]);
+      tokenStartI = sentenceBreak.lastIndex;
+    }
+    if (tokenStartI < value.length) {
+      result.push(value.slice(tokenStartI));
     }
 
     return result;
