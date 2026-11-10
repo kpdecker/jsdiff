@@ -128,57 +128,6 @@ describe('diff/json', function() {
       ]);
     });
 
-    it('preserves raw JSON from the input, replacer and toJSON without losing precision', function() {
-      if (typeof JSON.rawJSON !== 'function') {
-        this.skip();
-      }
-      // (Note that evaluating the literal 123456789012345678901 gives 123456789012345680000)
-      const input = {
-        fromInput: JSON.rawJSON('123456789012345678901'),
-        fromReplacer: 'original',
-        fromToJSON: { toJSON: () => JSON.rawJSON('123456789012345678901') }
-      };
-      function replacer(key, value) {
-        if (key === 'fromReplacer') {
-          return JSON.rawJSON('1e400');
-        }
-        return key === 'rawJSON' ? 'unexpected' : value;
-      }
-      const diffResult = diffJson(input, input, { stringifyReplacer: replacer });
-      expect(diffResult).to.eql([
-        { count: 5, value: '{\n  "fromInput": 123456789012345678901,\n  "fromReplacer": 1e400,\n  "fromToJSON": 123456789012345678901\n}', added: false, removed: false }
-      ]);
-      // Proof that the result above is consistent with JSON.stringify:
-      expect(diffResult[0].value).to.equal(JSON.stringify(input, replacer, '  '));
-    });
-
-    it('lets the replacer replace a raw JSON value', function() {
-      if (typeof JSON.rawJSON !== 'function') {
-        this.skip();
-      }
-      const input = { foo: JSON.rawJSON('123456789012345678901') };
-      function replacer(key, value) {
-        return key === 'foo' ? 'replaced' : value;
-      }
-      const diffResult = diffJson(input, input, { stringifyReplacer: replacer });
-      expect(diffResult).to.eql([
-        { count: 3, value: '{\n  "foo": "replaced"\n}', added: false, removed: false }
-      ]);
-      // Proof that the result above is consistent with JSON.stringify:
-      expect(diffResult[0].value).to.equal(JSON.stringify(input, replacer, '  '));
-    });
-
-
-    it('does not treat an ordinary object with a rawJSON property as raw JSON', function() {
-      const input = { rawJSON: '123' };
-      const diffResult = diffJson(input, input);
-      expect(diffResult).to.eql([
-        { count: 3, value: '{\n  "rawJSON": "123"\n}', added: false, removed: false }
-      ]);
-      // Proof that the result above is consistent with JSON.stringify:
-      expect(diffResult[0].value).to.equal(JSON.stringify(input, null, '  '));
-    });
-
     it('handles custom toJSON methods like JSON.stringify does', function() {
       const x = {
         toJSON: () => 'aaa'
@@ -387,6 +336,56 @@ describe('diff/json', function() {
     });
 
     describe('consistency with JSON.stringify in obscure and unlikely scenarios', function() {
+      it('preserves raw JSON from the input, replacer and toJSON without losing precision', function() {
+        if (typeof JSON.rawJSON !== 'function') {
+          this.skip();
+        }
+        // (Note that evaluating the literal 123456789012345678901 gives 123456789012345680000)
+        const input = {
+          fromInput: JSON.rawJSON('123456789012345678901'),
+          fromReplacer: 'original',
+          fromToJSON: { toJSON: () => JSON.rawJSON('123456789012345678901') }
+        };
+        function replacer(key, value) {
+          if (key === 'fromReplacer') {
+            return JSON.rawJSON('1e400');
+          }
+          return key === 'rawJSON' ? 'unexpected' : value;
+        }
+        const diffResult = diffJson(input, input, { stringifyReplacer: replacer });
+        expect(diffResult).to.eql([
+          { count: 5, value: '{\n  "fromInput": 123456789012345678901,\n  "fromReplacer": 1e400,\n  "fromToJSON": 123456789012345678901\n}', added: false, removed: false }
+        ]);
+        // Proof that the result above is consistent with JSON.stringify:
+        expect(diffResult[0].value).to.equal(JSON.stringify(input, replacer, '  '));
+      });
+
+      it('lets the replacer replace a raw JSON value', function() {
+        if (typeof JSON.rawJSON !== 'function') {
+          this.skip();
+        }
+        const input = { foo: JSON.rawJSON('123456789012345678901') };
+        function replacer(key, value) {
+          return key === 'foo' ? 'replaced' : value;
+        }
+        const diffResult = diffJson(input, input, { stringifyReplacer: replacer });
+        expect(diffResult).to.eql([
+          { count: 3, value: '{\n  "foo": "replaced"\n}', added: false, removed: false }
+        ]);
+        // Proof that the result above is consistent with JSON.stringify:
+        expect(diffResult[0].value).to.equal(JSON.stringify(input, replacer, '  '));
+      });
+
+      it('does not treat an ordinary object with a rawJSON property as raw JSON', function() {
+        const input = { rawJSON: '123' };
+        const diffResult = diffJson(input, input);
+        expect(diffResult).to.eql([
+          { count: 3, value: '{\n  "rawJSON": "123"\n}', added: false, removed: false }
+        ]);
+        // Proof that the result above is consistent with JSON.stringify:
+        expect(diffResult[0].value).to.equal(JSON.stringify(input, null, '  '));
+      });
+
       it('should not call String.prototype.toJSON for primitive strings', function() {
         // JSON.stringify calls toJSON on objects and BigInts, but not on primitive strings.
         let callCount = 0;
