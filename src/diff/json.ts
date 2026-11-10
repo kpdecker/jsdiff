@@ -134,10 +134,12 @@ export function canonicalize(
     throw new TypeError('Do not know how to serialize a BigInt');
   }
 
-  // For the root value only, if the post-toJSON/post-replacer value is not representable in JSON
-  // (undefined/function/symbol), JSON.stringify returns undefined and does not try to call toJSON
-  // again on that value. Returning undefined here preserves that behaviour and prevents the final
-  // JSON.stringify(canonicalizedRoot) call in castInput() from invoking a second-pass toJSON.
+  // key === undefined indicates that this is the root value.
+  // Returning undefined here keeps consistency with JSON.stringify in the extremely obscure case
+  // where a replacer or toJSON replaces the ROOT of the input with a function that itself has a
+  // toJSON method.
+  // Unrepresentable values nested within the input (i.e. as object values or array elements) get
+  // similar handling below.
   if (key === undefined && isUnrepresentableInJson(obj)) {
     return undefined;
   }
@@ -158,10 +160,8 @@ export function canonicalize(
     replacementStack.push(canonicalizedObj);
     for (i = 0; i < obj.length; i += 1) {
       const canonicalizedValue = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
-      // JSON.stringify turns unrepresentable array-element values (undefined/function/symbol)
-      // into null. We do that here for parity, and also so the final replacer-less stringify call
-      // in castInput() doesn't see function-valued entries and accidentally invoke second-pass
-      // toJSON methods on them.
+      // See comment on previous isUnrepresentableInJson calls. Unrepresentable values in arrays
+      // get replaced with null by JSON.stringify, so that's what we do here.
       canonicalizedObj[i] = isUnrepresentableInJson(canonicalizedValue) ? null : canonicalizedValue;
     }
     stack.pop();
@@ -188,10 +188,8 @@ export function canonicalize(
     for (i = 0; i < sortedKeys.length; i += 1) {
       key = sortedKeys[i];
       const canonicalizedValue = canonicalize(obj[key], stack, replacementStack, replacer, key);
-      // JSON.stringify omits object properties whose value is undefined/function/symbol.
-      // We do that here for parity, and also so the final replacer-less stringify call in
-      // castInput() doesn't see function-valued properties and accidentally invoke second-pass
-      // toJSON methods on them.
+      // See comments on previous isUnrepresentableInJson calls. Unrepresentable values in objects
+      // get omitted entirely by JSON.stringify, so we do that here too.
       if (!isUnrepresentableInJson(canonicalizedValue)) {
         canonicalizedObj[key] = canonicalizedValue;
       }
@@ -216,9 +214,6 @@ function unboxJsonPrimitiveWrapper(value: any): any {
     return value;
   }
 
-  // This uses the same built-in unboxing methods JSON.stringify is conceptually based on.
-  // We guard with try/catch so that objects spoofing Symbol.toStringTag as one of these
-  // wrapper types still behave like ordinary objects.
   const objectTag = Object.prototype.toString.call(value);
   try {
     switch (objectTag) {
@@ -234,6 +229,9 @@ function unboxJsonPrimitiveWrapper(value: any): any {
         return value;
     }
   } catch {
+    // Weird - maybe `value` isn't really a boxed primitive, but is spoofing being a boxed
+    // primitive using Symbol.toStringTag.
+    // In that case, let's just return it unchanged:
     return value;
   }
 }
