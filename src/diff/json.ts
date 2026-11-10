@@ -82,6 +82,12 @@ export function diffJson(oldStr: string | object, newStr: string | object, optio
 // which naively seems like a simple hack to get us to nothing but simple JSON-native types to work
 // with, because doing this will irrevocably lose precision of large numbers represented as
 // JSON.rawJSON objects. So instead, we have to settle for this horror.
+//
+// Even with all this complexity, we probably don't achieve total consistency with JSON.stringify
+// in really perverse artificial scenarios (e.g. cases where globals we use have been modified,
+// or where global prototypes have had perverse toJSON methods added, or where reading properties
+// has side effects) but we're probably close enough to handle all the cases that someone who isn't
+// deliberately looking for inconsistencies will ever actually throw at us.
 export function canonicalize(
   obj: any,
   stack: Array<any> | null, replacementStack: Array<any> | null,
