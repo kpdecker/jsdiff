@@ -42,8 +42,8 @@ const extendedWordChars = 'a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8
 //   See https://github.com/kpdecker/jsdiff/issues/160#issuecomment-1866099640
 //   for an example.
 //
-// Keeping the surrounding whitespace of course has implications for .equals
-// and .join, not just .tokenize.
+// Keeping the surrounding whitespace of course has implications for
+// .normalizeToken and .join, not just .tokenize.
 
 // This regex does NOT fully implement the tokenization rules described above.
 // Instead, it gives runs of whitespace their own "token". The tokenize method
@@ -53,13 +53,11 @@ const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^$
 
 
 class WordDiff extends Diff<string, string> {
-  equals(left: string, right: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable) {
-    if (options.ignoreCase) {
-      left = left.toLowerCase();
-      right = right.toLowerCase();
-    }
-
-    return left.trim() === right.trim();
+  normalizeToken(token: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable) {
+    return super.normalizeToken(token, options)
+      // Unlike the other normalizers, this trim doesn't depend on any option: diffWords always
+      // ignores the whitespace around words, which every token carries (see above).
+      .trim();
   }
 
   tokenize(value: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable = {}) {

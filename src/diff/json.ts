@@ -17,8 +17,8 @@ class JsonDiff extends Diff<string, string, string | object> {
     return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), null, '  ');
   }
 
-  equals(left: string, right: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
-    return super.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'), options);
+  normalizeToken(token: string, options: DiffJsonOptionsNonabortable | DiffJsonOptionsAbortable) {
+    return super.normalizeToken(token, options).replace(/,([\r\n])/g, '$1');
   }
 }
 

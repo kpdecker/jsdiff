@@ -69,6 +69,15 @@ describe('diff/character', function() {
         const diffResult = diffChars('New Values.', 'New value.', {ignoreCase: true});
         expect(convertChangesToXML(diffResult)).to.equal('New value<del>s</del>.');
       });
+
+      it('is applied before tokens are passed to a comparator', function() {
+        const seen = [];
+        diffChars('A', 'b', {ignoreCase: true, comparator: (left, right) => {
+          seen.push(left + right);
+          return left === right;
+        }});
+        expect(seen).to.eql(['ab']);
+      });
     });
 
     it('should not be susceptible to race conditions in async mode when called with different options', function(done) {
