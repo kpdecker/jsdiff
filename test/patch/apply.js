@@ -585,6 +585,42 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
+    for (const [label, sourceNewline, patchNewline] of [
+      ['Unix', '\n', '\n'],
+      ['Windows', '\r\n', '\r\n'],
+      ['Windows patch against Unix source', '\n', '\r\n']
+    ]) {
+      for (const operation of ['substitution', 'insertion']) {
+        it(`should allow an empty-line context ${operation} with fuzzFactor 1 (${label})`, function() {
+          const oldLines = ['a', 'b', 'c', 'd', ''];
+          const newLines = ['a', 'b', 'c', 'D', ''];
+          const sourceLines = operation === 'substitution'
+            ? ['a', '', 'c', 'd', '']
+            : ['a', 'b', '', 'c', 'd', ''];
+          const expectedLines = operation === 'substitution'
+            ? ['a', '', 'c', 'D', '']
+            : ['a', 'b', '', 'c', 'D', ''];
+          const patch = createPatch('test.txt', oldLines.join(patchNewline), newLines.join(patchNewline));
+          const source = sourceLines.join(sourceNewline);
+
+          expect(applyPatch(source, patch)).to.equal(false);
+          expect(applyPatch(source, patch, {fuzzFactor: 1})).to.equal(expectedLines.join(sourceNewline));
+        });
+      }
+    }
+
+    for (const source of ['a\nb\nc\n', 'a\nb\nc']) {
+      it(`should allow missing context at EOF without appending a phantom line (${JSON.stringify(source)})`, function() {
+        const patch = createPatch('test.txt', 'a\nb\nc\nd\n', 'a\nB\nc\nd\n');
+        expect(applyPatch(source, patch, {fuzzFactor: 1})).to.equal(source.replace('b', 'B'));
+      });
+    }
+
+    it('should still require deleted lines to exist when context contains empty lines', function() {
+      const patch = createPatch('test.txt', 'a\nb\nc\nd\n', 'a\nb\nc\nD\n');
+      expect(applyPatch('a\n\nc\nother\n', patch, {fuzzFactor: 1})).to.equal(false);
+    });
+
     it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
       expect(applyPatch(
         'line1\n'

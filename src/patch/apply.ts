@@ -220,7 +220,7 @@ function applyStructuredPatch(
           // The first two options are of course only possible if the line from lines is non-null -
           // i.e. only option 3 is possible if we've overrun the end of the old file.
           return (
-            lines[toPos] && (
+            lines[toPos] != null && (
               applyHunk(
                 hunkLines,
                 toPos + 1,
