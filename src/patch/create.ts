@@ -411,6 +411,11 @@ export function formatPatch(patch: StructuredPatch | StructuredPatch[], headerOp
       ret.push('copy from ' + quoteFileNameIfNeeded((patch.oldFileName ?? '').replace(/^a\//, '')));
       ret.push('copy to ' + quoteFileNameIfNeeded((patch.newFileName ?? '').replace(/^b\//, '')));
     }
+    if (patch.isBinary) {
+      const oldName = patch.isCreate ? '/dev/null' : patch.oldFileName;
+      const newName = patch.isDelete ? '/dev/null' : patch.newFileName;
+      ret.push('Binary files ' + quoteFileNameIfNeeded(oldName) + ' and ' + quoteFileNameIfNeeded(newName) + ' differ');
+    }
   } else {
     if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName && patch.oldFileName !== undefined) {
       ret.push('Index: ' + quoteFileNameIfNeeded(patch.oldFileName));

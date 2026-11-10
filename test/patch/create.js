@@ -1354,6 +1354,60 @@ describe('patch/create', function() {
         expect(formatPatch(patches, OMIT_HEADERS)).to.equal(expected);
       });
 
+      describe('binary Git patches', function() {
+        const fixtures = [
+          ['modification',
+            'diff --git a/old.bin b/new.bin\n' +
+            'Binary files a/old.bin and b/new.bin differ\n'],
+          ['creation',
+            'diff --git a/new.bin b/new.bin\n' +
+            'new file mode 100644\n' +
+            'Binary files /dev/null and b/new.bin differ\n'],
+          ['deletion',
+            'diff --git a/old.bin b/old.bin\n' +
+            'deleted file mode 100644\n' +
+            'Binary files a/old.bin and /dev/null differ\n'],
+          ['rename',
+            'diff --git a/old.bin b/new.bin\n' +
+            'rename from old.bin\n' +
+            'rename to new.bin\n' +
+            'Binary files a/old.bin and b/new.bin differ\n'],
+          ['copy',
+            'diff --git a/old.bin b/new.bin\n' +
+            'copy from old.bin\n' +
+            'copy to new.bin\n' +
+            'Binary files a/old.bin and b/new.bin differ\n'],
+          ['quoted filename',
+            'diff --git "a/caf\\303\\251\\timage.bin" "b/caf\\303\\251\\timage.bin"\n' +
+            'Binary files "a/caf\\303\\251\\timage.bin" and "b/caf\\303\\251\\timage.bin" differ\n']
+        ];
+
+        for (const [name, text] of fixtures) {
+          it(`should preserve a binary ${name} when formatting`, function() {
+            const parsed = parsePatch(text);
+            expect(parsed[0].isBinary).to.equal(true);
+            expect(formatPatch(parsed)).to.equal(text);
+            expect(parsePatch(formatPatch(parsed))).to.deep.equal(parsed);
+          });
+        }
+
+        it('should preserve binary flags in a mixed multi-file patch', function() {
+          const text = fixtures[0][1] +
+            '\n' +
+            'diff --git a/text.txt b/text.txt\n' +
+            '--- a/text.txt\n' +
+            '+++ b/text.txt\n' +
+            '@@ -1,1 +1,1 @@\n' +
+            '-before\n' +
+            '+after\n' +
+            '\n' + fixtures[1][1];
+          const parsed = parsePatch(text);
+          expect(parsed).to.have.length(3);
+          expect(parsed.map(patch => patch.isBinary)).to.deep.equal([true, undefined, true]);
+          expect(parsePatch(formatPatch(parsed))).to.deep.equal(parsed);
+        });
+      });
+
       it('should emit rename headers for patches with isGit and isRename', function() {
         const patch = {
           oldFileName: 'a/old.txt',
