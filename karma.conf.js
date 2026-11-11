@@ -18,15 +18,6 @@ export default function(config) {
 
     webpack: {
       devtool: 'eval',
-      module: {
-        rules: [
-          {
-            test: /\.jsx?$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader'
-          }
-        ]
-      }
     },
 
     reporters: ['mocha'],

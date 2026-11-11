@@ -42,8 +42,8 @@ const extendedWordChars = 'a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8
 //   See https://github.com/kpdecker/jsdiff/issues/160#issuecomment-1866099640
 //   for an example.
 //
-// Keeping the surrounding whitespace of course has implications for .equals
-// and .join, not just .tokenize.
+// Keeping the surrounding whitespace of course has implications for
+// .normalizeToken and .join, not just .tokenize.
 
 // This regex does NOT fully implement the tokenization rules described above.
 // Instead, it gives runs of whitespace their own "token". The tokenize method
@@ -53,13 +53,11 @@ const tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^$
 
 
 class WordDiff extends Diff<string, string> {
-  equals(left: string, right: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable) {
-    if (options.ignoreCase) {
-      left = left.toLowerCase();
-      right = right.toLowerCase();
-    }
-
-    return left.trim() === right.trim();
+  normalizeToken(token: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable) {
+    return super.normalizeToken(token, options)
+      // Unlike the other normalizers, this trim doesn't depend on any option: diffWords always
+      // ignores the whitespace around words, which every token carries (see above).
+      .trim();
   }
 
   tokenize(value: string, options: DiffWordsOptionsAbortable | DiffWordsOptionsNonabortable = {}) {
@@ -117,34 +115,61 @@ class WordDiff extends Diff<string, string> {
     }).join('');
   }
 
-  postProcess(changes: ChangeObject<string>[], options: any) {
-    if (!changes || options.oneChangePerToken) {
+  postProcess(changes: ChangeObject<string>[], options: any): ChangeObject<string>[] {
+    if (!changes.length) {
       return changes;
     }
 
-    let lastKeep: ChangeObject<string> | null = null;
-    // Change objects representing any insertion or deletion since the last
-    // "keep" change object. There can be at most one of each.
-    let insertion: ChangeObject<string> | null = null;
-    let deletion: ChangeObject<string> | null = null;
-    changes.forEach(change => {
-      if (change.added) {
-        insertion = change;
-      } else if (change.removed) {
-        deletion = change;
-      } else {
-        if (insertion || deletion) { // May be false at start of text
-          dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change, options.intlSegmenter);
-        }
-        lastKeep = change;
-        insertion = null;
-        deletion = null;
-      }
-    });
-    if (insertion || deletion) {
-      dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null, options.intlSegmenter);
+    if (!options.oneChangePerToken) {
+      dedupeWhitespaceInDiff(changes, options.intlSegmenter);
+      return changes;
     }
-    return changes;
+
+    // Now the messier path, where oneChangePerToken is true (and the `changes`
+    // array already has one change object per token).
+    // dedupeWhitespaceInDiff depends on runs of kept/inserted/deleted
+    // changes being grouped into a single change object - i.e. the very
+    // behaviour that oneChangePerToken turns off. So, although it's a bit
+    // clumsy, we manually group them here, then run the whitespace deduping,
+    // then split them into single-token change objects again.
+    const groupedChanges: ChangeObject<string>[] = [];
+    let currentGroup: ChangeObject<string>[] = [changes.shift()!];
+    for (const change of changes) {
+      if (change.added == currentGroup[0].added && change.removed == currentGroup[0].removed) {
+        currentGroup.push(change);
+      } else {
+        groupedChanges.push({
+          added: currentGroup[0].added,
+          removed: currentGroup[0].removed,
+          value: this.join(currentGroup.map(change => change.value)),
+          count: currentGroup.length
+        });
+        currentGroup = [change];
+      }
+    }
+    groupedChanges.push({
+      added: currentGroup[0].added,
+      removed: currentGroup[0].removed,
+      value: this.join(currentGroup.map(change => change.value)),
+      count: currentGroup.length
+    });
+
+    // Run the same whitespace deduping that would've happened in the non-oneChangePerToken case
+    dedupeWhitespaceInDiff(groupedChanges, options.intlSegmenter);
+
+    // And now split everything up into single-token change objects again!
+    const result: ChangeObject<string>[] = [];
+    for (const change of groupedChanges) {
+      for (const [i, token] of this.tokenize(change.value, options).entries()) {
+        result.push({
+          added: change.added,
+          removed: change.removed,
+          value: i == 0 ? token : token.substring(leadingWs(token, options.intlSegmenter).length),
+          count: 1
+        });
+      }
+    }
+    return result;
   }
 }
 
@@ -193,13 +218,41 @@ export function diffWords(oldStr: string, newStr: string, options?: any): undefi
   return wordDiff.diff(oldStr, newStr, options);
 }
 
+function dedupeWhitespaceInDiff(
+  changes: ChangeObject<string>[],
+  segmenter?: Intl.Segmenter
+): void {
+  let lastKeep: ChangeObject<string> | null = null;
+  // Change objects representing any insertion or deletion since the last
+  // "keep" change object. There can be at most one of each.
+  let insertion: ChangeObject<string> | null = null;
+  let deletion: ChangeObject<string> | null = null;
+  changes.forEach(change => {
+    if (change.added) {
+      insertion = change;
+    } else if (change.removed) {
+      deletion = change;
+    } else {
+      if (insertion || deletion) { // May be false at start of text
+        dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change, segmenter);
+      }
+      lastKeep = change;
+      insertion = null;
+      deletion = null;
+    }
+  });
+  if (insertion || deletion) {
+    dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null, segmenter);
+  }
+}
+
 function dedupeWhitespaceInChangeObjects(
   startKeep: ChangeObject<string> | null,
   deletion: ChangeObject<string> | null,
   insertion: ChangeObject<string> | null,
   endKeep: ChangeObject<string> | null,
   segmenter?: Intl.Segmenter
-) {
+): void {
   // Before returning, we tidy up the leading and trailing whitespace of the
   // change objects to eliminate cases where trailing whitespace in one object
   // is repeated as leading whitespace in the next.

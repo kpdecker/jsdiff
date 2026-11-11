@@ -1,8 +1,6 @@
-.babelrc
 .eslint.config.mjs
 .gitignore
 .npmignore
-.nyc_output
 .vscode
 .zed
 test-d
@@ -13,7 +11,6 @@ images
 index.html
 karma.conf.js
 rollup.config.mjs
-runtime.js
 src
 tasks
 test

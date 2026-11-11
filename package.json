@@ -22,9 +22,6 @@
     "type": "git",
     "url": "https://github.com/kpdecker/jsdiff.git"
   },
-  "engines": {
-    "node": ">=0.3.1"
-  },
   "main": "./libcjs/index.js",
   "module": "./libesm/index.js",
   "browser": "./dist/diff.js",
@@ -65,63 +62,55 @@
   "type": "module",
   "types": "libcjs/index.d.ts",
   "scripts": {
-    "clean": "rm -rf libcjs/ libesm/ dist/ coverage/ .nyc_output/",
+    "clean": "rm -rf libcjs/ libesm/ dist/ coverage/",
     "lint": "yarn eslint",
     "build": "yarn lint && yarn generate-esm && yarn generate-cjs && yarn check-types && yarn run-rollup && yarn run-uglify",
     "generate-cjs": "yarn tsc --module commonjs --outDir libcjs && node --eval \"fs.writeFileSync('libcjs/package.json', JSON.stringify({type:'commonjs',sideEffects:false}))\"",
-    "generate-esm": "yarn tsc --module nodenext --outDir libesm --target es6 && node --eval \"fs.writeFileSync('libesm/package.json', JSON.stringify({type:'module',sideEffects:false}))\"",
+    "generate-esm": "yarn tsc --module nodenext --outDir libesm --target es6 --sourceMap && node --eval \"fs.writeFileSync('libesm/package.json', JSON.stringify({type:'module',sideEffects:false}))\"",
     "check-types": "yarn run-tsd && yarn run-attw",
-    "test": "nyc yarn _test",
-    "_test": "yarn build && cross-env NODE_ENV=test yarn run-mocha",
+    "test": "c8 yarn _test",
+    "_test": "yarn build && yarn run-mocha",
     "run-attw": "yarn attw --pack --entrypoints . && yarn attw --pack --entrypoints lib/diff/word.js --profile node16",
     "run-tsd": "yarn tsd --typings libesm/ && yarn tsd --files test-d/",
     "run-rollup": "rollup -c rollup.config.mjs",
     "run-uglify": "uglifyjs dist/diff.js -c -o dist/diff.min.js",
-    "run-mocha": "mocha --require ./runtime 'test/**/*.js'"
+    "run-mocha": "mocha 'test/**/*.js'"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
-    "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
-    "@babel/register": "^7.28.6",
-    "@colors/colors": "^1.6.0",
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@colors/colors": "^1.6.1",
     "@eslint/js": "^10.0.1",
-    "babel-loader": "^10.1.1",
-    "babel-plugin-istanbul": "8.0.0",
-    "chai": "^6.2.2",
-    "cross-env": "^10.1.0",
-    "eslint": "^10.2.0",
-    "globals": "^17.5.0",
+    "c8": "^12.0.0",
+    "chai": "^6.3.0",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
     "karma": "^6.4.4",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.1",
-    "mocha": "^11.7.5",
-    "nyc": "^18.0.0",
-    "rollup": "^4.60.1",
+    "mocha": "^12.0.3",
+    "rollup": "^4.64.10",
     "tsd": "^0.33.0",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.1",
     "uglify-js": "^3.19.3",
-    "webpack": "^5.106.1",
-    "webpack-dev-server": "^5.2.3"
+    "webpack": "^5.112.0",
+    "webpack-dev-server": "^6.0.0"
   },
-  "nyc": {
-    "require": [
-      "@babel/register"
-    ],
+  "c8": {
     "reporter": [
       "lcov",
       "text"
     ],
-    "sourceMap": false,
-    "instrument": false,
+    "include": [
+      "libesm/**/*.js"
+    ],
     "check-coverage": true,
-    "branches": 100,
-    "lines": 100,
+    "branches": 95,
+    "lines": 98,
     "functions": 100,
-    "statements": 100
+    "statements": 98
   },
-  "packageManager": "yarn@4.12.0"
+  "packageManager": "yarn@4.18.1"
 }

@@ -3,7 +3,6 @@ node_modules
 libesm
 libcjs
 dist
-.nyc_output
 .vscode
 .zed
 
