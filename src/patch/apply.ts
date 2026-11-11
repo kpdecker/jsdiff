@@ -88,8 +88,7 @@ function applyStructuredPatch(
   // Apply the diff to the input
   const lines = source.split('\n'),
         hunks = patch.hunks,
-        customCompareLine = options.compareLine,
-        compareLine = customCompareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
+        compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
         fuzzFactor = options.fuzzFactor || 0;
   let minLine = 0;
 
@@ -313,9 +312,8 @@ function applyStructuredPatch(
     const maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos: number | undefined;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
-      // Only memoize when matching actually needs multiple errors. Keep separate caches for
-      // each hunk, and preserve the calls to custom comparators, which may be stateful.
-      if (maxErrors === 2 && !customCompareLine) {
+      // Only memoize when matching actually needs multiple errors. Keep separate caches for each hunk.
+      if (maxErrors === 2) {
         failedHunkMatches = new Map();
       }
       toPos = hunk.oldStart + prevHunkOffset - 1;
