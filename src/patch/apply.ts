@@ -141,7 +141,7 @@ function applyStructuredPatch(
     }
   }
 
-  let failedHunkMatches: Map<string, number> | undefined;
+  let failedHunkMatches: Map<string, number>;
 
   /**
    * Checks if the hunk can be made to fit at the provided location with at most `maxErrors`
@@ -168,13 +168,6 @@ function applyStructuredPatch(
     // results so that, when the chain of recursive calls reaches a state that has been explored
     // before, it can terminate immediately. If you were to call _applyHunk instead of applyHunk,
     // you'd get the same output but with no memoisation (and thus worse performance).
-
-    if (!failedHunkMatches) {
-      return _applyHunk(
-        hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched,
-        patchedLines, patchedLinesLength
-      );
-    }
 
     // A failed suffix match does not depend on the lines already written to patchedLines.
     // If it failed with this many errors allowed, it also fails with fewer errors allowed.
