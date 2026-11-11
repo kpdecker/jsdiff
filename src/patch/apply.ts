@@ -164,8 +164,13 @@ function applyStructuredPatch(
     patchedLines: string[] = [],
     patchedLinesLength: number = 0
   ): ApplyHunkReturnType | null {
+    // Note that the implementation here is just a wrapper around _applyHunk that memoises the
+    // results so that, when the chain of recursive calls reaches a state that has been explored
+    // before, it can terminate immediately. If you were to call _applyHunk instead of applyHunk,
+    // you'd get the same output but with no memoisation (and thus worse performance).
+
     if (!failedHunkMatches) {
-      return tryApplyHunk(
+      return _applyHunk(
         hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched,
         patchedLines, patchedLinesLength
       );
@@ -180,7 +185,7 @@ function applyStructuredPatch(
       return null;
     }
 
-    const result = tryApplyHunk(
+    const result = _applyHunk(
       hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched,
       patchedLines, patchedLinesLength
     );
@@ -190,7 +195,8 @@ function applyStructuredPatch(
     return result;
   }
 
-  function tryApplyHunk(
+  // See comment on applyHunk above
+  function _applyHunk(
     hunkLines: string[],
     toPos: number,
     maxErrors: number,
