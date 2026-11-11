@@ -621,8 +621,19 @@ describe('patch/apply', function() {
           // getting a (numerical) array index access. We need the type check to ensure it's not
           // a lookup by Symbol, and the regex to confirm the key is a numerical one.
           if (typeof key === 'string' && (/^\d+$/).test(key)) {
-            // Bound the search work instead of using a machine-dependent time limit.
-            // Also stop an exponential regression without making the test itself slow.
+            // Every time a line of context from the patch fails to match a line in the source
+            // where expected, we have three possible ways to fix it: assume the line was deleted
+            // from the source, assume a line was added to the source, or assume the line was
+            // changed in the source.
+            // With 16 mismatching lines in this test case, that yields over 3^16 branches, i.e.
+            // millions.
+            // However, many of these branches converge (e.g. assuming there was a line inserted
+            // into the source and then a line deleted leads to the same state as assuming there
+            // was a line deleted and then a line inserted which is in turn a strictly worse state
+            // than assuming there was a substitution). Our memoization in applyHunk exploits this
+            // to avoid truly exploring millions of branches.
+            // This test confirms that - and bails out, without hanging the test suite, if we're
+            // going too far.
             if (++lineReads > 50000) {
               throw new Error('Too many patch line reads');
             }
