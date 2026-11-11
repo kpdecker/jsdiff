@@ -5,6 +5,48 @@ import {expect} from 'chai';
 
 describe('diff/json', function() {
   describe('#diffJson', function() {
+    it('should bind the replacer to the containing object', function() {
+      const input = {omit: true, value: 12};
+      function replacer(key, value) {
+        return key === 'value' && this.omit ? '<redacted>' : value;
+      }
+      expect(diffJson(input, input, {stringifyReplacer: replacer})[0].value)
+        .to.equal(JSON.stringify(input, replacer, '  '));
+    });
+
+    it('should pass original object and array holders to the replacer', function() {
+      const input = {array: [1], nested: {value: 2}};
+      const holders = [];
+      function replacer(key, value) {
+        holders.push([key, this]);
+        return value;
+      }
+      canonicalize(input, null, null, replacer);
+      expect(holders[0][0]).to.equal('');
+      expect(Object.keys(holders[0][1])).to.eql(['']);
+      expect(holders[0][1]['']).to.equal(input);
+      expect(holders.find(([key]) => key === 'array')[1]).to.equal(input);
+      expect(holders.find(([key]) => key === '0')[1]).to.equal(input.array);
+      expect(holders.find(([key]) => key === 'nested')[1]).to.equal(input);
+      expect(holders.find(([key]) => key === 'value')[1]).to.equal(input.nested);
+    });
+
+    it('should retain the root holder before calling toJSON', function() {
+      const replacement = {value: 1};
+      const input = {toJSON() { return replacement; }};
+      function replacer(key, value) {
+        if (key === '') {
+          expect(this['']).to.equal(input);
+          expect(value).to.equal(replacement);
+        } else {
+          expect(this).to.equal(replacement);
+        }
+        return value;
+      }
+      expect(diffJson(input, input, {stringifyReplacer: replacer})[0].value)
+        .to.equal(JSON.stringify(input, replacer, '  '));
+    });
+
     it('should accept objects', function() {
       expect(diffJson(
         {a: 123, b: 456, c: 789},
