@@ -602,6 +602,7 @@ describe('patch/apply', function() {
       expect(applyPatch(source, patch, {
         fuzzFactor: 2,
         compareLine(lineNumber, line, operation, patchContent) {
+          // TODO: Re-evaluate the `?` below in the course of https://github.com/kpdecker/jsdiff/issues/745
           return line?.toLowerCase() === patchContent.toLowerCase();
         }
       })).to.equal('start\none\ntwo\nkeep\nreplacement\nend\n');
@@ -616,6 +617,9 @@ describe('patch/apply', function() {
       let lineReads = 0;
       patch.hunks[0].lines = new Proxy(patch.hunks[0].lines, {
         get(target, key, receiver) {
+          // Slightly perversely, the condition below is how to check if your array proxy is
+          // getting a (numerical) array index access. We need the type check to ensure it's not
+          // a lookup by Symbol, and the regex to confirm the key is a numerical one.
           if (typeof key === 'string' && (/^\d+$/).test(key)) {
             // Bound the search work instead of using a machine-dependent time limit.
             // Also stop an exponential regression without making the test itself slow.
