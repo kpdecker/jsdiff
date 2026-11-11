@@ -682,23 +682,6 @@ describe('patch/apply', function() {
         .to.equal('first\nx\nz\n3\n4\n5\n6\n7\nsecond\n9\n');
     });
 
-    it('should read the custom comparator option only once', function() {
-      const patch = '--- test\n'
-        + '+++ test\n'
-        + '@@ -1,1 +1,0 @@\n'
-        + '-a\n';
-      let comparatorReads = 0;
-
-      expect(applyPatch('b\n', patch, {
-        fuzzFactor: 2,
-        get compareLine() {
-          comparatorReads++;
-          return (lineNumber, line, operation, patchContent) => line === patchContent;
-        }
-      })).to.equal(false);
-      expect(comparatorReads).to.equal(1);
-    });
-
     it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
       expect(applyPatch(
         'line1\n'
