@@ -625,26 +625,7 @@ describe('patch/apply', function() {
         .to.equal('first\nx\nz\n3\n4\n5\n6\n7\nsecond\n9\n');
     });
 
-    it('should not repeatedly search failing fuzzy matches with a custom comparator', function() {
-      const patch = '--- test\n'
-        + '+++ test\n'
-        + '@@ -1,17 +1,16 @@\n'
-        + ' a\n'.repeat(16)
-        + '-missing\n';
-      let comparisons = 0;
-
-      expect(applyPatch('b\n'.repeat(16), patch, {
-        fuzzFactor: 16,
-        compareLine(lineNumber, line, operation, patchContent) {
-          if (++comparisons > 50000) {
-            throw new Error('Too many line comparisons');
-          }
-          return line?.toLowerCase() === patchContent.toLowerCase();
-        }
-      })).to.equal(false);
-    });
-
-    it('should use a custom comparator when fitting a hunk with multiple errors', function() {
+    it('should support using a custom comparator', function() {
       const source = 'start\none\ntwo\nkeep\nDELETE\nend\n';
       const patch = '--- test\n'
         + '+++ test\n'
@@ -665,6 +646,26 @@ describe('patch/apply', function() {
         }
       })).to.equal('start\none\ntwo\nkeep\nreplacement\nend\n');
     });
+
+    it('should not repeatedly search failing fuzzy matches with a custom comparator', function() {
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,17 +1,16 @@\n'
+        + ' a\n'.repeat(16)
+        + '-missing\n';
+      let comparisons = 0;
+
+      expect(applyPatch('b\n'.repeat(16), patch, {
+        fuzzFactor: 16,
+        compareLine(lineNumber, line, operation, patchContent) {
+          if (++comparisons > 50000) {
+            throw new Error('Too many line comparisons');
+          }
+          return line?.toLowerCase() === patchContent.toLowerCase();
+        }
+      })).to.equal(false);
+    });
+
 
     it('should read the custom comparator option only once', function() {
       const patch = '--- test\n'
