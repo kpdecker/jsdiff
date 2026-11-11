@@ -381,25 +381,41 @@ export function applyPatches(uniDiff: string | StructuredPatch[], options: Apply
 
   let currentIndex = 0;
   function processIndex(): void {
-    const index = spDiff[currentIndex++];
-    if (!index) {
-      return options.complete();
-    }
-
-    options.loadFile(index, function(err: any, data: string) {
-      if (err) {
-        return options.complete(err);
+    for (;;) {
+      const index = spDiff[currentIndex++];
+      if (!index) {
+        return options.complete();
       }
 
-      const updatedContent = applyPatch(data, index, options);
-      options.patched(index, updatedContent, function(err: any) {
+      let synchronous = true;
+      let completedSynchronously = false;
+      options.loadFile(index, function(err: any, data: string) {
         if (err) {
           return options.complete(err);
         }
 
-        processIndex();
+        const updatedContent = applyPatch(data, index, options);
+        options.patched(index, updatedContent, function(err: any) {
+          if (err) {
+            return options.complete(err);
+          }
+
+          if (synchronous) {
+            completedSynchronously = true;
+          } else {
+            processIndex();
+          }
+        });
       });
-    });
+      synchronous = false;
+
+      // Synchronous hooks advance in this loop instead of recursively re-entering it.
+      // An asynchronous callback resumes the loop after the pending hook completes.
+      if (!completedSynchronously) {
+        return;
+      }
+    }
   }
+
   processIndex();
 }

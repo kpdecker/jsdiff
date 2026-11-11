@@ -1,7 +1,7 @@
 import {applyPatch, applyPatches} from '../../libesm/patch/apply.js';
 import {parsePatch} from '../../libesm/patch/parse.js';
 import {createPatch} from '../../libesm/patch/create.js';
-import {structuredPatch} from '../../libesm/patch/create.js';
+import {structuredPatch, formatPatch} from '../../libesm/patch/create.js';
 
 import {expect} from 'chai';
 
@@ -1749,6 +1749,163 @@ describe('patch/apply', function() {
           {fuzzFactor: 1.5}
         );
       }).to['throw']('fuzzFactor must be a non-negative integer');
+    });
+  });
+
+  describe('#applyPatches callback scheduling', function() {
+    function makePatches(count) {
+      return Array.from({length: count}, (_, i) =>
+        structuredPatch(`file${i}.txt`, `file${i}.txt`, 'before\n', 'after\n', 'old header', 'new header')
+      );
+    }
+
+    for (const serialized of [false, true]) {
+      it(`should synchronously apply thousands of files without overflowing the stack (${serialized ? 'string' : 'array'})`, function() {
+        this.timeout(10000);
+        const patches = makePatches(5000);
+        let loaded = 0, written = 0, completed = 0;
+        const loadedObjects = [];
+        applyPatches(serialized ? formatPatch(patches) : patches, {
+          loadFile(index, callback) {
+            expect(index.oldFileName).to.equal(`file${loaded}.txt`);
+            expect(index.oldHeader).to.equal('old header');
+            loadedObjects.push(index);
+            loaded++;
+            callback(undefined, 'before\n');
+          },
+          patched(index, content, callback) {
+            expect(index).to.equal(loadedObjects[written]);
+            expect(index.newFileName).to.equal(`file${written}.txt`);
+            expect(index.newHeader).to.equal('new header');
+            expect(content).to.equal('after\n');
+            written++;
+            callback();
+          },
+          complete(error) {
+            expect(error).to.equal(undefined);
+            completed++;
+          }
+        });
+        expect(loaded).to.equal(5000);
+        expect(written).to.equal(5000);
+        expect(completed).to.equal(1);
+      });
+    }
+
+    for (const asyncLoad of [false, true]) {
+      for (const asyncWrite of [false, true]) {
+        it(`should preserve file order with mixed callbacks (load=${asyncLoad}, write=${asyncWrite})`, function(done) {
+          const patches = makePatches(3), events = [];
+          applyPatches(patches, {
+            loadFile(index, callback) {
+              events.push(`load ${index.oldFileName}`);
+              function respond() { callback(undefined, 'before\n'); }
+              if (asyncLoad) { setTimeout(respond, 0); } else { respond(); }
+            },
+            patched(index, content, callback) {
+              expect(content).to.equal('after\n');
+              events.push(`write ${index.newFileName}`);
+              function respond() { callback(); }
+              if (asyncWrite) { setTimeout(respond, 0); } else { respond(); }
+            },
+            complete(error) {
+              expect(events).to.deep.equal([
+                'load file0.txt', 'write file0.txt',
+                'load file1.txt', 'write file1.txt',
+                'load file2.txt', 'write file2.txt'
+              ]);
+              done(error);
+            }
+          });
+        });
+
+        for (const failureStage of ['load', 'write']) {
+          it(`should stop exactly once on callback errors (${failureStage}, load=${asyncLoad}, write=${asyncWrite})`, function(done) {
+            const expected = new Error('failed file');
+            let loaded = 0, written = 0, completed = 0;
+            applyPatches(makePatches(5), {
+              loadFile(index, callback) {
+                loaded++;
+                function respond() {
+                  callback(failureStage === 'load' && loaded === 3 ? expected : undefined, 'before\n');
+                }
+                if (asyncLoad) { setTimeout(respond, 0); } else { respond(); }
+              },
+              patched(index, content, callback) {
+                written++;
+                function respond() { callback(failureStage === 'write' && written === 3 ? expected : undefined); }
+                if (asyncWrite) { setTimeout(respond, 0); } else { respond(); }
+              },
+              complete(error) {
+                expect(error).to.equal(expected);
+                expect(loaded).to.equal(3);
+                expect(written).to.equal(failureStage === 'load' ? 2 : 3);
+                expect(++completed).to.equal(1);
+                done();
+              }
+            });
+          });
+        }
+      }
+    }
+
+    it('should switch between synchronous and asynchronous hooks within one batch', function(done) {
+      const events = [], expected = [];
+      for (let i = 0; i < 12; i++) { expected.push(`load file${i}.txt`, `write file${i}.txt`); }
+      let completed = 0;
+      applyPatches(makePatches(12), {
+        loadFile(index, callback) {
+          events.push(`load ${index.oldFileName}`);
+          const mode = Number(index.oldFileName.slice(4, -4)) % 4;
+          function respond() { callback(undefined, 'before\n'); }
+          if (mode === 1 || mode === 3) { setTimeout(respond, 0); } else { respond(); }
+        },
+        patched(index, content, callback) {
+          events.push(`write ${index.newFileName}`);
+          expect(content).to.equal('after\n');
+          const mode = Number(index.newFileName.slice(4, -4)) % 4;
+          function respond() { callback(); }
+          if (mode === 2 || mode === 3) { setTimeout(respond, 0); } else { respond(); }
+        },
+        complete(error) {
+          expect(events).to.deep.equal(expected);
+          expect(++completed).to.equal(1);
+          done(error);
+        }
+      });
+    });
+
+    it('should complete an empty patch array synchronously', function() {
+      let completed = 0;
+      applyPatches([], {
+        loadFile() { throw new Error('No files should load'); },
+        patched() { throw new Error('No files should be patched'); },
+        complete(error) {
+          expect(error).to.equal(undefined);
+          completed++;
+        }
+      });
+      expect(completed).to.equal(1);
+    });
+
+    it('should leave failed-patch handling to the patched callback', function() {
+      const results = [];
+      let completed = 0;
+      applyPatches(makePatches(2), {
+        loadFile(index, callback) {
+          callback(undefined, index.oldFileName === 'file0.txt' ? 'different\n' : 'before\n');
+        },
+        patched(index, content, callback) {
+          results.push(content);
+          callback();
+        },
+        complete(error) {
+          expect(error).to.equal(undefined);
+          completed++;
+        }
+      });
+      expect(results).to.deep.equal([false, 'after\n']);
+      expect(completed).to.equal(1);
     });
   });
 
