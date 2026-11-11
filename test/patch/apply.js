@@ -585,6 +585,103 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
+    it('should support using a custom comparator', function() {
+      const source = 'start\none\ntwo\nkeep\nDELETE\nend\n';
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,6 +1,6 @@\n'
+        + ' start\n'
+        + ' expected1\n'
+        + ' expected2\n'
+        + ' keep\n'
+        + '-delete\n'
+        + '+replacement\n'
+        + ' end\n';
+
+      expect(applyPatch(source, patch, {fuzzFactor: 2})).to.equal(false);
+      expect(applyPatch(source, patch, {
+        fuzzFactor: 2,
+        compareLine(lineNumber, line, operation, patchContent) {
+          // TODO: Re-evaluate the `?` below in the course of https://github.com/kpdecker/jsdiff/issues/745
+          return line?.toLowerCase() === patchContent.toLowerCase();
+        }
+      })).to.equal('start\none\ntwo\nkeep\nreplacement\nend\n');
+    });
+
+    it('should not repeatedly search the same failing fuzzy matches', function() {
+      const patch = parsePatch('--- test\n'
+        + '+++ test\n'
+        + '@@ -1,17 +1,16 @@\n'
+        + ' a\n'.repeat(16)
+        + '-missing\n')[0];
+      let lineReads = 0;
+      patch.hunks[0].lines = new Proxy(patch.hunks[0].lines, {
+        get(target, key, receiver) {
+          // Slightly perversely, the condition below is how to check if your array proxy is
+          // getting a (numerical) array index access. We need the type check to ensure it's not
+          // a lookup by Symbol, and the regex to confirm the key is a numerical one.
+          if (typeof key === 'string' && (/^\d+$/).test(key)) {
+            // Every time a line of context from the patch fails to match a line in the source
+            // where expected, we have three possible ways to fix it: assume the line was deleted
+            // from the source, assume a line was added to the source, or assume the line was
+            // changed in the source.
+            // With 16 mismatching lines in this test case, that yields over 3^16 branches, i.e.
+            // millions.
+            // However, many of these branches converge (e.g. assuming there was a line inserted
+            // into the source and then a line deleted leads to the same state as assuming there
+            // was a line deleted and then a line inserted which is in turn a strictly worse state
+            // than assuming there was a substitution). Our memoization in applyHunk exploits this
+            // to avoid truly exploring millions of branches.
+            // This test confirms that - and bails out, without hanging the test suite, if we're
+            // going too far.
+            if (++lineReads > 50000) {
+              throw new Error('Too many patch line reads');
+            }
+          }
+          return Reflect.get(target, key, receiver);
+        }
+      });
+
+      expect(applyPatch('b\n'.repeat(16), patch, {fuzzFactor: 16})).to.equal(false);
+    });
+
+    it('should not repeatedly search the same failing fuzzy matches with a custom comparator', function() {
+      // See test above; this just verifies the same memoisation happens with a custom comparator provided.
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,17 +1,16 @@\n'
+        + ' a\n'.repeat(16)
+        + '-missing\n';
+      let comparisons = 0;
+
+      expect(applyPatch('b\n'.repeat(16), patch, {
+        fuzzFactor: 16,
+        compareLine(lineNumber, line, operation, patchContent) {
+          if (++comparisons > 50000) {
+            throw new Error('Too many line comparisons');
+          }
+          return line?.toLowerCase() === patchContent.toLowerCase();
+        }
+      })).to.equal(false);
+    });
+
+    it('should not reuse failed fuzzy matches from a different hunk', function() {
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -9,4 +9,4 @@\n'
+        + '-0\n'
+        + '+first\n'
+        + ' x\n'
+        + ' absent\n'
+        + ' also absent\n'
+        + '@@ -17,1 +17,1 @@\n'
+        + '-8\n'
+        + '+second\n';
+
+      expect(applyPatch('0\nx\nz\n3\n4\n5\n6\n7\n8\n9\n', patch, {fuzzFactor: 2}))
+        .to.equal('first\nx\nz\n3\n4\n5\n6\n7\nsecond\n9\n');
+    });
+
     it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
       expect(applyPatch(
         'line1\n'

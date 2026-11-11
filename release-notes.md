@@ -15,6 +15,7 @@
 - [#730](https://github.com/kpdecker/jsdiff/pull/730) **The JSON serialization used by `diffJson` is now consistent with `JSON.stringify`** in a slew of unusual (and sometimes artificial and unimportant) cases where previously it inadvertently deviated.
 - [#726](https://github.com/kpdecker/jsdiff/pull/726) **`diffWords` now dedupes whitespace between tokens even in `oneChangePerToken` mode.**
 - [#732](https://github.com/kpdecker/jsdiff/pull/732) **Added an overridable `normalizeToken` method to the base `Diff` class.** This method returns a "normalized" form of each token that should be used for equality comparisons between tokens (though the raw, un-normalized form of the tokens will still be what gets used in the change objects returned by `diff()`). This pattern sped up some realistic benchmarks by 2x or more by avoiding the need to normalize tokens repeatedly inside the `.equals()` method.
+- [#711](https://github.com/kpdecker/jsdiff/pull/711) **`applyPatch` with a large `fuzzFactor`** is enormously faster now.
 
 ## 9.0.0
 

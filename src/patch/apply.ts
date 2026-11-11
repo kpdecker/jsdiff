@@ -141,6 +141,9 @@ function applyStructuredPatch(
     }
   }
 
+  // Used for memoisation in applyHunk; see the implementation.
+  let failedHunkMatches: Map<string, number>;
+
   /**
    * Checks if the hunk can be made to fit at the provided location with at most `maxErrors`
    * insertions, substitutions, or deletions, while ensuring also that:
@@ -161,6 +164,41 @@ function applyStructuredPatch(
     lastContextLineMatched: boolean = true,
     patchedLines: string[] = [],
     patchedLinesLength: number = 0
+  ): ApplyHunkReturnType | null {
+    // Note that the implementation here is just a wrapper around _applyHunk that memoises the
+    // results so that, when the chain of recursive calls reaches a state that has been explored
+    // before, it can terminate immediately. If you were to call _applyHunk instead of applyHunk,
+    // you'd get the same output but with no memoisation (and thus worse performance).
+
+    // If, in a previous call to applyHunk, we've already tested this exact combo of
+    // (toPos, hunkLinesI, lastContextLineMatched),
+    // with a maxErrors value at least equal to that of our current call, and we failed, then we
+    // know we're going to fail again now and can skip the attempt.
+    const stateKey = `${toPos},${hunkLinesI},${lastContextLineMatched}`,
+        failureMaxErrors = failedHunkMatches.get(stateKey);
+    if (failureMaxErrors !== undefined && failureMaxErrors >= maxErrors) {
+      return null;
+    }
+
+    const result = _applyHunk(
+      hunkLines, toPos, maxErrors, hunkLinesI, lastContextLineMatched,
+      patchedLines, patchedLinesLength
+    );
+    if (!result) {
+      failedHunkMatches.set(stateKey, maxErrors);
+    }
+    return result;
+  }
+
+  // See comment on applyHunk above
+  function _applyHunk(
+    hunkLines: string[],
+    toPos: number,
+    maxErrors: number,
+    hunkLinesI: number,
+    lastContextLineMatched: boolean,
+    patchedLines: string[],
+    patchedLinesLength: number
   ): ApplyHunkReturnType | null {
     let nConsecutiveOldContextLines = 0;
     let nextContextLineMustMatch = false;
@@ -270,6 +308,7 @@ function applyStructuredPatch(
   let prevHunkOffset = 0;
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
+    failedHunkMatches = new Map();
     let hunkResult;
     const maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos: number | undefined;
