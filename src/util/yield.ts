@@ -10,9 +10,17 @@ export function enqueueTask(callback: () => void): void {
   // https://bugs.webkit.org/show_bug.cgi?id=327531.
   // Without this workaround, async mode would be effectively sync inside a web worker in Safari.
   // Instead, we very occasionally yield just so that really long-running async diffs will
-  // occasionally yield in Safari, while still eliminating 90% of the clamping in all environments.
+  // occasionally yield in Safari. That still eliminates 90% of the clamping where we have to fall
+  // back to setTimeout, and all of it where setImmediate exists.
   if (++enqueueTaskCalls % 10 == 0) {
-    setTimeout(callback, 0);
+    // Use setImmediate which yields without 1ms minimum in runtimes where it exists, setTimeout
+    // as fallback
+    const setImmediate = (globalThis as any).setImmediate;
+    if (typeof setImmediate === 'function') {
+      setImmediate(callback);
+    } else {
+      setTimeout(callback, 0);
+    }
     return;
   }
 
