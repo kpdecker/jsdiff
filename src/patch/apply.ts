@@ -313,15 +313,11 @@ function applyStructuredPatch(
   let prevHunkOffset = 0;
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
-    failedHunkMatches = undefined;
+    failedHunkMatches = new Map();
     let hunkResult;
     const maxLine = lines.length - hunk.oldLines + fuzzFactor;
     let toPos: number | undefined;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
-      // Only memoize when matching actually needs multiple errors. Keep separate caches for each hunk.
-      if (maxErrors === 2) {
-        failedHunkMatches = new Map();
-      }
       toPos = hunk.oldStart + prevHunkOffset - 1;
       const iterator = distanceIterator(toPos, minLine, maxLine);
       for (; toPos !== undefined; toPos = iterator()) {
