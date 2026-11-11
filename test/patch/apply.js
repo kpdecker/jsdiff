@@ -645,7 +645,7 @@ describe('patch/apply', function() {
       expect(applyPatch('b\n'.repeat(16), patch, {fuzzFactor: 16})).to.equal(false);
     });
 
-    it('should not repeatedly search the same failing fuzzy matches with a custom comparator', function () {
+    it('should not repeatedly search the same failing fuzzy matches with a custom comparator', function() {
       // See test above; this just verifies the same memoisation happens with a custom comparator provided.
       const patch = '--- test\n'
         + '+++ test\n'
