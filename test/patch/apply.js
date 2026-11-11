@@ -585,6 +585,28 @@ describe('patch/apply', function() {
         .to.equal(false);
     });
 
+    it('should support using a custom comparator', function() {
+      const source = 'start\none\ntwo\nkeep\nDELETE\nend\n';
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,6 +1,6 @@\n'
+        + ' start\n'
+        + ' expected1\n'
+        + ' expected2\n'
+        + ' keep\n'
+        + '-delete\n'
+        + '+replacement\n'
+        + ' end\n';
+
+      expect(applyPatch(source, patch, {fuzzFactor: 2})).to.equal(false);
+      expect(applyPatch(source, patch, {
+        fuzzFactor: 2,
+        compareLine(lineNumber, line, operation, patchContent) {
+          return line?.toLowerCase() === patchContent.toLowerCase();
+        }
+      })).to.equal('start\none\ntwo\nkeep\nreplacement\nend\n');
+    });
+
     it('should not repeatedly search the same failing fuzzy matches', function() {
       const patch = parsePatch('--- test\n'
         + '+++ test\n'
@@ -608,46 +630,7 @@ describe('patch/apply', function() {
       expect(applyPatch('b\n'.repeat(16), patch, {fuzzFactor: 16})).to.equal(false);
     });
 
-    it('should not reuse failed fuzzy matches from a different hunk', function() {
-      const patch = '--- test\n'
-        + '+++ test\n'
-        + '@@ -9,4 +9,4 @@\n'
-        + '-0\n'
-        + '+first\n'
-        + ' x\n'
-        + ' absent\n'
-        + ' also absent\n'
-        + '@@ -17,1 +17,1 @@\n'
-        + '-8\n'
-        + '+second\n';
-
-      expect(applyPatch('0\nx\nz\n3\n4\n5\n6\n7\n8\n9\n', patch, {fuzzFactor: 2}))
-        .to.equal('first\nx\nz\n3\n4\n5\n6\n7\nsecond\n9\n');
-    });
-
-    it('should support using a custom comparator', function() {
-      const source = 'start\none\ntwo\nkeep\nDELETE\nend\n';
-      const patch = '--- test\n'
-        + '+++ test\n'
-        + '@@ -1,6 +1,6 @@\n'
-        + ' start\n'
-        + ' expected1\n'
-        + ' expected2\n'
-        + ' keep\n'
-        + '-delete\n'
-        + '+replacement\n'
-        + ' end\n';
-
-      expect(applyPatch(source, patch, {fuzzFactor: 2})).to.equal(false);
-      expect(applyPatch(source, patch, {
-        fuzzFactor: 2,
-        compareLine(lineNumber, line, operation, patchContent) {
-          return line?.toLowerCase() === patchContent.toLowerCase();
-        }
-      })).to.equal('start\none\ntwo\nkeep\nreplacement\nend\n');
-    });
-
-    it('should not repeatedly search failing fuzzy matches with a custom comparator', function() {
+    it('should not repeatedly search the same failing fuzzy matches with a custom comparator', function() {
       const patch = '--- test\n'
         + '+++ test\n'
         + '@@ -1,17 +1,16 @@\n'
@@ -666,6 +649,22 @@ describe('patch/apply', function() {
       })).to.equal(false);
     });
 
+    it('should not reuse failed fuzzy matches from a different hunk', function() {
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -9,4 +9,4 @@\n'
+        + '-0\n'
+        + '+first\n'
+        + ' x\n'
+        + ' absent\n'
+        + ' also absent\n'
+        + '@@ -17,1 +17,1 @@\n'
+        + '-8\n'
+        + '+second\n';
+
+      expect(applyPatch('0\nx\nz\n3\n4\n5\n6\n7\n8\n9\n', patch, {fuzzFactor: 2}))
+        .to.equal('first\nx\nz\n3\n4\n5\n6\n7\nsecond\n9\n');
+    });
 
     it('should read the custom comparator option only once', function() {
       const patch = '--- test\n'
