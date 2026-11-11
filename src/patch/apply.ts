@@ -141,6 +141,7 @@ function applyStructuredPatch(
     }
   }
 
+  // Used for memoisation in applyHunk; see the implementation.
   let failedHunkMatches: Map<string, number>;
 
   /**
@@ -169,12 +170,13 @@ function applyStructuredPatch(
     // before, it can terminate immediately. If you were to call _applyHunk instead of applyHunk,
     // you'd get the same output but with no memoisation (and thus worse performance).
 
-    // A failed suffix match does not depend on the lines already written to patchedLines.
-    // If it failed with this many errors allowed, it also fails with fewer errors allowed.
-    // Include lastContextLineMatched because it controls whether an insertion is permitted.
-    const key = `${toPos},${hunkLinesI},${lastContextLineMatched}`,
-        failedErrors = failedHunkMatches.get(key);
-    if (failedErrors !== undefined && failedErrors >= maxErrors) {
+    // If, in a previous call to applyHunk, we've already tested this exact combo of
+    // (toPos, hunkLinesI, lastContextLineMatched),
+    // with a maxErrors value at least equal to that of our current call, and we failed, then we
+    // know we're going to fail again now and can skip the attempt.
+    const stateKey = `${toPos},${hunkLinesI},${lastContextLineMatched}`,
+        failureMaxErrors = failedHunkMatches.get(stateKey);
+    if (failureMaxErrors !== undefined && failureMaxErrors >= maxErrors) {
       return null;
     }
 
@@ -183,7 +185,7 @@ function applyStructuredPatch(
       patchedLines, patchedLinesLength
     );
     if (!result) {
-      failedHunkMatches.set(key, maxErrors);
+      failedHunkMatches.set(stateKey, maxErrors);
     }
     return result;
   }
