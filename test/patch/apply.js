@@ -7,6 +7,13 @@ import {expect} from 'chai';
 
 describe('patch/apply', function() {
   describe('#applyPatch', function() {
+    it('should leave the source unchanged when applying an empty patch', function() {
+      for (const source of ['', 'text', 'text\n', 'text\r\n']) {
+        expect(applyPatch(source, '')).to.equal(source);
+        expect(applyPatch(source, parsePatch(''))).to.equal(source);
+      }
+    });
+
     it('should accept parsed patches', function() {
       const patch = parsePatch(
           'Index: test\n'
@@ -42,6 +49,13 @@ describe('patch/apply', function() {
           + 'line3\n'
           + 'line4\n'
           + 'line5\n');
+    });
+
+    it('should validate fuzzFactor even for an empty patch', function() {
+      for (const fuzzFactor of [-1, 0.5, Infinity]) {
+        expect(() => applyPatch('text', '', {fuzzFactor}))
+          .to['throw']('fuzzFactor must be a non-negative integer');
+      }
     });
 
     it('should error if passed multiple indexes', function() {
@@ -1753,6 +1767,20 @@ describe('patch/apply', function() {
   });
 
   describe('#applyPatches', function() {
+    it('should not load files when applying an empty multi-file patch', function() {
+      let completed = 0;
+      applyPatches('', {
+        loadFile() { throw new Error('No file should be loaded'); },
+        patched() { throw new Error('No file should be patched'); },
+        complete(error) {
+          expect(error).to.equal(undefined);
+          completed++;
+        }
+      });
+      expect(completed).to.equal(1);
+    });
+
+
     const patch =
           'Index: test\n'
           + '===================================================================\n'
