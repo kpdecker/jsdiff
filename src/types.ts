@@ -189,7 +189,7 @@ interface DiffJsonOptions extends CommonDiffOptions {
    * A custom replacer function.
    * Operates similarly to the `replacer` parameter to [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#the_replacer_parameter), but must be a function.
    */
-  stringifyReplacer?: (k: string, v: any) => any,
+  stringifyReplacer?: (this: any, k: string, v: any) => any,
 }
 export interface DiffJsonOptionsNonabortable extends DiffJsonOptions {
   /**

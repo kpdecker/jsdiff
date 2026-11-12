@@ -5,6 +5,78 @@ import {expect} from 'chai';
 
 describe('diff/json', function() {
   describe('#diffJson', function() {
+    it('snapshots array length before a replacer appends elements', function() {
+      function replacer(key, value) {
+        if (key === '0') {
+          this.push(2);
+        }
+        return value;
+      }
+      const expected = JSON.stringify([1], replacer, '  ');
+      const changes = diffJson([1], expected, {stringifyReplacer: replacer});
+      expect(changes).to.have.length(1);
+      expect(changes[0].value).to.equal(expected);
+      expect(changes[0].added).to.equal(false);
+      expect(changes[0].removed).to.equal(false);
+    });
+
+    it('visits original array positions after a replacer shortens its holder', function() {
+      function replacer(key, value) {
+        if (key === '0') {
+          this.length = 1;
+        }
+        return key !== '' && value === undefined ? 'missing' : value;
+      }
+      const expected = JSON.stringify([1, 2, 3], replacer, '  ');
+      const changes = diffJson([1, 2, 3], expected, {stringifyReplacer: replacer});
+      expect(changes).to.have.length(1);
+      expect(changes[0].value).to.equal(expected);
+      expect(changes[0].added).to.equal(false);
+      expect(changes[0].removed).to.equal(false);
+    });
+
+    it('should bind the replacer to the containing object', function() {
+      const input = {omit: true, value: 12};
+      function replacer(key, value) {
+        return key === 'value' && this.omit ? '<redacted>' : value;
+      }
+      expect(diffJson(input, input, {stringifyReplacer: replacer})[0].value)
+        .to.equal(JSON.stringify(input, replacer, '  '));
+    });
+
+    it('should pass original object and array holders to the replacer', function() {
+      const input = {array: [1], nested: {value: 2}};
+      const holders = [];
+      function replacer(key, value) {
+        holders.push([key, this]);
+        return value;
+      }
+      canonicalize(input, null, null, replacer);
+      expect(holders[0][0]).to.equal('');
+      expect(Object.keys(holders[0][1])).to.eql(['']);
+      expect(holders[0][1]['']).to.equal(input);
+      expect(holders.find(([key]) => key === 'array')[1]).to.equal(input);
+      expect(holders.find(([key]) => key === '0')[1]).to.equal(input.array);
+      expect(holders.find(([key]) => key === 'nested')[1]).to.equal(input);
+      expect(holders.find(([key]) => key === 'value')[1]).to.equal(input.nested);
+    });
+
+    it('should retain the root holder before calling toJSON', function() {
+      const replacement = {value: 1};
+      const input = {toJSON() { return replacement; }};
+      function replacer(key, value) {
+        if (key === '') {
+          expect(this['']).to.equal(input);
+          expect(value).to.equal(replacement);
+        } else {
+          expect(this).to.equal(replacement);
+        }
+        return value;
+      }
+      expect(diffJson(input, input, {stringifyReplacer: replacer})[0].value)
+        .to.equal(JSON.stringify(input, replacer, '  '));
+    });
+
     it('should accept objects', function() {
       expect(diffJson(
         {a: 123, b: 456, c: 789},

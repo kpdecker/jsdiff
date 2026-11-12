@@ -91,8 +91,9 @@ export function diffJson(oldStr: string | object, newStr: string | object, optio
 export function canonicalize(
   obj: any,
   stack: Array<any> | null, replacementStack: Array<any> | null,
-  replacer: (k: string, v: any) => any,
-  key?: string
+  replacer: (this: any, k: string, v: any) => any,
+  key?: string,
+  holder: any = {'': obj}
 ) {
   stack = stack || [];
   replacementStack = replacementStack || [];
@@ -107,7 +108,8 @@ export function canonicalize(
   }
 
   if (replacer) {
-    obj = replacer(key === undefined ? '' : key, obj);
+    // JSON.stringify binds the replacer to the original containing object, not its copy.
+    obj = Reflect.apply(replacer, holder, [key === undefined ? '' : key, obj]);
   }
 
   // If we've got a JSON.rawJSON object (and are in an environment where that's a concept the
@@ -156,10 +158,12 @@ export function canonicalize(
 
   if ('[object Array]' === Object.prototype.toString.call(obj)) {
     stack.push(obj);
-    canonicalizedObj = new Array(obj.length);
+    // JSON.stringify snapshots the array length before visiting its elements.
+    const length = obj.length;
+    canonicalizedObj = new Array(length);
     replacementStack.push(canonicalizedObj);
-    for (i = 0; i < obj.length; i += 1) {
-      const canonicalizedValue = canonicalize(obj[i], stack, replacementStack, replacer, String(i));
+    for (i = 0; i < length; i += 1) {
+      const canonicalizedValue = canonicalize(obj[i], stack, replacementStack, replacer, String(i), obj);
       // See comment on previous isUnrepresentableInJson calls. Unrepresentable values in arrays
       // get replaced with null by JSON.stringify, so that's what we do here.
       canonicalizedObj[i] = isUnrepresentableInJson(canonicalizedValue) ? null : canonicalizedValue;
@@ -187,7 +191,7 @@ export function canonicalize(
     sortedKeys.sort();
     for (i = 0; i < sortedKeys.length; i += 1) {
       key = sortedKeys[i];
-      const canonicalizedValue = canonicalize(obj[key], stack, replacementStack, replacer, key);
+      const canonicalizedValue = canonicalize(obj[key], stack, replacementStack, replacer, key, obj);
       // See comments on previous isUnrepresentableInJson calls. Unrepresentable values in objects
       // get omitted entirely by JSON.stringify, so we do that here too.
       if (!isUnrepresentableInJson(canonicalizedValue)) {
