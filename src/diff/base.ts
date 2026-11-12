@@ -23,28 +23,36 @@ interface Path {
 }
 
 /**
- * Bookkeeping for the "discard unique tokens" optimisation (see buildDiscardPlan). Tokens that
- * occur (after normalization) on only one side of the diff can never be matched, so they are
- * dropped before the Myers loop runs and the loop is executed only upon the remaining skeleton.
- * This records the skeleton plus everything needed to reinstate the dropped tokens afterwards.
+ * Bookkeeping for the "trim common prefix/suffix + discard unique tokens" optimisation (see
+ * buildDiscardPlan). The maximal common prefix and suffix are cut off before anything else, so
+ * that the counting pass only ever looks at the part that actually changed; tokens that then occur
+ * (after normalization) on only one side of the remaining middle section can never be matched, so
+ * they are dropped too and the Myers loop is executed only upon the remaining skeleton. This
+ * records the trims and the skeleton plus everything needed to reinstate the dropped tokens
+ * afterwards. All token values in here are strings - see the string-only guard in
+ * buildDiscardPlan.
  */
-interface DiscardPlan<TokenT> {
-  /** Skeleton token arrays (original, un-normalized tokens; buildValues slices these). */
-  oldSk: TokenT[];
-  newSk: TokenT[];
-  /** Normalized forms of the skeleton tokens; the diff loop compares these. All strings - see
-   * the string-only guard in buildDiscardPlan. */
-  oldSkNorm: TokenT[];
-  newSkNorm: TokenT[];
-  /** Skeleton index -> index in the original token array. Strictly increasing. */
-  oldSkToOrig: number[];
-  newSkToOrig: number[];
-  /** How many tokens were dropped from each side. */
-  discardedOld: number;
-  discardedNew: number;
-  /** Original token array lengths (== discarded* + skeleton length). */
+interface DiscardPlan {
+  /** Length of the maximal common prefix (in normalized terms), trimmed before diffing. It is
+   * reinstated as an equal component after the loop has run. The common suffix is deliberately
+   * not trimmed - see the comment at the trim below. */
+  prefixLen: number;
+  /** Full original token array lengths. */
   oldLen: number;
   newLen: number;
+  /** Present only when enough tokens are unique to one side of the middle section to be worth
+   * dropping; absent when the plan is trim-only. */
+  discard?: {
+    /** Normalized forms of the skeleton tokens; the diff loop compares these. */
+    oldSkNorm: string[];
+    newSkNorm: string[];
+    /** Skeleton index -> index in the full original token array. Strictly increasing. */
+    oldSkToOrig: number[];
+    newSkToOrig: number[];
+    /** How many tokens were dropped from each side's middle section. */
+    discardedOld: number;
+    discardedNew: number;
+  };
 }
 
 export default class Diff<
@@ -107,12 +115,61 @@ export default class Diff<
     callback: DiffCallbackAbortable<ValueT> | DiffCallbackNonabortable<ValueT> | undefined
   ): ChangeObject<ValueT>[] | undefined {
     const done = (lastComponent: DraftChangeObject | undefined) => {
-      // Dropping/reinstating tokens happens at the component-list level, before buildValues
-      // (which slices the *original* token arrays by component count).
-      if (plan) {
-        lastComponent = this.expandDiscarded(lastComponent, plan, options);
+      // The loop produces components for the (possibly skeleton-of-the-) middle section only.
+      // Reinstating the dropped tokens and the trimmed prefix/suffix happens at the component-list
+      // level, before buildValues (which slices the *original* token arrays by component count).
+      const components: DraftChangeObject[] = [];
+      for (let component = lastComponent; component; component = component.previousComponent) {
+        components.push(component);
       }
-      let value = this.buildValues(lastComponent, newTokens, oldTokens);
+      components.reverse();
+      if (plan?.discard) {
+        const discard = plan.discard;
+        const expanded = this.expandDiscarded(
+          components,
+          discard,
+          prefixLen, prefixLen, // Both sides start after the trimmed prefix.
+          oldTokens.length, newTokens.length,
+          options
+        );
+        components.length = 0;
+        components.push(...expanded);
+      }
+      // Reinstate the trimmed common prefix as an equal component. When the first middle
+      // component is also an equal run, the prefix must be merged into it: the unoptimised
+      // algorithm's greedy seed extractCommon consumes the prefix together with any matched tokens
+      // immediately following it as one maximal equal run. (With oneChangePerToken every token is
+      // its own component, so there is nothing to merge.)
+      const oneChangePerToken = !!options.oneChangePerToken;
+      if (components.length === 0) {
+        // Nothing but the prefix: it alone is the equal run.
+        if (oneChangePerToken) {
+          for (let i = 0; i < prefixLen; i++) {
+            components.push({added: false, removed: false, count: 1});
+          }
+        } else if (prefixLen > 0) {
+          components.push({added: false, removed: false, count: prefixLen});
+        }
+      } else if (prefixLen > 0) {
+        const first = components[0];
+        if (!oneChangePerToken && !first.added && !first.removed) {
+          first.count += prefixLen;
+        } else {
+          components.unshift(
+            ...(oneChangePerToken
+              ? Array.from({length: prefixLen}, () => ({added: false, removed: false, count: 1}))
+              : [{added: false, removed: false, count: prefixLen}])
+          );
+        }
+      }
+      // Rebuild the back-to-front linked list buildValues expects: the head is the LAST component
+      // in output order, and previousComponent links towards earlier components.
+      let head: DraftChangeObject | undefined;
+      for (const component of components) {
+        component.previousComponent = head;
+        head = component;
+      }
+      let value = this.buildValues(head, newTokens, oldTokens);
       value = this.postProcess(value, options);
       if (callback) {
         enqueueTask(function() { callback(value); });
@@ -136,35 +193,44 @@ export default class Diff<
           newNormalizedAll = newTokens.map(token => this.normalizeToken(token, options));
 
     // A token that occurs (post-normalization) on only one side can never be matched, since a
-    // common subsequence consists solely of tokens occurring on both sides. Dropping such tokens
-    // before diffing leaves every possible match intact while shrinking the N and the D of the
-    // O(ND) Myers loop to the shared tokens; dropped tokens are reinstated as pure
-    // deletions/insertions afterwards. This is the discard optimisation used by GNU diff and by
-    // git's xdiff.
+    // common subsequence consists solely of tokens occurring on both sides. Cutting the common
+    // prefix/suffix and dropping such tokens before diffing leaves every possible match intact
+    // while shrinking the N and the D of the O(ND) Myers loop; trimmed and dropped tokens are
+    // reinstated afterwards. This is the optimisation used by GNU diff and by git's xdiff.
     const plan = this.buildDiscardPlan(
       oldTokens, newTokens, oldNormalizedAll, newNormalizedAll, options);
 
-    // The diff loop below runs on the skeleton; all lengths from here on are skeleton lengths.
-    const runOld = plan ? plan.oldSk : oldTokens;
-    const runNew = plan ? plan.newSk : newTokens;
-    const oldNormalized = plan ? plan.oldSkNorm : oldNormalizedAll;
-    const newNormalized = plan ? plan.newSkNorm : newNormalizedAll;
-    const newLen = runNew.length, oldLen = runOld.length;
+    // The diff loop below runs on the trimmed middle section, or on the skeleton thereof when
+    // discarding; all lengths from here on are loop-section lengths. The skeleton's normalized
+    // tokens are recorded as strings in the plan (see the string-only guard in buildDiscardPlan),
+    // but the loop consumes them as TokenT like any other normalized array.
+    const prefixLen = plan ? plan.prefixLen : 0;
+    const oldNormalized = plan?.discard
+      ? (plan.discard.oldSkNorm as unknown as TokenT[])
+      : oldNormalizedAll.slice(prefixLen);
+    const newNormalized = plan?.discard
+      ? (plan.discard.newSkNorm as unknown as TokenT[])
+      : newNormalizedAll.slice(prefixLen);
+    const newLen = newNormalized.length, oldLen = oldNormalized.length;
 
-    // Total edit distance = skeleton edit distance + the fixed cost of the dropped tokens, so the
-    // skeleton loop must hit its maxEditLength abort one discardedTotal earlier than the caller's
+    // Total edit distance = loop-section edit distance + the fixed cost of the dropped tokens, so
+    // the loop must hit its maxEditLength abort one discardedTotal earlier than the caller's
     // maxEditLength, preserving the documented abort semantics.
-    const editLengthCap = maxEditLength - (plan ? plan.discardedOld + plan.discardedNew : 0);
+    const editLengthCap = maxEditLength
+      - (plan?.discard ? plan.discard.discardedOld + plan.discard.discardedNew : 0);
 
     // Seed editLength = 0, i.e. the content starts with the same values
     const initialPath: Path = { oldPos: -1, lastComponent: undefined };
     let newPos = this.extractCommon(initialPath, newNormalized, oldNormalized, 0, options);
     if (initialPath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-      // The skeletons are identical (per the definition of "identical" implied by
+      // The loop section is identical (per the definition of "identical" implied by
       // tokenize, normalizeToken, and equals). The full inputs may still differ by the dropped
       // tokens, whose total edit cost is fixed; if that cost alone already exceeds maxEditLength,
       // abort exactly as the unoptimised loop would have.
-      if (plan && plan.discardedOld + plan.discardedNew > maxEditLength) {
+      if (
+        plan?.discard
+        && plan.discard.discardedOld + plan.discard.discardedNew > maxEditLength
+      ) {
         if (callback) {
           enqueueTask(function() { (callback as DiffCallbackAbortable<ValueT>)(undefined); });
         }
@@ -370,10 +436,11 @@ export default class Diff<
   }
 
   /**
-   * Builds a DiscardPlan by counting (normalized) token occurrences on both sides and dropping
-   * every token that has zero occurrences on the other side. Returns undefined - and leaves the
+   * Builds a DiscardPlan by first cutting the maximal common prefix, then counting (normalized)
+   * token occurrences on both sides of the remaining middle section and dropping every token that
+   * has zero occurrences on the other side. Returns undefined - and leaves the
    * caller running the plain, unoptimised algorithm - whenever the optimisation cannot safely be
-   * applied, or would achieve nothing:
+   * applied:
    *
    * - a custom `comparator` was passed (its equality semantics are unknown, so tokens can't be
    *   counted on the assumption that equal tokens compare equal);
@@ -381,8 +448,11 @@ export default class Diff<
    *   and subclasses that want this optimisation should override `normalizeToken` instead so that
    *   equal tokens normalize to the same string);
    * - any token is not a string (Map keys compare by SameValueZero, so e.g. NaN would wrongly be
-   *   treated as matching itself, unlike the `===` used by the base `equals`);
-   * - nothing would be dropped anyway.
+   *   treated as matching itself, unlike the `===` used by the base `equals`).
+   *
+   * When it can be applied but too little would be dropped for it to pay off, a trim-only plan
+   * (with no `discard` section) is returned; the caller then runs the loop on the mere middle
+   * section.
    */
   private buildDiscardPlan(
     oldTokens: TokenT[],
@@ -390,73 +460,109 @@ export default class Diff<
     oldNormalized: TokenT[],
     newNormalized: TokenT[],
     options: AllDiffOptions
-  ): DiscardPlan<TokenT> | undefined {
-    if (options.comparator) return undefined;
-    if (this.equals !== Diff.prototype.equals) return undefined;
+  ): DiscardPlan | undefined {
+    if (options.comparator) {
+      return undefined;
+    }
+    if (this.equals !== Diff.prototype.equals) {
+      return undefined;
+    }
     for (let i = 0; i < oldNormalized.length; i++) {
-      if (typeof oldNormalized[i] !== 'string') return undefined;
+      if (typeof oldNormalized[i] !== 'string') {
+        return undefined;
+      }
     }
     for (let i = 0; i < newNormalized.length; i++) {
-      if (typeof newNormalized[i] !== 'string') return undefined;
+      if (typeof newNormalized[i] !== 'string') {
+        return undefined;
+      }
     }
+    // The guards above ensure every token is a string, so from here on the normalized arrays are
+    // worked with as strings.
+    const oldNorm = oldNormalized as string[];
+    const newNorm = newNormalized as string[];
 
-    const countTokens = (tokens: TokenT[]): Map<string, number> => {
+    // Cut the maximal common prefix, so that everything below (and the diff loop itself) only
+    // looks at the part that changed after it. The comparison here is the same one the loop's
+    // seed path uses to consume the prefix, so this cuts exactly the unoptimised algorithm's
+    // first equal run. Note that the common *suffix* cannot be trimmed the same way: the
+    // unoptimised algorithm's final equal run is whatever its chosen alignment matches last, which
+    // is not necessarily the maximal common suffix (e.g. diffing ['foo','\r\n','bar'] against
+    // ['foo','  ','\r\n','\r\n','\r\n','bar'] in word mode, it matches the old '\r\n' against the
+    // middle of the inserted run rather than the trailing one, and inserts it), so forcing the
+    // suffix to the ends would change which minimal edit script gets picked.
+    const minLen = Math.min(oldNorm.length, newNorm.length);
+    let prefixLen = 0;
+    while (prefixLen < minLen && oldNorm[prefixLen] === newNorm[prefixLen]) {
+      prefixLen++;
+    }
+    const midOldEnd = oldNorm.length;
+    const midNewEnd = newNorm.length;
+
+    function countMiddle(norm: string[], start: number, end: number): Map<string, number> {
       const counts = new Map<string, number>();
-      for (const token of tokens) {
-        counts.set(token as string, (counts.get(token as string) ?? 0) + 1);
+      for (let i = start; i < end; i++) {
+        counts.set(norm[i], (counts.get(norm[i]) ?? 0) + 1);
       }
       return counts;
-    };
+    }
+    const oldCounts = countMiddle(oldNorm, prefixLen, midOldEnd);
+    const newCounts = countMiddle(newNorm, prefixLen, midNewEnd);
 
-    const oldCounts = countTokens(oldNormalized);
-    const newCounts = countTokens(newNormalized);
-
-    // Decide whether the optimisation is worth it at all: count tokens whose *value* occurs only
-    // on one side (those, and only those, get discarded). On mostly-shared inputs (the common
-    // case) running on the skeleton would be pure overhead, so bail out unless a substantial
-    // fraction of tokens gets discarded.
-    let discardedByOld = 0, discardedNew = 0;
+    // Decide whether discarding is worth it at all: count tokens whose *value* occurs only on one
+    // side of the middle section (those, and only those, get dropped). On mostly-shared inputs
+    // (the common case) running on the skeleton would be pure overhead, so skip the skeleton
+    // unless a substantial fraction of middle tokens gets dropped.
+    let discardedByOld = 0;
+    let discardedNew = 0;
     for (const [value, count] of oldCounts) {
-      if (!newCounts.has(value)) discardedByOld += count;
+      if (!newCounts.has(value)) {
+        discardedByOld += count;
+      }
     }
     for (const [value, count] of newCounts) {
-      if (!oldCounts.has(value)) discardedNew += count;
+      if (!oldCounts.has(value)) {
+        discardedNew += count;
+      }
     }
-    const discarded = discardedByOld + discardedNew;
-    if (discarded < (oldTokens.length + newTokens.length) * 0.2) return undefined;
+    const plan: DiscardPlan = {
+      prefixLen,
+      oldLen: oldTokens.length,
+      newLen: newTokens.length
+    };
+    const midOldLen = midOldEnd - prefixLen;
+    const midNewLen = midNewEnd - prefixLen;
+    if (discardedByOld + discardedNew < (midOldLen + midNewLen) * 0.2) {
+      return plan;
+    }
 
-    const buildSkeleton = (
-      tokens: TokenT[],
-      normalized: TokenT[],
+    function buildSkeleton(
+      norm: string[],
+      start: number,
+      end: number,
       otherCounts: Map<string, number>
-    ) => {
-      const sk: TokenT[] = [];
-      const skNorm: TokenT[] = [];
+    ) {
+      const skNorm: string[] = [];
       const skToOrig: number[] = [];
-      for (let i = 0; i < tokens.length; i++) {
-        if ((otherCounts.get(normalized[i] as string) ?? 0) > 0) {
-          sk.push(tokens[i]);
-          skNorm.push(normalized[i]);
+      for (let i = start; i < end; i++) {
+        if ((otherCounts.get(norm[i]) ?? 0) > 0) {
+          skNorm.push(norm[i]);
           skToOrig.push(i);
         }
       }
-      return {sk, skNorm, skToOrig};
-    };
-    const oldS = buildSkeleton(oldTokens, oldNormalized, newCounts);
-    const newS = buildSkeleton(newTokens, newNormalized, oldCounts);
-
-    return {
-      oldSk: oldS.sk,
-      newSk: newS.sk,
+      return {skNorm, skToOrig};
+    }
+    const oldS = buildSkeleton(oldNorm, prefixLen, midOldEnd, newCounts);
+    const newS = buildSkeleton(newNorm, prefixLen, midNewEnd, oldCounts);
+    plan.discard = {
       oldSkNorm: oldS.skNorm,
       newSkNorm: newS.skNorm,
       oldSkToOrig: oldS.skToOrig,
       newSkToOrig: newS.skToOrig,
       discardedOld: discardedByOld,
-      discardedNew,
-      oldLen: oldTokens.length,
-      newLen: newTokens.length
+      discardedNew
     };
+    return plan;
   }
 
   /**
@@ -482,62 +588,75 @@ export default class Diff<
    * into the counts of the run they fall in.
    */
   private expandDiscarded(
-    lastComponent: DraftChangeObject | undefined,
-    plan: DiscardPlan<TokenT>,
+    components: DraftChangeObject[],
+    discard: NonNullable<DiscardPlan['discard']>,
+    startOld: number,
+    startNew: number,
+    endOld: number,
+    endNew: number,
     options: AllDiffOptions
-  ): DraftChangeObject | undefined {
-    // The component list is built back-to-front (head = last component); reverse into walking order.
-    const components: DraftChangeObject[] = [];
-    for (let component = lastComponent; component; component = component.previousComponent) {
-      components.push(component);
-    }
-    components.reverse();
-
+  ): DraftChangeObject[] {
     const out: DraftChangeObject[] = [];
     const oneChangePerToken = !!options.oneChangePerToken;
-    const pushEqual = (count: number) => {
+    function pushEqual(count: number) {
       if (oneChangePerToken) {
-        for (let i = 0; i < count; i++) out.push({added: false, removed: false, count: 1});
+        for (let i = 0; i < count; i++) {
+          out.push({added: false, removed: false, count: 1});
+        }
       } else {
         out.push({added: false, removed: false, count});
       }
-    };
+    }
     // Counts of old/new tokens consumed by the run of edits since the last equal component.
-    let gapRemoved = 0, gapAdded = 0;
-    const flushGap = () => {
+    let gapRemoved = 0;
+    let gapAdded = 0;
+    function flushGap() {
       if (oneChangePerToken) {
-        for (let i = 0; i < gapRemoved; i++) out.push({added: false, removed: true, count: 1});
-        for (let i = 0; i < gapAdded; i++) out.push({added: true, removed: false, count: 1});
+        for (let i = 0; i < gapRemoved; i++) {
+          out.push({added: false, removed: true, count: 1});
+        }
+        for (let i = 0; i < gapAdded; i++) {
+          out.push({added: true, removed: false, count: 1});
+        }
       } else {
-        if (gapRemoved) out.push({added: false, removed: true, count: gapRemoved});
-        if (gapAdded) out.push({added: true, removed: false, count: gapAdded});
+        if (gapRemoved) {
+          out.push({added: false, removed: true, count: gapRemoved});
+        }
+        if (gapAdded) {
+          out.push({added: true, removed: false, count: gapAdded});
+        }
       }
-      gapRemoved = 0; gapAdded = 0;
-    };
+      gapRemoved = 0;
+      gapAdded = 0;
+    }
 
     let skOld = 0, skNew = 0; // Next skeleton index unconsumed on each side.
-    let oldPtr = 0, newPtr = 0; // Next original-array index not yet consumed on each side.
+    let oldPtr = startOld, newPtr = startNew; // Next original-array index not yet consumed.
     for (const component of components) {
       if (component.added) {
         // The whole slice of the new array this run of insertions covers - leading dropped tokens,
         // the inserted skeleton tokens, and dropped tokens wedged between them - is one insertion
         // run in the output (the unoptimised algorithm, too, deletes/inserts whole slices).
-        const last = plan.newSkToOrig[skNew + component.count - 1];
+        const last = discard.newSkToOrig[skNew + component.count - 1];
         gapAdded += last + 1 - newPtr;
         newPtr = last + 1;
         skNew += component.count;
       } else if (component.removed) {
-        const last = plan.oldSkToOrig[skOld + component.count - 1];
+        const last = discard.oldSkToOrig[skOld + component.count - 1];
         gapRemoved += last + 1 - oldPtr;
         oldPtr = last + 1;
         skOld += component.count;
       } else {
         // Equal component. Dropped tokens before it belong to the run that is now over; dropped
         // tokens wedged between its own skeleton tokens split it, each split ending a run.
-        const enterOld = plan.oldSkToOrig[skOld];
-        if (enterOld > oldPtr) gapRemoved += enterOld - oldPtr;
-        const enterNew = plan.newSkToOrig[skNew];
-        if (enterNew > newPtr) gapAdded += enterNew - newPtr;
+        const enterOld = discard.oldSkToOrig[skOld];
+        if (enterOld > oldPtr) {
+          gapRemoved += enterOld - oldPtr;
+        }
+        const enterNew = discard.newSkToOrig[skNew];
+        if (enterNew > newPtr) {
+          gapAdded += enterNew - newPtr;
+        }
         flushGap();
         // Walk the component's tokens (offset j from its start on each side), splitting at every
         // point where either side's original-array indices are not contiguous - i.e. where dropped
@@ -546,37 +665,35 @@ export default class Diff<
         let segmentStart = 0;
         for (let j = 1; j <= component.count; j++) {
           const atEnd = j === component.count;
-          const oldGap = !atEnd && plan.oldSkToOrig[skOld + j] > plan.oldSkToOrig[skOld + j - 1] + 1;
-          const newGap = !atEnd && plan.newSkToOrig[skNew + j] > plan.newSkToOrig[skNew + j - 1] + 1;
+          const oldGap = !atEnd
+            && discard.oldSkToOrig[skOld + j] > discard.oldSkToOrig[skOld + j - 1] + 1;
+          const newGap = !atEnd
+            && discard.newSkToOrig[skNew + j] > discard.newSkToOrig[skNew + j - 1] + 1;
           if (atEnd || oldGap || newGap) {
             pushEqual(j - segmentStart);
             if (!atEnd) {
-              if (oldGap) gapRemoved += plan.oldSkToOrig[skOld + j] - plan.oldSkToOrig[skOld + j - 1] - 1;
-              if (newGap) gapAdded += plan.newSkToOrig[skNew + j] - plan.newSkToOrig[skNew + j - 1] - 1;
+              if (oldGap) {
+                gapRemoved += discard.oldSkToOrig[skOld + j] - discard.oldSkToOrig[skOld + j - 1] - 1;
+              }
+              if (newGap) {
+                gapAdded += discard.newSkToOrig[skNew + j] - discard.newSkToOrig[skNew + j - 1] - 1;
+              }
               flushGap();
               segmentStart = j;
             }
           }
         }
-        oldPtr = plan.oldSkToOrig[skOld + component.count - 1] + 1;
-        newPtr = plan.newSkToOrig[skNew + component.count - 1] + 1;
+        oldPtr = discard.oldSkToOrig[skOld + component.count - 1] + 1;
+        newPtr = discard.newSkToOrig[skNew + component.count - 1] + 1;
         skOld += component.count;
         skNew += component.count;
       }
     }
     // Trailing dropped tokens form the final run.
-    gapRemoved += plan.oldLen - oldPtr;
-    gapAdded += plan.newLen - newPtr;
+    gapRemoved += endOld - oldPtr;
+    gapAdded += endNew - newPtr;
     flushGap();
-
-    // Rebuild the back-to-front linked list buildValues expects: the head is the LAST component in
-    // output order, and previousComponent links towards earlier components.
-    let head: DraftChangeObject | undefined = undefined;
-    for (let i = 0; i < out.length; i++) {
-      out[i].previousComponent = head;
-      head = out[i];
-    }
-    return head;
+    return out;
   }
 
   removeEmpty(array: TokenT[]): TokenT[] {
