@@ -1289,6 +1289,51 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    describe('zero-context insertion bounds', function() {
+      const patch = createPatch('f', 'a\nb\nc\n', 'a\nb\nc\nx\n', undefined, undefined, {context: 0});
+
+      for (const fuzzFactor of [0, 1, 2]) {
+        it(`fits beyond-EOF insertions at the last available position with fuzz ${fuzzFactor}`, function() {
+          for (const source of ['a\n', '', '\n', 'a\n\n']) {
+            expect(applyPatch(source, patch, {fuzzFactor})).to.equal(source + 'x\n');
+          }
+        });
+      }
+
+      it('preserves valid insertion positions', function() {
+        for (const source of ['a\nb\nc\n', 'a\nb\nc\nd\n']) {
+          expect(applyPatch(source, patch)).to.equal(source.replace('c\n', 'c\nx\n'));
+        }
+      });
+
+      it('keeps EOF newline removal separate from a real final blank line', function() {
+        const noEOFNL = createPatch('f', 'a\nb\nc\n', 'a\nb\nc\nx', undefined, undefined, {context: 0});
+        expect(applyPatch('a\n\n', noEOFNL)).to.equal('a\n\nx');
+        expect(applyPatch('', noEOFNL)).to.equal('x');
+      });
+
+      it('retains the existing treatment of sources without a final newline', function() {
+        const atEnd = createPatch('f', 'a\n', 'a\nx\n', undefined, undefined, {context: 0});
+        expect(applyPatch('a', patch)).to.equal(applyPatch('a', atEnd));
+        expect(applyPatch('a', atEnd)).to.equal('a\nx');
+      });
+
+      it('fits insertions after an earlier hunk has shifted backwards', function() {
+        const shifted = createPatch('f', 'p\nq\na\nb\nc\n', 'p\nq\nA\nb\nc\nx\n', undefined, undefined, {context: 0});
+        expect(applyPatch('a\nc\n', shifted)).to.equal('A\nc\nx\n');
+      });
+
+      it('preserves Windows line endings when fitting at EOF', function() {
+        expect(applyPatch('a\r\n', patch)).to.equal('a\r\nx\r\n');
+      });
+
+      it('keeps multiple insertion hunks in order after fitting at EOF', function() {
+        const multiple = createPatch('f', 'a\nb\nc\nd\ne\n', 'a\nx\nb\nc\nd\ne\ny\n', undefined, undefined, {context: 0});
+        expect(applyPatch('a\n', multiple)).to.equal('a\nx\ny\n');
+        expect(applyPatch('', multiple)).to.equal('x\ny\n');
+      });
+    });
+
     it('can handle an insertion before the first line', function() {
       expect(applyPatch(
           'line2\n'
