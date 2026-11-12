@@ -1268,6 +1268,20 @@ describe('patch/apply', function() {
       );
     });
 
+    it('skips nonexistent search positions when the old file was much longer', function() {
+      const prefix = 'prefix\n'.repeat(1000);
+      const patch = createPatch('f', prefix + 'old\n', prefix + 'new\n', undefined, undefined, {context: 0});
+      let comparisons = 0;
+      expect(applyPatch('old\n', patch, {
+        compareLine(lineNumber, line, operation, content) {
+          comparisons++;
+          return line === content;
+        }
+      })).to.equal('new\n');
+      // Keep the initial header guess, then visit only the bounded target range.
+      expect(comparisons).to.equal(3);
+    });
+
     it('should succeed when hunk needs a negative offset', function() {
       expect(applyPatch(
           'line1\n'
