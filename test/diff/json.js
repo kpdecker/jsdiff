@@ -5,6 +5,36 @@ import {expect} from 'chai';
 
 describe('diff/json', function() {
   describe('#diffJson', function() {
+    it('snapshots array length before a replacer appends elements', function() {
+      function replacer(key, value) {
+        if (key === '0') {
+          this.push(2);
+        }
+        return value;
+      }
+      const expected = JSON.stringify([1], replacer, '  ');
+      const changes = diffJson([1], expected, {stringifyReplacer: replacer});
+      expect(changes).to.have.length(1);
+      expect(changes[0].value).to.equal(expected);
+      expect(changes[0].added).to.equal(false);
+      expect(changes[0].removed).to.equal(false);
+    });
+
+    it('visits original array positions after a replacer shortens its holder', function() {
+      function replacer(key, value) {
+        if (key === '0') {
+          this.length = 1;
+        }
+        return key !== '' && value === undefined ? 'missing' : value;
+      }
+      const expected = JSON.stringify([1, 2, 3], replacer, '  ');
+      const changes = diffJson([1, 2, 3], expected, {stringifyReplacer: replacer});
+      expect(changes).to.have.length(1);
+      expect(changes[0].value).to.equal(expected);
+      expect(changes[0].added).to.equal(false);
+      expect(changes[0].removed).to.equal(false);
+    });
+
     it('should bind the replacer to the containing object', function() {
       const input = {omit: true, value: 12};
       function replacer(key, value) {

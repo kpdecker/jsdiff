@@ -158,9 +158,11 @@ export function canonicalize(
 
   if ('[object Array]' === Object.prototype.toString.call(obj)) {
     stack.push(obj);
-    canonicalizedObj = new Array(obj.length);
+    // JSON.stringify snapshots the array length before visiting its elements.
+    const length = obj.length;
+    canonicalizedObj = new Array(length);
     replacementStack.push(canonicalizedObj);
-    for (i = 0; i < obj.length; i += 1) {
+    for (i = 0; i < length; i += 1) {
       const canonicalizedValue = canonicalize(obj[i], stack, replacementStack, replacer, String(i), obj);
       // See comment on previous isUnrepresentableInJson calls. Unrepresentable values in arrays
       // get replaced with null by JSON.stringify, so that's what we do here.
