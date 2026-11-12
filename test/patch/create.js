@@ -977,6 +977,33 @@ describe('patch/create', function() {
   });
 
   describe('#formatPatch', function() {
+    it('preserves leading and trailing spaces in generated filenames', function() {
+      for (const name of [' leading.txt', 'trailing.txt ', ' both ', ' ']) {
+        const patch = structuredPatch(name, name, 'old\n', 'new\n');
+        for (const options of [INCLUDE_HEADERS, FILE_HEADERS_ONLY]) {
+          const [parsed] = parsePatch(formatPatch(patch, options));
+          expect(parsed.oldFileName).to.equal(name);
+          expect(parsed.newFileName).to.equal(name);
+          if (options.includeIndex) {
+            expect(parsed.index).to.equal(name);
+          }
+        }
+      }
+    });
+
+    it('keeps filenames distinct in multi-file patches with trailing spaces', function() {
+      const patches = ['file', 'file '].map(name => structuredPatch(name, name, 'old\n', 'new\n'));
+      const parsed = parsePatch(formatPatch(patches));
+      expect(parsed.map(patch => patch.newFileName)).to.deep.equal(['file', 'file ']);
+    });
+
+    it('preserves trailing spaces in Git patch filenames', function() {
+      const patch = {...structuredPatch('a/file ', 'b/file ', 'old\n', 'new\n'), isGit: true};
+      const [parsed] = parsePatch(formatPatch(patch));
+      expect(parsed.oldFileName).to.equal('a/file ');
+      expect(parsed.newFileName).to.equal('b/file ');
+    });
+
     it('should generate a patch string from an input diff', function() {
       const res = formatPatch(structuredPatch(
         'oldfile', 'newfile',
