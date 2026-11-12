@@ -69,7 +69,14 @@ export function applyPatch(
     throw new Error('applyPatch only works with a single input.');
   }
 
-  return applyStructuredPatch(source, patches[0], options);
+  // No file changes, as emitted by Git when comparing identical files.
+  return applyStructuredPatch(source, patches.length === 0 ? {
+    oldFileName: undefined,
+    newFileName: undefined,
+    oldHeader: undefined,
+    newHeader: undefined,
+    hunks: []
+  } : patches[0], options);
 }
 
 function applyStructuredPatch(
