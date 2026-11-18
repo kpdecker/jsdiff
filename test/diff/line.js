@@ -1,4 +1,4 @@
-import {diffLines, diffTrimmedLines} from '../../libesm/diff/line.js';
+import {diffLines, diffTrimmedLines, tokenize} from '../../libesm/diff/line.js';
 import {convertChangesToXML} from '../../libesm/convert/xml.js';
 
 import {expect} from 'chai';
@@ -45,6 +45,16 @@ describe('diff/line', function() {
         'line\n\nold value \n\nline',
         '');
       expect(convertChangesToXML(diffResult)).to.equal('<del>line\n\nold value \n\nline</del>');
+    });
+
+    it('should tokenize each line together with its line break', function() {
+      expect(tokenize('', {})).to.deep.equal([]);
+      expect(tokenize('\n\n', {})).to.deep.equal(['\n', '\n']);
+      expect(tokenize('a\nb', {})).to.deep.equal(['a\n', 'b']);
+      expect(tokenize('a\r\nb\r\n', {})).to.deep.equal(['a\r\n', 'b\r\n']);
+      // A lone \r is not a line break
+      expect(tokenize('a\rb\n', {})).to.deep.equal(['a\rb\n']);
+      expect(tokenize('a\r\n\nb', {newlineIsToken: true})).to.deep.equal(['a', '\r\n', '', '\n', 'b']);
     });
 
     it('Should prefer to do deletions before insertions, like Unix diff does', function() {

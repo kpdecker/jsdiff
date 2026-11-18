@@ -4,7 +4,7 @@ import {expect} from 'chai';
 
 describe('diff/array', function() {
   describe('#diffArrays', function() {
-    it('Should diff arrays', function() {
+    it('should diff arrays', function() {
       const a = {a: 0}, b = {b: 1}, c = {c: 2};
       const diffResult = diffArrays([a, b, c], [a, c, b]);
       expect(diffResult).to.deep.equals([
@@ -61,7 +61,18 @@ describe('diff/array', function() {
         expect(diffResult2[0].value).to.not.equal(input2);
       });
     });
-    it('Should diff arrays with comparator', function() {
+    it('should not throw on non-string items when passed ignoreCase', function() {
+      const a = {a: 0}, b = {a: 1}, c = {a: 2};
+      expect(diffArrays([a, b], [a, b], { ignoreCase: true })).to.deep.equals([
+          {count: 2, value: [a, b], removed: false, added: false}
+      ]);
+      expect(diffArrays([a, b], [a, c], { ignoreCase: true })).to.deep.equals([
+          {count: 1, value: [a], removed: false, added: false},
+          {count: 1, value: [b], removed: true, added: false},
+          {count: 1, value: [c], removed: false, added: true}
+      ]);
+    });
+    it('should diff arrays with comparator', function() {
       const a = {a: 0}, b = {a: 1}, c = {a: 2}, d = {a: 3};
       function comparator(left, right) {
         return left.a === right.a;
@@ -73,7 +84,7 @@ describe('diff/array', function() {
           {count: 1, value: [d], removed: false, added: true}
       ]);
     });
-    it('Should pass old/new tokens as the left/right comparator args respectively', function() {
+    it('should pass old/new tokens as the left/right comparator args respectively', function() {
       diffArrays(
         ['a', 'b', 'c'],
         ['x', 'y', 'z'],
@@ -86,7 +97,7 @@ describe('diff/array', function() {
         }
       );
     });
-    it('Should terminate early if execution time exceeds `timeout` ms', function() {
+    it('should terminate early if execution time exceeds `timeout` ms', function() {
       // To test this, we also pass a comparator that hot sleeps as a way to
       // artificially slow down execution so we reach the timeout.
       function comparator(left, right) {
