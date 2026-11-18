@@ -82,21 +82,21 @@
     "@eslint/js": "^10.0.1",
     "c8": "^12.0.0",
     "chai": "^6.3.0",
-    "eslint": "^10.13.0",
-    "globals": "^17.13.0",
+    "eslint": "^10.15.0",
+    "globals": "^17.14.0",
     "karma": "^6.4.4",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.1",
     "mocha": "^12.0.3",
-    "rollup": "^4.64.10",
+    "rollup": "^4.68.7",
     "tsd": "^0.33.0",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.58.1",
+    "typescript-eslint": "^8.73.0",
     "uglify-js": "^3.19.3",
-    "webpack": "^5.112.0",
-    "webpack-dev-server": "^6.0.0"
+    "webpack": "^5.112.2",
+    "webpack-dev-server": "^6.1.0"
   },
   "c8": {
     "reporter": [

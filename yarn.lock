@@ -2387,21 +2387,21 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     c8: "npm:^12.0.0"
     chai: "npm:^6.3.0"
-    eslint: "npm:^10.13.0"
-    globals: "npm:^17.13.0"
+    eslint: "npm:^10.15.0"
+    globals: "npm:^17.14.0"
     karma: "npm:^6.4.4"
     karma-mocha: "npm:^2.0.1"
     karma-mocha-reporter: "npm:^2.2.5"
     karma-sourcemap-loader: "npm:^0.4.0"
     karma-webpack: "npm:^5.0.1"
     mocha: "npm:^12.0.3"
-    rollup: "npm:^4.64.10"
+    rollup: "npm:^4.68.7"
     tsd: "npm:^0.33.0"
     typescript: "npm:^6.0.2"
-    typescript-eslint: "npm:^8.58.1"
+    typescript-eslint: "npm:^8.73.0"
     uglify-js: "npm:^3.19.3"
-    webpack: "npm:^5.112.0"
-    webpack-dev-server: "npm:^6.0.0"
+    webpack: "npm:^5.112.2"
+    webpack-dev-server: "npm:^6.1.0"
   languageName: unknown
   linkType: soft
 
@@ -2671,7 +2671,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^10.13.0":
+"eslint@npm:^10.15.0":
   version: 10.15.0
   resolution: "eslint@npm:10.15.0"
   dependencies:
@@ -3173,7 +3173,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^17.13.0":
+"globals@npm:^17.14.0":
   version: 17.14.0
   resolution: "globals@npm:17.14.0"
   checksum: 10c0/422d17c24e87170d4aa566b97a53339ae451c2f4d78512594a7ca951cdb939bc4a85c10071e6dcf77ca63de48713a77f2e71eb9214e44880233dff2090e92731
@@ -4980,7 +4980,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.64.10":
+"rollup@npm:^4.68.7":
   version: 4.68.7
   resolution: "rollup@npm:4.68.7"
   dependencies:
@@ -5802,7 +5802,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:^8.58.1":
+"typescript-eslint@npm:^8.73.0":
   version: 8.73.0
   resolution: "typescript-eslint@npm:8.73.0"
   dependencies:
@@ -6012,7 +6012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack-dev-server@npm:^6.0.0":
+"webpack-dev-server@npm:^6.1.0":
   version: 6.1.0
   resolution: "webpack-dev-server@npm:6.1.0"
   dependencies:
@@ -6069,7 +6069,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:^5.112.0":
+"webpack@npm:^5.112.2":
   version: 5.112.2
   resolution: "webpack@npm:5.112.2"
   dependencies:
