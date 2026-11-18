@@ -1342,6 +1342,15 @@ index 0000000..ce01362
         }]);
     });
 
+    it('should preserve a U+FEFF character in quoted filenames', function() {
+      for (const fileName of ['\uFEFFnote.txt', 'a\uFEFFnote.txt', 'a/\uFEFFnote.txt', 'a\uFEFF\uFEFFnote.txt']) {
+        const [patch] = parsePatch(createPatch(fileName, 'old\n', 'new\n'));
+        expect(patch.oldFileName).to.equal(fileName);
+        expect(patch.newFileName).to.equal(fileName);
+        expect(patch.index).to.equal(fileName);
+      }
+    });
+
     it('should parse `diff --git` with unquoted filenames containing spaces (same old and new)', function() {
       expect(parsePatch(
 `diff --git a/file with spaces.txt b/file with spaces.txt
