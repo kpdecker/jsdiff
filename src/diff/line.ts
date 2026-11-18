@@ -106,24 +106,14 @@ export function tokenize(value: string, options: DiffLinesOptionsAbortable | Dif
     value = value.replace(/\r\n/g, '\n');
   }
 
-  const retLines = [],
-      linesAndNewlines = value.split(/(\n|\r\n)/);
-
-  // Ignore the final empty token that occurs if the string ends with a new line
-  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-    linesAndNewlines.pop();
-  }
-
-  // Merge the content and line separators into single tokens
-  for (let i = 0; i < linesAndNewlines.length; i++) {
-    const line = linesAndNewlines[i];
-
-    if (i % 2 && !options.newlineIsToken) {
-      retLines[retLines.length - 1] += line;
-    } else {
-      retLines.push(line);
+  if (options.newlineIsToken) {
+    const tokens = value.split(/(\n|\r\n)/);
+    // Ignore the final empty token that occurs if the string ends with a new line
+    if (!tokens[tokens.length - 1]) {
+      tokens.pop();
     }
+    return tokens;
   }
 
-  return retLines;
+  return value.match(/.*?\n|.+$/gs) || [];
 }
