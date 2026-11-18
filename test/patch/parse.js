@@ -477,6 +477,137 @@ More garbage here`))
         }]);
     });
 
+    it('should ignore the signature after the last hunk of a `git format-patch` email', function() {
+      // `git format-patch` ends each email with a `-- ` line followed by a
+      // signature (the Git version number, by default).
+      expect(parsePatch(
+          'From 6e7f6fce09cfc088fe20446ebcfd02fc35541947 Mon Sep 17 00:00:00 2001\n'
+          + 'From: A U Thor <author@example.com>\n'
+          + 'Date: Fri, 23 Oct 2026 12:56:36 +0300\n'
+          + 'Subject: [PATCH] Add line3\n'
+          + '\n'
+          + '---\n'
+          + ' file.txt | 1 +\n'
+          + ' 1 file changed, 1 insertion(+)\n'
+          + '\n'
+          + 'diff --git a/file.txt b/file.txt\n'
+          + 'index cc8654b..84275f9 100644\n'
+          + '--- a/file.txt\n'
+          + '+++ b/file.txt\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line1\n'
+          + ' line2\n'
+          + '+line3\n'
+          + ' line4\n'
+          + '-- \n'
+          + '2.50.1\n'
+          + '\n'))
+        .to.eql([{
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: 'b/file.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }]);
+    });
+
+    it('should parse a multi-email `git format-patch --stdout` series', function() {
+      // The second email deletes a line consisting of `- `, which appears in
+      // the hunk as `-- `; inside the hunk's line counts, that is still a
+      // deletion.
+      expect(parsePatch(
+          'From 6e7f6fce09cfc088fe20446ebcfd02fc35541947 Mon Sep 17 00:00:00 2001\n'
+          + 'From: A U Thor <author@example.com>\n'
+          + 'Date: Fri, 23 Oct 2026 12:56:36 +0300\n'
+          + 'Subject: [PATCH 1/2] Add line3\n'
+          + '\n'
+          + '---\n'
+          + ' file.txt | 1 +\n'
+          + ' 1 file changed, 1 insertion(+)\n'
+          + '\n'
+          + 'diff --git a/file.txt b/file.txt\n'
+          + 'index cc8654b..84275f9 100644\n'
+          + '--- a/file.txt\n'
+          + '+++ b/file.txt\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line1\n'
+          + ' line2\n'
+          + '+line3\n'
+          + ' line4\n'
+          + '-- \n'
+          + '2.50.1\n'
+          + '\n'
+          + '\n'
+          + 'From 1f2a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c Mon Sep 17 00:00:00 2001\n'
+          + 'From: A U Thor <author@example.com>\n'
+          + 'Date: Fri, 23 Oct 2026 12:57:10 +0300\n'
+          + 'Subject: [PATCH 2/2] Remove the empty bullet\n'
+          + '\n'
+          + '---\n'
+          + ' notes.md | 1 -\n'
+          + ' 1 file changed, 1 deletion(-)\n'
+          + '\n'
+          + 'diff --git a/notes.md b/notes.md\n'
+          + 'index 2b1c3d4..5e6f7a8 100644\n'
+          + '--- a/notes.md\n'
+          + '+++ b/notes.md\n'
+          + '@@ -1,3 +1,2 @@\n'
+          + ' alpha\n'
+          + '-- \n'
+          + ' beta\n'
+          + '-- \n'
+          + '2.50.1\n'
+          + '\n'))
+        .to.eql([{
+          oldFileName: 'a/file.txt',
+          oldHeader: '',
+          newFileName: 'b/file.txt',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 4,
+              lines: [
+                ' line1',
+                ' line2',
+                '+line3',
+                ' line4'
+              ]
+            }
+          ]
+        }, {
+          oldFileName: 'a/notes.md',
+          oldHeader: '',
+          newFileName: 'b/notes.md',
+          newHeader: '',
+          isGit: true,
+          hunks: [
+            {
+              oldStart: 1, oldLines: 3,
+              newStart: 1, newLines: 2,
+              lines: [
+                ' alpha',
+                '-- ',
+                ' beta'
+              ]
+            }
+          ]
+        }]);
+    });
+
     it('should tolerate garbage between file headers and hunks', function() {
       // GNU `patch` ignores unrecognized lines between the --- / +++ headers
       // and the first @@ hunk header, and so do we.
@@ -914,6 +1045,24 @@ more garbage
  c
  d
  e`;
+
+      // eslint-disable-next-line dot-notation
+      expect(() => {parsePatch(patchStr);}).to.throw(/Hunk at line 3 has more lines than expected/);
+    });
+
+    it('should still emit an error if a deletion line spills out of a hunk before a `-- ` signature line', () => {
+      // Only the `-- ` line itself is allowed to follow a hunk; the '-c' line
+      // before it means the line counts were wrong.
+      const patchStr =
+        '--- file.txt\n'
+        + '+++ file.txt\n'
+        + '@@ -1,2 +1,2 @@\n'
+        + ' a\n'
+        + '-b\n'
+        + '+B\n'
+        + '-c\n'
+        + '-- \n'
+        + '2.50.1\n';
 
       // eslint-disable-next-line dot-notation
       expect(() => {parsePatch(patchStr);}).to.throw(/Hunk at line 3 has more lines than expected/);

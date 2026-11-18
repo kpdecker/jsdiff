@@ -54,6 +54,13 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     return (/^@@\s/).test(line);
   }
 
+  // Matches the `-- ` line that `git format-patch` writes after the last
+  // hunk of each patch email, before the email's signature (by default, the
+  // Git version number).
+  function isEmailSignatureSeparator(line: string): boolean {
+    return line === '-- ';
+  }
+
   function parseIndex() {
     const index: Partial<StructuredPatch> = {};
     index.hunks = [];
@@ -518,9 +525,10 @@ export function parsePatch(uniDiff: string): StructuredPatch[] {
     // were exhausted. If the very next line starts with ' ', '+', or '-',
     // the hunk's line counts were probably wrong — unless it's a file
     // header (--- or +++), which legitimately appears immediately after a
-    // hunk in multi-file diffs without Index lines.
+    // hunk in multi-file diffs without Index lines, or the `-- ` line that
+    // precedes the signature at the end of a `git format-patch` email.
     if (i < diffstr.length && diffstr[i] && (/^[+ -]/).test(diffstr[i])
-        && !isFileHeader(diffstr[i])) {
+        && !isFileHeader(diffstr[i]) && !isEmailSignatureSeparator(diffstr[i])) {
       throw new Error(
         'Hunk at line ' + (chunkHeaderIndex + 1)
         + ' has more lines than expected (expected '
