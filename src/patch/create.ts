@@ -1,4 +1,4 @@
-import {diffLines} from '../diff/line.js';
+import {diffLines, tokenize} from '../diff/line.js';
 import type { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabortable, AbortableDiffOptions, ChangeObject } from '../types.js';
 
 /**
@@ -209,6 +209,14 @@ export function structuredPatch(
 
   const {context = 4} = optionsObj;
 
+  // The lines of both texts, verbatim. Hunks emitted below take their context
+  // and removed lines from the old text and their added lines from the new
+  // text rather than from the diff result, because with options like
+  // ignoreWhitespace or stripTrailingCr the tokens in the change objects are
+  // normalized and would produce hunks that apply to neither text.
+  const oldLines = tokenize(oldStr, {});
+  const newLines = tokenize(newStr, {});
+
   // @ts-expect-error (runtime check for something that is correctly a static type error)
   if (optionsObj.newlineIsToken) {
     throw new Error('newlineIsToken may not be used with patch-generation functions, only with diffing functions');
@@ -250,9 +258,33 @@ export function structuredPatch(
     const hunks = [];
     let oldRangeStart = 0, newRangeStart = 0, curRange: string[] = [],
         oldLine = 1, newLine = 1;
+    // Cursors into the verbatim line arrays. Every change object that is not
+    // an addition consumes `count` lines of the old text; every one that is
+    // not a removal consumes `count` lines of the new text.
+    let oldFilePos = 0, newFilePos = 0;
     for (let i = 0; i < diff.length; i++) {
-      const current = diff[i],
-            lines = current.lines || splitLines(current.value);
+      const current = diff[i];
+      let lines: string[];
+      if (current.lines) {
+        lines = current.lines;
+      } else if (current.added) {
+        // Added lines exist only in the new text, and the diff's value is
+        // normalized by options like stripTrailingCr, so take them verbatim
+        // from the new file.
+        const count = current.count ?? 0;
+        lines = newLines.slice(newFilePos, newFilePos + count);
+        newFilePos += count;
+      } else {
+        // Context and removed lines come from the old file, exactly as they
+        // appear there - like GNU diff, which prints context and deleted
+        // lines verbatim from the first file.
+        const count = current.count ?? 0;
+        lines = oldLines.slice(oldFilePos, oldFilePos + count);
+        oldFilePos += count;
+        if (!current.removed) {
+          newFilePos += count;
+        }
+      }
       current.lines = lines;
 
       if (current.added || current.removed) {
@@ -321,6 +353,17 @@ export function structuredPatch(
       for (let i = 0; i < hunk.lines.length; i++) {
         if (hunk.lines[i].endsWith('\n')) {
           hunk.lines[i] = hunk.lines[i].slice(0, -1);
+        } else if (hunk.lines[i][0] === ' ' && i < hunk.lines.length - 1) {
+          // A context line without a newline cannot be followed by lines on
+          // the old side, but ignoreNewlineAtEof can compare it equal to a new
+          // line that has a newline and is followed by additions. Marking the
+          // context line as missing a newline would make the marker apply to
+          // both sides, so split it into a removal and an addition: the old
+          // side loses the line without a newline, the new side adds it back
+          // with the lines that follow.
+          const contextLine = hunk.lines[i].slice(1);
+          hunk.lines.splice(i, 1, '-' + contextLine, '\\ No newline at end of file', '+' + contextLine + '\n');
+          i += 1; // Skip the inserted marker; process the added line next
         } else {
           hunk.lines.splice(i + 1, 0, '\\ No newline at end of file');
           i++; // Skip the line we just added, then continue iterating
@@ -624,20 +667,4 @@ export function createPatch(
   options?: CreatePatchOptionsAbortable | CreatePatchOptionsNonabortable | CreatePatchCallbackNonabortable
 ): string | undefined {
   return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options as any);
-}
-
-/**
- * Split `text` into an array of lines, including the trailing newline character (where present)
- */
-function splitLines(text: string): string[] {
-  const hasTrailingNl = text.endsWith('\n');
-  const result = text.split('\n').map(line => line + '\n');
-  if (hasTrailingNl) {
-    result.pop();
-  } else {
-    result.push(
-      (result.pop() as string).slice(0, -1)
-    );
-  }
-  return result;
 }

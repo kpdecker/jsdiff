@@ -1,6 +1,7 @@
 import {diffWords} from 'diff';
 import {createPatch, createTwoFilesPatch, FILE_HEADERS_ONLY, formatPatch, INCLUDE_HEADERS, OMIT_HEADERS, structuredPatch} from '../../libesm/patch/create.js';
 import {parsePatch} from '../../libesm/patch/parse.js';
+import {applyPatch} from '../../libesm/patch/apply.js';
 
 import {expect} from 'chai';
 
@@ -787,6 +788,28 @@ describe('patch/create', function() {
         const diffResult = createPatch('testFileName', 'line   \n line', 'line\nline', undefined, undefined, {ignoreWhitespace: true});
         expect(diffResult).to.equal(expectedResult);
       });
+
+      it('emits context lines from the old text so the patch applies to it', function() {
+        const oldStr = 'a \nb\nc\n';
+        const newStr = 'a\nd\nc \n';
+
+        // "a " and "c" compare equal to "a" and "c " under ignoreWhitespace,
+        // but the hunks must show the old text's lines, not the new text's,
+        // or the patch won't apply to the file it was diffed against:
+        const patch = createPatch('testFileName', oldStr, newStr, undefined, undefined, {ignoreWhitespace: true});
+        expect(patch).to.equal(
+          'Index: testFileName\n'
+          + '===================================================================\n'
+          + '--- testFileName\n'
+          + '+++ testFileName\n'
+          + '@@ -1,3 +1,3 @@\n'
+          + ' a \n'
+          + '-b\n'
+          + '+d\n'
+          + ' c\n'
+        );
+        expect(applyPatch(oldStr, patch)).to.equal('a \nd\nc\n');
+      });
     });
 
     describe('newlineIsToken', function() {
@@ -858,6 +881,32 @@ describe('patch/create', function() {
     });
   });
 
+  describe('ignoreNewlineAtEof', function() {
+    it('does not put a missing-newline marker in the middle of a hunk', function() {
+      const oldStr = 'a\nb';
+      const newStr = 'a\nb\nc\n';
+
+      // b is compared equal to b\n, but the old b has no newline and is
+      // followed by c on the new side. A context line with a missing-newline
+      // marker would apply the marker to both sides and join b and c; split it
+      // into a removal and an addition instead.
+      const patch = createPatch('testFileName', oldStr, newStr, undefined, undefined, {ignoreNewlineAtEof: true});
+      expect(patch).to.equal(
+        'Index: testFileName\n'
+        + '===================================================================\n'
+        + '--- testFileName\n'
+        + '+++ testFileName\n'
+        + '@@ -1,2 +1,3 @@\n'
+        + ' a\n'
+        + '-b\n'
+        + '\\ No newline at end of file\n'
+        + '+b\n'
+        + '+c\n'
+      );
+      expect(applyPatch(oldStr, patch)).to.equal(newStr);
+    });
+  });
+
   describe('stripTrailingCr', function() {
     it('stripTrailingCr: false', function() {
       const expectedResult =
@@ -894,6 +943,65 @@ describe('patch/create', function() {
         undefined,
         {stripTrailingCr: true}
       )).to.equal(expectedResult);
+    });
+
+    it('keeps the old text\'s line endings in hunks so the patch applies to it', function() {
+      const oldStr = 'a\r\nb\nc\r\n';
+      const newStr = 'a\r\nX\nc\r\n';
+
+      // Lines that stripTrailingCr compares as equal still have to appear in
+      // the hunks with the old file's trailing \r, or the patch won't apply
+      // to a file with (mixed) CRLF line endings:
+      const patch = createPatch('testFileName', oldStr, newStr, undefined, undefined, {stripTrailingCr: true});
+      expect(patch).to.equal(
+        'Index: testFileName\n'
+        + '===================================================================\n'
+        + '--- testFileName\n'
+        + '+++ testFileName\n'
+        + '@@ -1,3 +1,3 @@\n'
+        + ' a\r\n'
+        + '-b\n'
+        + '+X\n'
+        + ' c\r\n'
+      );
+      expect(applyPatch(oldStr, patch)).to.equal(newStr);
+    });
+
+    it('takes added lines from the new text so a CRLF file round-trips', function() {
+      const oldStr = 'a\r\nb\r\nc\r\n';
+      const newStr = 'a\r\nX\r\nc\r\n';
+
+      const patch = createPatch('testFileName', oldStr, newStr, undefined, undefined, {stripTrailingCr: true});
+      expect(patch).to.equal(
+        'Index: testFileName\n'
+        + '===================================================================\n'
+        + '--- testFileName\n'
+        + '+++ testFileName\n'
+        + '@@ -1,3 +1,3 @@\n'
+        + ' a\r\n'
+        + '-b\r\n'
+        + '+X\r\n'
+        + ' c\r\n'
+      );
+      expect(applyPatch(oldStr, patch)).to.equal(newStr);
+    });
+
+    it('keeps each side\'s line endings when old and new differ', function() {
+      const oldStr = 'a\r\nb\r\n';
+      const newStr = 'a\r\nX\n';
+
+      const patch = createPatch('testFileName', oldStr, newStr, undefined, undefined, {stripTrailingCr: true});
+      expect(patch).to.equal(
+        'Index: testFileName\n'
+        + '===================================================================\n'
+        + '--- testFileName\n'
+        + '+++ testFileName\n'
+        + '@@ -1,2 +1,2 @@\n'
+        + ' a\r\n'
+        + '-b\r\n'
+        + '+X\n'
+      );
+      expect(applyPatch(oldStr, patch)).to.equal(newStr);
     });
   });
 
