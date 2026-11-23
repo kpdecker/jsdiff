@@ -19,6 +19,7 @@
 - [#732](https://github.com/kpdecker/jsdiff/pull/732) **Added an overridable `normalizeToken` method to the base `Diff` class.** This method returns a "normalized" form of each token that should be used for equality comparisons between tokens (though the raw, un-normalized form of the tokens will still be what gets used in the change objects returned by `diff()`). This pattern sped up some realistic benchmarks by 2x or more by avoiding the need to normalize tokens repeatedly inside the `.equals()` method.
 - [#711](https://github.com/kpdecker/jsdiff/pull/711) **`applyPatch` with a large `fuzzFactor`** is enormously faster now.
 - [#728](https://github.com/kpdecker/jsdiff/pull/728) **`parseParch` no longer removes BOMs from filenames**.
+- [#739](https://github.com/kpdecker/jsdiff/pull/739) **`applyPatch` with a `fuzzFactor` handles blank lines correctly now**. Previously, if a *blank* line in the text to be patched didn't match the corresponding context line from the patch, the patch would fail to apply regardless of `fuzzFactor`. As of this change, blank lines are no longer treated differently to other lines.
 
 ## 9.0.0
 
