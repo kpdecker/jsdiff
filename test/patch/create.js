@@ -1357,8 +1357,8 @@ describe('patch/create', function() {
       describe('binary Git patches', function() {
         const fixtures = [
           ['modification',
-            'diff --git a/old.bin b/new.bin\n' +
-            'Binary files a/old.bin and b/new.bin differ\n'],
+            'diff --git a/foo.bin b/foo.bin\n' +
+            'Binary files a/foo.bin and b/foo.bin differ\n'],
           ['creation',
             'diff --git a/new.bin b/new.bin\n' +
             'new file mode 100644\n' +
@@ -1367,12 +1367,12 @@ describe('patch/create', function() {
             'diff --git a/old.bin b/old.bin\n' +
             'deleted file mode 100644\n' +
             'Binary files a/old.bin and /dev/null differ\n'],
-          ['rename',
+          ['rename with changes',
             'diff --git a/old.bin b/new.bin\n' +
             'rename from old.bin\n' +
             'rename to new.bin\n' +
             'Binary files a/old.bin and b/new.bin differ\n'],
-          ['copy',
+          ['copy with changes',
             'diff --git a/old.bin b/new.bin\n' +
             'copy from old.bin\n' +
             'copy to new.bin\n' +
