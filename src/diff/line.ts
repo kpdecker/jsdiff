@@ -5,7 +5,9 @@ import {generateOptions} from '../util/params.js';
 class LineDiff extends Diff<string, string> {
   tokenize = tokenize;
 
-  equals(left: string, right: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
+  normalizeToken(token: string, options: DiffLinesOptionsAbortable | DiffLinesOptionsNonabortable) {
+    // Casing is normalized in super
+    token = super.normalizeToken(token, options);
     // If we're ignoring whitespace, we need to normalise lines by stripping
     // whitespace before checking equality. (This has an annoying interaction
     // with newlineIsToken that requires special handling: if newlines get their
@@ -14,21 +16,15 @@ class LineDiff extends Diff<string, string> {
     // as equal to a separator between lines, which would be weird and
     // inconsistent with the documented behavior of the options.)
     if (options.ignoreWhitespace) {
-      if (!options.newlineIsToken || !left.includes('\n')) {
-        left = left.trim();
-      }
-      if (!options.newlineIsToken || !right.includes('\n')) {
-        right = right.trim();
+      if (!options.newlineIsToken || !token.includes('\n')) {
+        token = token.trim();
       }
     } else if (options.ignoreNewlineAtEof && !options.newlineIsToken) {
-      if (left.endsWith('\n')) {
-        left = left.slice(0, -1);
-      }
-      if (right.endsWith('\n')) {
-        right = right.slice(0, -1);
+      if (token.endsWith('\n')) {
+        token = token.slice(0, -1);
       }
     }
-    return super.equals(left, right, options);
+    return token;
   }
 }
 
@@ -110,24 +106,14 @@ export function tokenize(value: string, options: DiffLinesOptionsAbortable | Dif
     value = value.replace(/\r\n/g, '\n');
   }
 
-  const retLines = [],
-      linesAndNewlines = value.split(/(\n|\r\n)/);
-
-  // Ignore the final empty token that occurs if the string ends with a new line
-  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-    linesAndNewlines.pop();
-  }
-
-  // Merge the content and line separators into single tokens
-  for (let i = 0; i < linesAndNewlines.length; i++) {
-    const line = linesAndNewlines[i];
-
-    if (i % 2 && !options.newlineIsToken) {
-      retLines[retLines.length - 1] += line;
-    } else {
-      retLines.push(line);
+  if (options.newlineIsToken) {
+    const tokens = value.split(/(\n|\r\n)/);
+    // Ignore the final empty token that occurs if the string ends with a new line
+    if (!tokens[tokens.length - 1]) {
+      tokens.pop();
     }
+    return tokens;
   }
 
-  return retLines;
+  return value.match(/.*?\n|.+$/gs) || [];
 }

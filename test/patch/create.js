@@ -1231,256 +1231,310 @@ describe('patch/create', function() {
         expect(formatPatch(patchWithNoFilenames, INCLUDE_HEADERS)).to.equal(expectedWithUnderline);
         expect(formatPatch(patchWithNoFilenames)).to.equal(expectedWithUnderline);
       });
+    });
 
-      it('should emit diff --git header for patches with isGit flag', function() {
-        const patch = {
-          oldFileName: 'a/file.txt',
-          newFileName: 'b/file.txt',
+    it('should emit diff --git header for patches with isGit flag', function() {
+      const patch = {
+        oldFileName: 'a/file.txt',
+        newFileName: 'b/file.txt',
+        oldHeader: '',
+        newHeader: '',
+        isGit: true,
+        hunks: [{
+          oldStart: 1, oldLines: 1,
+          newStart: 1, newLines: 1,
+          lines: ['-old', '+new']
+        }]
+      };
+      expect(formatPatch(patch)).to.equal(
+        'diff --git a/file.txt b/file.txt\n' +
+        '--- a/file.txt\n' +
+        '+++ b/file.txt\n' +
+        '@@ -1,1 +1,1 @@\n' +
+        '-old\n' +
+        '+new\n'
+      );
+    });
+
+    it('should throw if oldFileName is missing or empty for a Git patch', function() {
+      const patch = {
+        newFileName: 'b/file.txt',
+        oldHeader: '',
+        newHeader: '',
+        isGit: true,
+        hunks: [{
+          oldStart: 1, oldLines: 1,
+          newStart: 1, newLines: 1,
+          lines: ['-old', '+new']
+        }]
+      };
+      // eslint-disable-next-line dot-notation
+      expect(() => formatPatch(patch)).to.throw('oldFileName must be specified for Git patches');
+    });
+
+    it('should throw if newFileName is missing or empty for a Git patch', function() {
+      const patch = {
+        oldFileName: 'a/file.txt',
+        oldHeader: '',
+        newFileName: '',
+        newHeader: '',
+        isGit: true,
+        hunks: [{
+          oldStart: 1, oldLines: 1,
+          newStart: 1, newLines: 1,
+          lines: ['-old', '+new']
+        }]
+      };
+      // eslint-disable-next-line dot-notation
+      expect(() => formatPatch(patch)).to.throw('newFileName must be specified for Git patches');
+    });
+
+    it('should not mutate hunk objects', function() {
+      const patch = {
+        oldFileName: 'a/file.txt',
+        newFileName: 'b/file.txt',
+        oldHeader: '',
+        newHeader: '',
+        hunks: [{
+          oldStart: 1, oldLines: 0,
+          newStart: 1, newLines: 0,
+          lines: []
+        }]
+      };
+      formatPatch(patch);
+      expect(patch.hunks[0].oldStart).to.equal(1);
+      expect(patch.hunks[0].newStart).to.equal(1);
+    });
+
+    it('should ignore headerOptions for multi-file patches with isGit flag', function() {
+      const patches = [
+        {
+          oldFileName: 'a/one.txt',
+          newFileName: 'b/one.txt',
           oldHeader: '',
           newHeader: '',
           isGit: true,
           hunks: [{
             oldStart: 1, oldLines: 1,
             newStart: 1, newLines: 1,
-            lines: ['-old', '+new']
+            lines: ['-a', '+b']
           }]
-        };
-        expect(formatPatch(patch)).to.equal(
-          'diff --git a/file.txt b/file.txt\n' +
-          '--- a/file.txt\n' +
-          '+++ b/file.txt\n' +
-          '@@ -1,1 +1,1 @@\n' +
-          '-old\n' +
-          '+new\n'
-        );
-      });
-
-      it('should throw if oldFileName is missing or empty for a Git patch', function() {
-        const patch = {
-          newFileName: 'b/file.txt',
+        },
+        {
+          oldFileName: 'a/two.txt',
+          newFileName: 'b/two.txt',
           oldHeader: '',
           newHeader: '',
           isGit: true,
           hunks: [{
             oldStart: 1, oldLines: 1,
             newStart: 1, newLines: 1,
-            lines: ['-old', '+new']
+            lines: ['-c', '+d']
           }]
-        };
-        // eslint-disable-next-line dot-notation
-        expect(() => formatPatch(patch)).to.throw('oldFileName must be specified for Git patches');
-      });
+        }
+      ];
+      const expected =
+        'diff --git a/one.txt b/one.txt\n' +
+        '--- a/one.txt\n' +
+        '+++ b/one.txt\n' +
+        '@@ -1,1 +1,1 @@\n' +
+        '-a\n' +
+        '+b\n' +
+        '\n' +
+        'diff --git a/two.txt b/two.txt\n' +
+        '--- a/two.txt\n' +
+        '+++ b/two.txt\n' +
+        '@@ -1,1 +1,1 @@\n' +
+        '-c\n' +
+        '+d\n';
+      // All three headerOptions values should produce identical output;
+      // Git patches are self-delimiting via diff --git headers, so
+      // OMIT_HEADERS should also not throw for multi-file patches:
+      expect(formatPatch(patches, INCLUDE_HEADERS)).to.equal(expected);
+      expect(formatPatch(patches, FILE_HEADERS_ONLY)).to.equal(expected);
+      expect(formatPatch(patches, OMIT_HEADERS)).to.equal(expected);
+    });
 
-      it('should throw if newFileName is missing or empty for a Git patch', function() {
-        const patch = {
-          oldFileName: 'a/file.txt',
-          oldHeader: '',
-          newFileName: '',
-          newHeader: '',
-          isGit: true,
-          hunks: [{
-            oldStart: 1, oldLines: 1,
-            newStart: 1, newLines: 1,
-            lines: ['-old', '+new']
-          }]
-        };
-        // eslint-disable-next-line dot-notation
-        expect(() => formatPatch(patch)).to.throw('newFileName must be specified for Git patches');
-      });
-
-      it('should not mutate hunk objects', function() {
-        const patch = {
-          oldFileName: 'a/file.txt',
-          newFileName: 'b/file.txt',
-          oldHeader: '',
-          newHeader: '',
-          hunks: [{
-            oldStart: 1, oldLines: 0,
-            newStart: 1, newLines: 0,
-            lines: []
-          }]
-        };
-        formatPatch(patch);
-        expect(patch.hunks[0].oldStart).to.equal(1);
-        expect(patch.hunks[0].newStart).to.equal(1);
-      });
-
-      it('should ignore headerOptions for multi-file patches with isGit flag', function() {
-        const patches = [
-          {
-            oldFileName: 'a/one.txt',
-            newFileName: 'b/one.txt',
-            oldHeader: '',
-            newHeader: '',
-            isGit: true,
-            hunks: [{
-              oldStart: 1, oldLines: 1,
-              newStart: 1, newLines: 1,
-              lines: ['-a', '+b']
-            }]
-          },
-          {
-            oldFileName: 'a/two.txt',
-            newFileName: 'b/two.txt',
-            oldHeader: '',
-            newHeader: '',
-            isGit: true,
-            hunks: [{
-              oldStart: 1, oldLines: 1,
-              newStart: 1, newLines: 1,
-              lines: ['-c', '+d']
-            }]
-          }
-        ];
-        const expected =
-          'diff --git a/one.txt b/one.txt\n' +
-          '--- a/one.txt\n' +
-          '+++ b/one.txt\n' +
-          '@@ -1,1 +1,1 @@\n' +
-          '-a\n' +
-          '+b\n' +
-          '\n' +
-          'diff --git a/two.txt b/two.txt\n' +
-          '--- a/two.txt\n' +
-          '+++ b/two.txt\n' +
-          '@@ -1,1 +1,1 @@\n' +
-          '-c\n' +
-          '+d\n';
-        // All three headerOptions values should produce identical output;
-        // Git patches are self-delimiting via diff --git headers, so
-        // OMIT_HEADERS should also not throw for multi-file patches:
-        expect(formatPatch(patches, INCLUDE_HEADERS)).to.equal(expected);
-        expect(formatPatch(patches, FILE_HEADERS_ONLY)).to.equal(expected);
-        expect(formatPatch(patches, OMIT_HEADERS)).to.equal(expected);
-      });
-
-      it('should emit rename headers for patches with isGit and isRename', function() {
-        const patch = {
-          oldFileName: 'a/old.txt',
-          newFileName: 'b/new.txt',
-          oldHeader: undefined,
-          newHeader: undefined,
-          isGit: true,
-          isRename: true,
-          hunks: []
-        };
-        expect(formatPatch(patch)).to.equal(
-          'diff --git a/old.txt b/new.txt\n' +
-          'rename from old.txt\n' +
-          'rename to new.txt\n'
-        );
-      });
-
-      it('should emit copy headers for patches with isGit and isCopy', function() {
-        const patch = {
-          oldFileName: 'a/original.txt',
-          newFileName: 'b/copy.txt',
-          oldHeader: undefined,
-          newHeader: undefined,
-          isGit: true,
-          isCopy: true,
-          hunks: []
-        };
-        expect(formatPatch(patch)).to.equal(
-          'diff --git a/original.txt b/copy.txt\n' +
-          'copy from original.txt\n' +
-          'copy to copy.txt\n'
-        );
-      });
-
-      it('should emit new file mode header for patches with isGit and isCreate', function() {
-        const patch = {
-          oldFileName: '/dev/null',
-          newFileName: 'b/newfile.txt',
-          oldHeader: '',
-          newHeader: '',
-          isGit: true,
-          isCreate: true,
-          hunks: [{
-            oldStart: 1, oldLines: 0,
-            newStart: 1, newLines: 1,
-            lines: ['+hello']
-          }]
-        };
-        expect(formatPatch(patch)).to.equal(
-          'diff --git a/newfile.txt b/newfile.txt\n' +
+    describe('binary Git patches', function() {
+      const fixtures = [
+        ['modification',
+          'diff --git a/foo.bin b/foo.bin\n' +
+          'Binary files a/foo.bin and b/foo.bin differ\n'],
+        ['creation',
+          'diff --git a/new.bin b/new.bin\n' +
           'new file mode 100644\n' +
-          '--- /dev/null\n' +
-          '+++ b/newfile.txt\n' +
-          '@@ -0,0 +1,1 @@\n' +
-          '+hello\n'
-        );
-      });
-
-      it('should emit deleted file mode header for patches with isGit and isDelete', function() {
-        const patch = {
-          oldFileName: 'a/doomed.txt',
-          newFileName: '/dev/null',
-          oldHeader: '',
-          newHeader: '',
-          isGit: true,
-          isDelete: true,
-          hunks: [{
-            oldStart: 1, oldLines: 1,
-            newStart: 1, newLines: 0,
-            lines: ['-goodbye']
-          }]
-        };
-        expect(formatPatch(patch)).to.equal(
-          'diff --git a/doomed.txt b/doomed.txt\n' +
+          'Binary files /dev/null and b/new.bin differ\n'],
+        ['deletion',
+          'diff --git a/old.bin b/old.bin\n' +
           'deleted file mode 100644\n' +
-          '--- a/doomed.txt\n' +
-          '+++ /dev/null\n' +
-          '@@ -1,1 +0,0 @@\n' +
-          '-goodbye\n'
-        );
-      });
+          'Binary files a/old.bin and /dev/null differ\n'],
+        ['rename with changes',
+          'diff --git a/old.bin b/new.bin\n' +
+          'rename from old.bin\n' +
+          'rename to new.bin\n' +
+          'Binary files a/old.bin and b/new.bin differ\n'],
+        ['copy with changes',
+          'diff --git a/old.bin b/new.bin\n' +
+          'copy from old.bin\n' +
+          'copy to new.bin\n' +
+          'Binary files a/old.bin and b/new.bin differ\n'],
+        ['quoted filename',
+          'diff --git "a/caf\\303\\251\\timage.bin" "b/caf\\303\\251\\timage.bin"\n' +
+          'Binary files "a/caf\\303\\251\\timage.bin" and "b/caf\\303\\251\\timage.bin" differ\n']
+      ];
 
-      it('should still emit rename headers with file headers if hunks are present', function() {
-        const patch = {
-          oldFileName: 'a/old.txt',
-          newFileName: 'b/new.txt',
-          oldHeader: '',
-          newHeader: '',
-          isGit: true,
-          isRename: true,
-          hunks: [{
-            oldStart: 1, oldLines: 1,
-            newStart: 1, newLines: 1,
-            lines: ['-aaa', '+bbb']
-          }]
-        };
-        expect(formatPatch(patch)).to.equal(
-          'diff --git a/old.txt b/new.txt\n' +
-          'rename from old.txt\n' +
-          'rename to new.txt\n' +
-          '--- a/old.txt\n' +
-          '+++ b/new.txt\n' +
+      for (const [name, text] of fixtures) {
+        it(`should preserve a binary ${name} when formatting`, function() {
+          const parsed = parsePatch(text);
+          expect(parsed[0].isBinary).to.equal(true);
+          expect(formatPatch(parsed)).to.equal(text);
+          expect(parsePatch(formatPatch(parsed))).to.deep.equal(parsed);
+        });
+      }
+
+      it('should preserve binary flags in a mixed multi-file patch', function() {
+        const text = fixtures[0][1] +
+          '\n' +
+          'diff --git a/text.txt b/text.txt\n' +
+          '--- a/text.txt\n' +
+          '+++ b/text.txt\n' +
           '@@ -1,1 +1,1 @@\n' +
-          '-aaa\n' +
-          '+bbb\n'
-        );
+          '-before\n' +
+          '+after\n' +
+          '\n' + fixtures[1][1];
+        const parsed = parsePatch(text);
+        expect(parsed).to.have.length(3);
+        expect(parsed.map(patch => patch.isBinary)).to.deep.equal([true, undefined, true]);
+        expect(parsePatch(formatPatch(parsed))).to.deep.equal(parsed);
       });
+    });
 
-      it('should round-trip a Git rename patch through formatPatch and parsePatch', function() {
-        const original = {
-          oldFileName: 'a/old.txt',
-          newFileName: 'b/new.txt',
-          oldHeader: '',
-          newHeader: '',
-          isGit: true,
-          isRename: true,
-          hunks: [{
-            oldStart: 1, oldLines: 1,
-            newStart: 1, newLines: 1,
-            lines: ['-aaa', '+bbb']
-          }]
-        };
-        const formatted = formatPatch(original);
-        const parsed = parsePatch(formatted);
-        expect(parsed).to.have.length(1);
-        expect(parsed[0]).to.deep.equal(original);
-      });
+    it('should emit rename headers for patches with isGit and isRename', function() {
+      const patch = {
+        oldFileName: 'a/old.txt',
+        newFileName: 'b/new.txt',
+        oldHeader: undefined,
+        newHeader: undefined,
+        isGit: true,
+        isRename: true,
+        hunks: []
+      };
+      expect(formatPatch(patch)).to.equal(
+        'diff --git a/old.txt b/new.txt\n' +
+        'rename from old.txt\n' +
+        'rename to new.txt\n'
+      );
+    });
+
+    it('should emit copy headers for patches with isGit and isCopy', function() {
+      const patch = {
+        oldFileName: 'a/original.txt',
+        newFileName: 'b/copy.txt',
+        oldHeader: undefined,
+        newHeader: undefined,
+        isGit: true,
+        isCopy: true,
+        hunks: []
+      };
+      expect(formatPatch(patch)).to.equal(
+        'diff --git a/original.txt b/copy.txt\n' +
+        'copy from original.txt\n' +
+        'copy to copy.txt\n'
+      );
+    });
+
+    it('should emit new file mode header for patches with isGit and isCreate', function() {
+      const patch = {
+        oldFileName: '/dev/null',
+        newFileName: 'b/newfile.txt',
+        oldHeader: '',
+        newHeader: '',
+        isGit: true,
+        isCreate: true,
+        hunks: [{
+          oldStart: 1, oldLines: 0,
+          newStart: 1, newLines: 1,
+          lines: ['+hello']
+        }]
+      };
+      expect(formatPatch(patch)).to.equal(
+        'diff --git a/newfile.txt b/newfile.txt\n' +
+        'new file mode 100644\n' +
+        '--- /dev/null\n' +
+        '+++ b/newfile.txt\n' +
+        '@@ -0,0 +1,1 @@\n' +
+        '+hello\n'
+      );
+    });
+
+    it('should emit deleted file mode header for patches with isGit and isDelete', function() {
+      const patch = {
+        oldFileName: 'a/doomed.txt',
+        newFileName: '/dev/null',
+        oldHeader: '',
+        newHeader: '',
+        isGit: true,
+        isDelete: true,
+        hunks: [{
+          oldStart: 1, oldLines: 1,
+          newStart: 1, newLines: 0,
+          lines: ['-goodbye']
+        }]
+      };
+      expect(formatPatch(patch)).to.equal(
+        'diff --git a/doomed.txt b/doomed.txt\n' +
+        'deleted file mode 100644\n' +
+        '--- a/doomed.txt\n' +
+        '+++ /dev/null\n' +
+        '@@ -1,1 +0,0 @@\n' +
+        '-goodbye\n'
+      );
+    });
+
+    it('should still emit rename headers with file headers if hunks are present', function() {
+      const patch = {
+        oldFileName: 'a/old.txt',
+        newFileName: 'b/new.txt',
+        oldHeader: '',
+        newHeader: '',
+        isGit: true,
+        isRename: true,
+        hunks: [{
+          oldStart: 1, oldLines: 1,
+          newStart: 1, newLines: 1,
+          lines: ['-aaa', '+bbb']
+        }]
+      };
+      expect(formatPatch(patch)).to.equal(
+        'diff --git a/old.txt b/new.txt\n' +
+        'rename from old.txt\n' +
+        'rename to new.txt\n' +
+        '--- a/old.txt\n' +
+        '+++ b/new.txt\n' +
+        '@@ -1,1 +1,1 @@\n' +
+        '-aaa\n' +
+        '+bbb\n'
+      );
+    });
+
+    it('should round-trip a Git rename patch through formatPatch and parsePatch', function() {
+      const original = {
+        oldFileName: 'a/old.txt',
+        newFileName: 'b/new.txt',
+        oldHeader: '',
+        newHeader: '',
+        isGit: true,
+        isRename: true,
+        hunks: [{
+          oldStart: 1, oldLines: 1,
+          newStart: 1, newLines: 1,
+          lines: ['-aaa', '+bbb']
+        }]
+      };
+      const formatted = formatPatch(original);
+      const parsed = parsePatch(formatted);
+      expect(parsed).to.have.length(1);
+      expect(parsed[0]).to.deep.equal(original);
     });
   });
 });
