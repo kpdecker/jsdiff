@@ -415,6 +415,8 @@ describe('patch/apply', function() {
     ]) {
       for (const operation of ['substitution', 'insertion']) {
         it(`should allow an empty-line context ${operation} with fuzzFactor 1 (${label})`, function() {
+          // (Trailing '' in these arrays isn't a line; it just lets us get a trailing newline when
+          // we use .join below.)
           const oldLines = ['a', 'b', 'c', 'd', ''];
           const newLines = ['a', 'b', 'c', 'D', ''];
           const sourceLines = operation === 'substitution'
