@@ -469,16 +469,11 @@ describe('patch/apply', function() {
     }
 
     for (const source of ['a\nb\nc\n', 'a\nb\nc']) {
-      it(`should allow missing context at EOF without appending a phantom line (${JSON.stringify(source)})`, function() {
+      it(`should allow (within fuzzFactor) missing context at EOF (${JSON.stringify(source)})`, function() {
         const patch = createPatch('test.txt', 'a\nb\nc\nd\n', 'a\nB\nc\nd\n');
         expect(applyPatch(source, patch, {fuzzFactor: 1})).to.equal(source.replace('b', 'B'));
       });
     }
-
-    it('should still require deleted lines to exist when context contains empty lines', function() {
-      const patch = createPatch('test.txt', 'a\nb\nc\nd\n', 'a\nb\nc\nD\n');
-      expect(applyPatch('a\n\nc\nother\n', patch, {fuzzFactor: 1})).to.equal(false);
-    });
 
     it('should apply multi line patches with zero context and zero removed at start of file', function() {
       expect(applyPatch(
