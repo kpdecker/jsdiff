@@ -380,26 +380,54 @@ export function applyPatches(uniDiff: string | StructuredPatch[], options: Apply
   const spDiff: StructuredPatch[] = typeof uniDiff === 'string' ? parsePatch(uniDiff) : uniDiff;
 
   let currentIndex = 0;
-  function processIndex(): void {
-    const index = spDiff[currentIndex++];
-    if (!index) {
-      return options.complete();
-    }
 
-    options.loadFile(index, function(err: any, data: string) {
-      if (err) {
-        return options.complete(err);
+  /**
+   * Repeatedly feed the next index (i.e. next StructuredPatch object) to options.loadFile and
+   * options.patched, waiting for options.patched to call the `callback` we give it as the last
+   * argument to signal that we should proceed to the next index.
+   *
+   * The complication is that we don't know whether `loadFile` and `patched` are sync or async, and
+   * need to support both possibilities, without growing the stack indefinitely in the sync case.
+   *
+   * To handle this, we attempt to use an ordinary loop to loop over the indexes, but check, at the
+   * end of each loop, whether the `callback` has been called yet. If it has not, then `patched`
+   * must be async, so we break out of the loop instead of continuing - and wait for `callback`
+   * call `process` again to resume processing.
+   */
+  function process(): void {
+    while (true) {
+      if (currentIndex >= spDiff.length) {
+        return options.complete();
       }
 
-      const updatedContent = applyPatch(data, index, options);
-      options.patched(index, updatedContent, function(err: any) {
+      const index = spDiff[currentIndex++];
+      let synchronous = true;
+      let completedSynchronously = false;
+      options.loadFile(index, function(err: any, data: string) {
         if (err) {
           return options.complete(err);
         }
 
-        processIndex();
+        const updatedContent = applyPatch(data, index, options);
+        options.patched(index, updatedContent, function(err: any) {
+          if (err) {
+            return options.complete(err);
+          }
+
+          if (synchronous) {
+            completedSynchronously = true;
+          } else {
+            process();
+          }
+        });
       });
-    });
+
+      if (!completedSynchronously) {
+        synchronous = false;
+        return;
+      }
+    }
   }
-  processIndex();
+
+  process();
 }
