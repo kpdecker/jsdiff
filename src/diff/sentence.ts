@@ -20,10 +20,15 @@ class SentenceDiff extends Diff<string, string> {
     let tokenStartI = 0,
         match;
     while ((match = sentenceBreak.exec(value))) {
-      result.push(value.slice(tokenStartI, match.index + 1), match[1]);
+      // The sentence:
+      result.push(value.slice(tokenStartI, match.index + 1));
+      // The subsequent whitespace:
+      result.push(match[1]);
       tokenStartI = sentenceBreak.lastIndex;
     }
     if (tokenStartI < value.length) {
+      // Whatever trailing stuff exists after the final sentence-plus-whitespace combo -
+      // possibly a sentence without a terminating punctuation mark.
       result.push(value.slice(tokenStartI));
     }
 
