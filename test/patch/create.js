@@ -562,6 +562,11 @@ describe('patch/create', function() {
       expect(diffResult).to.equal(expectedResult);
     });
 
+    it('should use the default context with frozen options', function() {
+      const patch = createPatch('test', oldFile, newFile, '', '', Object.freeze({}));
+      expect(patch).to.equal(createPatch('test', oldFile, newFile, '', '', {context: 4}));
+    });
+
     it('should generate a patch with context size 0', function() {
       const expectedResult =
         'Index: testFileName\n'
