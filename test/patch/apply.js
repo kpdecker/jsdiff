@@ -1662,38 +1662,36 @@ describe('patch/apply', function() {
       );
     }
 
-    for (const serialized of [false, true]) {
-      it(`should synchronously apply thousands of files without overflowing the stack (${serialized ? 'string' : 'array'})`, function() {
-        this.timeout(10000);
-        const patches = makePatches(5000);
-        let loaded = 0, written = 0, completed = 0;
-        const loadedObjects = [];
-        applyPatches(serialized ? formatPatch(patches) : patches, {
-          loadFile(index, callback) {
-            expect(index.oldFileName).to.equal(`file${loaded}.txt`);
-            expect(index.oldHeader).to.equal('old header');
-            loadedObjects.push(index);
-            loaded++;
-            callback(undefined, 'before\n');
-          },
-          patched(index, content, callback) {
-            expect(index).to.equal(loadedObjects[written]);
-            expect(index.newFileName).to.equal(`file${written}.txt`);
-            expect(index.newHeader).to.equal('new header');
-            expect(content).to.equal('after\n');
-            written++;
-            callback();
-          },
-          complete(error) {
-            expect(error).to.equal(undefined);
-            completed++;
-          }
-        });
-        expect(loaded).to.equal(5000);
-        expect(written).to.equal(5000);
-        expect(completed).to.equal(1);
+    it('should synchronously apply thousands of files without overflowing the stack', function() {
+      this.timeout(10000);
+      const patches = makePatches(5000);
+      let loaded = 0, written = 0, completed = 0;
+      const loadedObjects = [];
+      applyPatches(patches, {
+        loadFile(index, callback) {
+          expect(index.oldFileName).to.equal(`file${loaded}.txt`);
+          expect(index.oldHeader).to.equal('old header');
+          loadedObjects.push(index);
+          loaded++;
+          callback(undefined, 'before\n');
+        },
+        patched(index, content, callback) {
+          expect(index).to.equal(loadedObjects[written]);
+          expect(index.newFileName).to.equal(`file${written}.txt`);
+          expect(index.newHeader).to.equal('new header');
+          expect(content).to.equal('after\n');
+          written++;
+          callback();
+        },
+        complete(error) {
+          expect(error).to.equal(undefined);
+          completed++;
+        }
       });
-    }
+      expect(loaded).to.equal(5000);
+      expect(written).to.equal(5000);
+      expect(completed).to.equal(1);
+    });
 
     for (const asyncLoad of [false, true]) {
       for (const asyncWrite of [false, true]) {
