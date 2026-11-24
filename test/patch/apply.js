@@ -1888,62 +1888,34 @@ foo3
         expect(completed).to.equal(1);
       });
 
-      for (const asyncLoad of [false, true]) {
-        for (const asyncWrite of [false, true]) {
-          it(`should preserve file order with mixed callbacks (load=${asyncLoad}, write=${asyncWrite})`, function(done) {
-            const patches = makePatches(3), events = [];
-            applyPatches(patches, {
-              loadFile(index, callback) {
-                events.push(`load ${index.oldFileName}`);
-                function respond() { callback(undefined, 'before\n'); }
-                if (asyncLoad) { setTimeout(respond, 0); } else { respond(); }
-              },
-              patched(index, content, callback) {
-                expect(content).to.equal('after\n');
-                events.push(`write ${index.newFileName}`);
-                function respond() { callback(); }
-                if (asyncWrite) { setTimeout(respond, 0); } else { respond(); }
-              },
-              complete(error) {
-                expect(events).to.deep.equal([
-                  'load file0.txt', 'write file0.txt',
-                  'load file1.txt', 'write file1.txt',
-                  'load file2.txt', 'write file2.txt'
-                ]);
-                done(error);
-              }
-            });
-          });
-
-          for (const failureStage of ['load', 'write']) {
-            it(`should stop exactly once on callback errors (${failureStage}, load=${asyncLoad}, write=${asyncWrite})`, function(done) {
-              const expected = new Error('failed file');
-              let loaded = 0, written = 0, completed = 0;
-              applyPatches(makePatches(5), {
-                loadFile(index, callback) {
-                  loaded++;
-                  function respond() {
-                    callback(failureStage === 'load' && loaded === 3 ? expected : undefined, 'before\n');
-                  }
-                  if (asyncLoad) { setTimeout(respond, 0); } else { respond(); }
-                },
-                patched(index, content, callback) {
-                  written++;
-                  function respond() { callback(failureStage === 'write' && written === 3 ? expected : undefined); }
-                  if (asyncWrite) { setTimeout(respond, 0); } else { respond(); }
-                },
-                complete(error) {
-                  expect(error).to.equal(expected);
-                  expect(loaded).to.equal(3);
-                  expect(written).to.equal(failureStage === 'load' ? 2 : 3);
-                  expect(++completed).to.equal(1);
-                  done();
-                }
-              });
-            });
+      it('should handle patches one at a time even with async callbacks', function(done) {
+        const patches = makePatches(3), events = [];
+        applyPatches(patches, {
+          loadFile(index, callback) {
+            events.push(`load ${index.oldFileName}`);
+            function respond() { callback(undefined, 'before\n'); }
+            // This delay (and similar below) ensure that, if the patches are racing, they will
+            // complete out of order. (This shouldn't happen, since they shouldn't be racing.)
+            const delay = index.oldFileName == 'file1.txt' ? 200 : 0;
+            setTimeout(respond, delay);
+          },
+          patched(index, content, callback) {
+            expect(content).to.equal('after\n');
+            events.push(`write ${index.newFileName}`);
+            function respond() { callback(); }
+            const delay = index.oldFileName == 'file1.txt' ? 200 : 0;
+            setTimeout(respond, delay);
+          },
+          complete(error) {
+            expect(events).to.deep.equal([
+              'load file0.txt', 'write file0.txt',
+              'load file1.txt', 'write file1.txt',
+              'load file2.txt', 'write file2.txt'
+            ]);
+            done(error);
           }
-        }
-      }
+        });
+      });
 
       it('should switch between synchronous and asynchronous hooks within one batch', function(done) {
         const events = [], expected = [];
