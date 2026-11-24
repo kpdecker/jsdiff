@@ -341,13 +341,27 @@ export function applyPatches(uniDiff: string | StructuredPatch[], options: Apply
   const spDiff: StructuredPatch[] = typeof uniDiff === 'string' ? parsePatch(uniDiff) : uniDiff;
 
   let currentIndex = 0;
-  function processIndex(): void {
-    for (;;) {
-      const index = spDiff[currentIndex++];
-      if (!index) {
+
+  /**
+   * Repeatedly feed the next index (i.e. next StructuredPatch object) to options.loadFile and
+   * options.patched, waiting for options.patched to call the `callback` we give it as the last
+   * argument to signal that we should proceed to the next index.
+   *
+   * The complication is that we don't know whether `loadFile` and `patched` are sync or async, and
+   * need to support both possibilities, without growing the stack indefinitely in the sync case.
+   *
+   * To handle this, we attempt to use an ordinary loop to loop over the indexes, but check, at the
+   * end of each loop, whether the `callback` has been called yet. If it has not, then `patched`
+   * must be async, so we break out of the loop instead of continuing - and wait for `callback`
+   * call `process` again to resume processing.
+   */
+  function process(): void {
+    while (true) {
+      if (currentIndex >= spDiff.length) {
         return options.complete();
       }
 
+      const index = spDiff[currentIndex++];
       let synchronous = true;
       let completedSynchronously = false;
       options.loadFile(index, function(err: any, data: string) {
@@ -364,19 +378,17 @@ export function applyPatches(uniDiff: string | StructuredPatch[], options: Apply
           if (synchronous) {
             completedSynchronously = true;
           } else {
-            processIndex();
+            process();
           }
         });
       });
-      synchronous = false;
 
-      // Synchronous hooks advance in this loop instead of recursively re-entering it.
-      // An asynchronous callback resumes the loop after the pending hook completes.
       if (!completedSynchronously) {
+        synchronous = false;
         return;
       }
     }
   }
 
-  processIndex();
+  process();
 }
