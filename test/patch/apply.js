@@ -1917,23 +1917,23 @@ foo3
         });
       });
 
-      it('should switch between synchronous and asynchronous hooks within one batch', function(done) {
+      it('should support mixed synchronous and asynchronous hooks in one batch', function(done) {
         const events = [], expected = [];
         for (let i = 0; i < 12; i++) { expected.push(`load file${i}.txt`, `write file${i}.txt`); }
         let completed = 0;
         applyPatches(makePatches(12), {
           loadFile(index, callback) {
             events.push(`load ${index.oldFileName}`);
-            const mode = Number(index.oldFileName.slice(4, -4)) % 4;
+            const fileI = Number(index.oldFileName.slice(4, -4)) % 4;
             function respond() { callback(undefined, 'before\n'); }
-            if (mode === 1 || mode === 3) { setTimeout(respond, 0); } else { respond(); }
+            if (fileI === 1 || fileI === 3) { setTimeout(respond, 0); } else { respond(); }
           },
           patched(index, content, callback) {
             events.push(`write ${index.newFileName}`);
             expect(content).to.equal('after\n');
-            const mode = Number(index.newFileName.slice(4, -4)) % 4;
+            const fileI = Number(index.newFileName.slice(4, -4)) % 4;
             function respond() { callback(); }
-            if (mode === 2 || mode === 3) { setTimeout(respond, 0); } else { respond(); }
+            if (fileI === 2 || fileI === 3) { setTimeout(respond, 0); } else { respond(); }
           },
           complete(error) {
             expect(events).to.deep.equal(expected);
