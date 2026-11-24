@@ -1,4 +1,5 @@
 let enqueueTaskCalls = 0;
+let lastSetTimeoutTime = 0;
 
 // Adds `callback` to the event queue as a macrotask, much like setTimeout(callback, 0) would.
 // Unlike setTimeout(callback, 0), this MessageChannel-based approach isn't delayed by timer
@@ -10,8 +11,10 @@ export function enqueueTask(callback: () => void): void {
   // https://bugs.webkit.org/show_bug.cgi?id=327531.
   // Without this workaround, async mode would be effectively sync inside a web worker in Safari.
   // Instead, we very occasionally yield just so that really long-running async diffs will
-  // occasionally yield in Safari, while still eliminating 90% of the clamping in all environments.
-  if (++enqueueTaskCalls % 10 == 0) {
+  // occasionally yield in Safari. We do it on every 10th call, but at most once per 50ms, so the
+  // clamping adds at most a few percent to the time a diff takes in all environments.
+  if (++enqueueTaskCalls % 10 == 0 && Date.now() - lastSetTimeoutTime >= 50) {
+    lastSetTimeoutTime = Date.now();
     setTimeout(callback, 0);
     return;
   }
