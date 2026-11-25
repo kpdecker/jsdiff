@@ -2,11 +2,11 @@ import {expectType} from 'tsd';
 import {diffJson} from '../libesm/index.js';
 import {canonicalize} from '../libesm/diff/json.js';
 
-diffJson({omit: true, value: 12}, {}, {
+diffJson({omit: true, secret: 12}, {}, {
     stringifyReplacer(key: string, value: any) {
         expectType<any>(this);
         expectType<string>(key);
-        return key === 'value' && this.omit ? '<redacted>' : value;
+        return key === 'secret' && this.omit ? '<redacted>' : value;
     }
 });
 

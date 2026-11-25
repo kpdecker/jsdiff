@@ -36,9 +36,9 @@ describe('diff/json', function() {
     });
 
     it('should bind the replacer to the containing object', function() {
-      const input = {omit: true, value: 12};
+      const input = {omit: true, secret: 12};
       function replacer(key, value) {
-        return key === 'value' && this.omit ? '<redacted>' : value;
+        return key === 'secret' && this.omit ? '<redacted>' : value;
       }
       expect(diffJson(input, input, {stringifyReplacer: replacer})[0].value)
         .to.equal(JSON.stringify(input, replacer, '  '));
