@@ -355,6 +355,40 @@ describe('patch/apply', function() {
           + 'line5\n');
     });
 
+    it('should apply a patch produced by `git format-patch`', function() {
+      expect(applyPatch(
+          'line2\n'
+          + 'line3\n'
+          + 'line5\n',
+
+          'From 6e7f6fce09cfc088fe20446ebcfd02fc35541947 Mon Sep 17 00:00:00 2001\n'
+          + 'From: A U Thor <author@example.com>\n'
+          + 'Date: Fri, 23 Oct 2026 12:56:36 +0300\n'
+          + 'Subject: [PATCH] Add line4\n'
+          + '\n'
+          + '---\n'
+          + ' test | 1 +\n'
+          + ' 1 file changed, 1 insertion(+)\n'
+          + '\n'
+          + 'diff --git a/test b/test\n'
+          + 'index cc8654b..84275f9 100644\n'
+          + '--- a/test\n'
+          + '+++ b/test\n'
+          + '@@ -1,3 +1,4 @@\n'
+          + ' line2\n'
+          + ' line3\n'
+          + '+line4\n'
+          + ' line5\n'
+          + '-- \n'
+          + '2.50.1\n'
+          + '\n'))
+        .to.equal(
+          'line2\n'
+          + 'line3\n'
+          + 'line4\n'
+          + 'line5\n');
+    });
+
     it('should apply single line patches with zero context and zero removed', function() {
       expect(applyPatch(
           'line2\n'
@@ -407,6 +441,39 @@ describe('patch/apply', function() {
           + 'line2\n'
           + 'line3\n');
     });
+
+    for (const [label, sourceNewline, patchNewline] of [
+      ['Unix', '\n', '\n'],
+      ['Windows', '\r\n', '\r\n'],
+      ['Windows patch against Unix source', '\n', '\r\n']
+    ]) {
+      for (const operation of ['substitution', 'insertion']) {
+        it(`should allow an empty-line context ${operation} with fuzzFactor 1 (${label})`, function() {
+          // (Trailing '' in these arrays isn't a line; it just lets us get a trailing newline when
+          // we use .join below.)
+          const oldLines = ['a', 'b', 'c', 'd', ''];
+          const newLines = ['a', 'b', 'c', 'D', ''];
+          const sourceLines = operation === 'substitution'
+            ? ['a', '', 'c', 'd', '']
+            : ['a', 'b', '', 'c', 'd', ''];
+          const expectedLines = operation === 'substitution'
+            ? ['a', '', 'c', 'D', '']
+            : ['a', 'b', '', 'c', 'D', ''];
+          const patch = createPatch('test.txt', oldLines.join(patchNewline), newLines.join(patchNewline));
+          const source = sourceLines.join(sourceNewline);
+
+          expect(applyPatch(source, patch)).to.equal(false);
+          expect(applyPatch(source, patch, {fuzzFactor: 1})).to.equal(expectedLines.join(sourceNewline));
+        });
+      }
+    }
+
+    for (const source of ['a\nb\nc\n', 'a\nb\nc']) {
+      it(`should allow (within fuzzFactor) missing context at EOF (${JSON.stringify(source)})`, function() {
+        const patch = createPatch('test.txt', 'a\nb\nc\nd\n', 'a\nB\nc\nd\n');
+        expect(applyPatch(source, patch, {fuzzFactor: 1})).to.equal(source.replace('b', 'B'));
+      });
+    }
 
     it('should apply multi line patches with zero context and zero removed at start of file', function() {
       expect(applyPatch(
@@ -583,6 +650,103 @@ describe('patch/apply', function() {
           + ' lineE\n',
           {fuzzFactor: 10}))
         .to.equal(false);
+    });
+
+    it('should support using a custom comparator', function() {
+      const source = 'start\none\ntwo\nkeep\nDELETE\nend\n';
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,6 +1,6 @@\n'
+        + ' start\n'
+        + ' expected1\n'
+        + ' expected2\n'
+        + ' keep\n'
+        + '-delete\n'
+        + '+replacement\n'
+        + ' end\n';
+
+      expect(applyPatch(source, patch, {fuzzFactor: 2})).to.equal(false);
+      expect(applyPatch(source, patch, {
+        fuzzFactor: 2,
+        compareLine(lineNumber, line, operation, patchContent) {
+          // TODO: Re-evaluate the `?` below in the course of https://github.com/kpdecker/jsdiff/issues/745
+          return line?.toLowerCase() === patchContent.toLowerCase();
+        }
+      })).to.equal('start\none\ntwo\nkeep\nreplacement\nend\n');
+    });
+
+    it('should not repeatedly search the same failing fuzzy matches', function() {
+      const patch = parsePatch('--- test\n'
+        + '+++ test\n'
+        + '@@ -1,17 +1,16 @@\n'
+        + ' a\n'.repeat(16)
+        + '-missing\n')[0];
+      let lineReads = 0;
+      patch.hunks[0].lines = new Proxy(patch.hunks[0].lines, {
+        get(target, key, receiver) {
+          // Slightly perversely, the condition below is how to check if your array proxy is
+          // getting a (numerical) array index access. We need the type check to ensure it's not
+          // a lookup by Symbol, and the regex to confirm the key is a numerical one.
+          if (typeof key === 'string' && (/^\d+$/).test(key)) {
+            // Every time a line of context from the patch fails to match a line in the source
+            // where expected, we have three possible ways to fix it: assume the line was deleted
+            // from the source, assume a line was added to the source, or assume the line was
+            // changed in the source.
+            // With 16 mismatching lines in this test case, that yields over 3^16 branches, i.e.
+            // millions.
+            // However, many of these branches converge (e.g. assuming there was a line inserted
+            // into the source and then a line deleted leads to the same state as assuming there
+            // was a line deleted and then a line inserted which is in turn a strictly worse state
+            // than assuming there was a substitution). Our memoization in applyHunk exploits this
+            // to avoid truly exploring millions of branches.
+            // This test confirms that - and bails out, without hanging the test suite, if we're
+            // going too far.
+            if (++lineReads > 50000) {
+              throw new Error('Too many patch line reads');
+            }
+          }
+          return Reflect.get(target, key, receiver);
+        }
+      });
+
+      expect(applyPatch('b\n'.repeat(16), patch, {fuzzFactor: 16})).to.equal(false);
+    });
+
+    it('should not repeatedly search the same failing fuzzy matches with a custom comparator', function() {
+      // See test above; this just verifies the same memoisation happens with a custom comparator provided.
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -1,17 +1,16 @@\n'
+        + ' a\n'.repeat(16)
+        + '-missing\n';
+      let comparisons = 0;
+
+      expect(applyPatch('b\n'.repeat(16), patch, {
+        fuzzFactor: 16,
+        compareLine(lineNumber, line, operation, patchContent) {
+          if (++comparisons > 50000) {
+            throw new Error('Too many line comparisons');
+          }
+          return line?.toLowerCase() === patchContent.toLowerCase();
+        }
+      })).to.equal(false);
+    });
+
+    it('should not reuse failed fuzzy matches from a different hunk', function() {
+      const patch = '--- test\n'
+        + '+++ test\n'
+        + '@@ -9,4 +9,4 @@\n'
+        + '-0\n'
+        + '+first\n'
+        + ' x\n'
+        + ' absent\n'
+        + ' also absent\n'
+        + '@@ -17,1 +17,1 @@\n'
+        + '-8\n'
+        + '+second\n';
+
+      expect(applyPatch('0\nx\nz\n3\n4\n5\n6\n7\n8\n9\n', patch, {fuzzFactor: 2}))
+        .to.equal('first\nx\nz\n3\n4\n5\n6\n7\nsecond\n9\n');
     });
 
     it('should, given a fuzz factor, allow mismatches caused by presence of extra lines', function() {
@@ -1847,6 +2011,133 @@ foo3
           callback();
         },
         complete: done
+      });
+    });
+
+    describe('callback scheduling', function() {
+      function makePatches(count) {
+        return Array.from({length: count}, (_, i) =>
+          structuredPatch(`file${i}.txt`, `file${i}.txt`, 'before\n', 'after\n', 'old header', 'new header')
+        );
+      }
+
+      it('should synchronously apply thousands of files without overflowing the stack', function() {
+        this.timeout(10000);
+        const patches = makePatches(5000);
+        let loaded = 0, written = 0, completed = 0;
+        const loadedObjects = [];
+        applyPatches(patches, {
+          loadFile(index, callback) {
+            expect(index.oldFileName).to.equal(`file${loaded}.txt`);
+            expect(index.oldHeader).to.equal('old header');
+            loadedObjects.push(index);
+            loaded++;
+            callback(undefined, 'before\n');
+          },
+          patched(index, content, callback) {
+            expect(index).to.equal(loadedObjects[written]);
+            expect(index.newFileName).to.equal(`file${written}.txt`);
+            expect(index.newHeader).to.equal('new header');
+            expect(content).to.equal('after\n');
+            written++;
+            callback();
+          },
+          complete(error) {
+            expect(error).to.equal(undefined);
+            completed++;
+          }
+        });
+        expect(loaded).to.equal(5000);
+        expect(written).to.equal(5000);
+        expect(completed).to.equal(1);
+      });
+
+      it('should handle patches one at a time even with async callbacks', function(done) {
+        const patches = makePatches(3), events = [];
+        applyPatches(patches, {
+          loadFile(index, callback) {
+            events.push(`load ${index.oldFileName}`);
+            function respond() { callback(undefined, 'before\n'); }
+            // This delay (and similar below) ensure that, if the patches are racing, they will
+            // complete out of order. (This shouldn't happen, since they shouldn't be racing.)
+            const delay = index.oldFileName == 'file1.txt' ? 200 : 0;
+            setTimeout(respond, delay);
+          },
+          patched(index, content, callback) {
+            expect(content).to.equal('after\n');
+            events.push(`write ${index.newFileName}`);
+            function respond() { callback(); }
+            const delay = index.oldFileName == 'file1.txt' ? 200 : 0;
+            setTimeout(respond, delay);
+          },
+          complete(error) {
+            expect(events).to.deep.equal([
+              'load file0.txt', 'write file0.txt',
+              'load file1.txt', 'write file1.txt',
+              'load file2.txt', 'write file2.txt'
+            ]);
+            done(error);
+          }
+        });
+      });
+
+      it('should support mixed synchronous and asynchronous hooks in one batch', function(done) {
+        const events = [], expected = [];
+        for (let i = 0; i < 12; i++) { expected.push(`load file${i}.txt`, `write file${i}.txt`); }
+        let completed = 0;
+        applyPatches(makePatches(12), {
+          loadFile(index, callback) {
+            events.push(`load ${index.oldFileName}`);
+            const fileI = Number(index.oldFileName.slice(4, -4)) % 4;
+            function respond() { callback(undefined, 'before\n'); }
+            if (fileI === 1 || fileI === 3) { setTimeout(respond, 0); } else { respond(); }
+          },
+          patched(index, content, callback) {
+            events.push(`write ${index.newFileName}`);
+            expect(content).to.equal('after\n');
+            const fileI = Number(index.newFileName.slice(4, -4)) % 4;
+            function respond() { callback(); }
+            if (fileI === 2 || fileI === 3) { setTimeout(respond, 0); } else { respond(); }
+          },
+          complete(error) {
+            expect(events).to.deep.equal(expected);
+            expect(++completed).to.equal(1);
+            done(error);
+          }
+        });
+      });
+
+      it('should complete an empty patch array synchronously', function() {
+        let completed = 0;
+        applyPatches([], {
+          loadFile() { throw new Error('No files should load'); },
+          patched() { throw new Error('No files should be patched'); },
+          complete(error) {
+            expect(error).to.equal(undefined);
+            completed++;
+          }
+        });
+        expect(completed).to.equal(1);
+      });
+
+      it('should leave failed-patch handling to the patched callback', function() {
+        const results = [];
+        let completed = 0;
+        applyPatches(makePatches(2), {
+          loadFile(index, callback) {
+            callback(undefined, index.oldFileName === 'file0.txt' ? 'different\n' : 'before\n');
+          },
+          patched(index, content, callback) {
+            results.push(content);
+            callback();
+          },
+          complete(error) {
+            expect(error).to.equal(undefined);
+            completed++;
+          }
+        });
+        expect(results).to.deep.equal([false, 'after\n']);
+        expect(completed).to.equal(1);
       });
     });
   });
