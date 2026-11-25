@@ -93,6 +93,8 @@ export function canonicalize(
   stack: Array<any> | null, replacementStack: Array<any> | null,
   replacer: (this: any, k: string, v: any) => any,
   key?: string,
+  // Note that the default argument here is what the JSON.stringify spec (curiously) requires any
+  // replacer function to see as `this` when it passed the root object.
   holder: any = {'': obj}
 ) {
   stack = stack || [];
@@ -159,6 +161,8 @@ export function canonicalize(
   if ('[object Array]' === Object.prototype.toString.call(obj)) {
     stack.push(obj);
     // JSON.stringify snapshots the array length before visiting its elements.
+    // (This matters in the perverse case where the length changes during
+    // visits, due to a replacer function that modifies the array.)
     const length = obj.length;
     canonicalizedObj = new Array(length);
     replacementStack.push(canonicalizedObj);
