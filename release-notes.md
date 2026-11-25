@@ -22,6 +22,7 @@
 - [#739](https://github.com/kpdecker/jsdiff/pull/739) **`applyPatch` with a `fuzzFactor` handles blank lines correctly now**. Previously, if a *blank* line in the text to be patched didn't match the corresponding context line from the patch, the patch would fail to apply regardless of `fuzzFactor`. As of this change, blank lines are no longer treated differently to other lines.
 - [#740](https://github.com/kpdecker/jsdiff/pull/740) **`applyPatches` no longer throws an error when passed thousands of patches in one go**. Previously, this would cause a stack overflow if `options.loadFile` and `options.patched` were synchronous.
 - [#742](https://github.com/kpdecker/jsdiff/pull/742) **`diffSentences` is faster**.
+- [#756](https://github.com/kpdecker/jsdiff/pull/756) **Patch-creation functions not longer mutate their `options` parameter** in the case where it doesn't have a `context` property.
 
 ## 9.0.0
 

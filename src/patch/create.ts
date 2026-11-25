@@ -207,13 +207,7 @@ export function structuredPatch(
   }
 
 
-  if (typeof optionsObj.context === 'undefined') {
-    optionsObj.context = 4;
-  }
-
-  // We copy this into its own variable to placate TypeScript, which thinks
-  // optionsObj.context might be undefined in the callbacks below.
-  const context = optionsObj.context;
+  const {context = 4} = optionsObj;
 
   // @ts-expect-error (runtime check for something that is correctly a static type error)
   if (optionsObj.newlineIsToken) {
