@@ -17,7 +17,7 @@ export interface ApplyPatchOptions {
    */
   autoConvertLineEndings?: boolean,
   /**
-   * Callback used to compare to given lines to determine if they should be considered equal when patching.
+   * Callback used to compare an existing source line with a patch line to determine whether they match.
    * Defaults to strict equality but may be overridden to provide fuzzier comparison.
    * Should return false if the lines should be rejected.
    */
@@ -205,17 +205,18 @@ function applyStructuredPatch(
     for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
       const hunkLine = hunkLines[hunkLinesI],
           operation = (hunkLine.length > 0 ? hunkLine[0] : ' '),
-          content = (hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine);
+          content = (hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine),
+          sourceLine = lines[toPos];
 
       if (operation === '-') {
-        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+        if (sourceLine !== undefined && compareLine(toPos + 1, sourceLine, operation, content)) {
           toPos++;
           nConsecutiveOldContextLines = 0;
         } else {
-          if (!maxErrors || lines[toPos] == null) {
+          if (!maxErrors || sourceLine === undefined) {
             return null;
           }
-          patchedLines[patchedLinesLength] = lines[toPos];
+          patchedLines[patchedLinesLength] = sourceLine;
           return applyHunk(
             hunkLines,
             toPos + 1,
@@ -240,8 +241,8 @@ function applyStructuredPatch(
 
       if (operation === ' ') {
         nConsecutiveOldContextLines++;
-        patchedLines[patchedLinesLength] = lines[toPos];
-        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+        patchedLines[patchedLinesLength] = sourceLine;
+        if (sourceLine !== undefined && compareLine(toPos + 1, sourceLine, operation, content)) {
           patchedLinesLength++;
           lastContextLineMatched = true;
           nextContextLineMustMatch = false;
@@ -258,7 +259,7 @@ function applyStructuredPatch(
           // The first two options are of course only possible if the line from lines is non-null -
           // i.e. only option 3 is possible if we've overrun the end of the old file.
           return (
-            lines[toPos] != null && (
+            sourceLine !== undefined && (
               applyHunk(
                 hunkLines,
                 toPos + 1,
