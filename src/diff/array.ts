@@ -21,35 +21,35 @@ export const arrayDiff = new ArrayDiff();
  * diffs two arrays of tokens, comparing each item for strict equality (===).
  * @returns a list of change objects.
  */
-export function diffArrays<T>(
+export function diffArrays<T, U = T>(
   oldArr: T[],
-  newArr: T[],
-  options: DiffCallbackNonabortable<T[]>
+  newArr: U[],
+  options: DiffCallbackNonabortable<(T | U)[]>
 ): undefined;
-export function diffArrays<T>(
+export function diffArrays<T, U = T>(
   oldArr: T[],
-  newArr: T[],
-  options: DiffArraysOptionsAbortable<T> & CallbackOptionAbortable<T[]>
+  newArr: U[],
+  options: DiffArraysOptionsAbortable<T, U> & CallbackOptionAbortable<(T | U)[]>
 ): undefined
-export function diffArrays<T>(
+export function diffArrays<T, U = T>(
   oldArr: T[],
-  newArr: T[],
-  options: DiffArraysOptionsNonabortable<T> & CallbackOptionNonabortable<T[]>
+  newArr: U[],
+  options: DiffArraysOptionsNonabortable<T, U> & CallbackOptionNonabortable<(T | U)[]>
 ): undefined
-export function diffArrays<T>(
+export function diffArrays<T, U = T>(
   oldArr: T[],
-  newArr: T[],
-  options: DiffArraysOptionsAbortable<T>
-): ChangeObject<T[]>[] | undefined
-export function diffArrays<T>(
+  newArr: U[],
+  options: DiffArraysOptionsAbortable<T, U>
+): ChangeObject<(T | U)[]>[] | undefined
+export function diffArrays<T, U = T>(
   oldArr: T[],
-  newArr: T[],
-  options?: DiffArraysOptionsNonabortable<T>
-): ChangeObject<T[]>[]
-export function diffArrays<T>(
+  newArr: U[],
+  options?: DiffArraysOptionsNonabortable<T, U>
+): ChangeObject<(T | U)[]>[]
+export function diffArrays<T, U = T>(
   oldArr: T[],
-  newArr: T[],
+  newArr: U[],
   options?: any
-): undefined | ChangeObject<T[]>[] {
+): undefined | ChangeObject<(T | U)[]>[] {
   return arrayDiff.diff(oldArr, newArr, options);
 }

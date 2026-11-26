@@ -69,17 +69,17 @@ export interface CallbackOptionAbortable<T> {
   callback: DiffCallbackAbortable<T>
 }
 
-interface DiffArraysOptions<T> extends CommonDiffOptions {
-  comparator?: (a: T, b: T) => boolean,
+interface DiffArraysOptions<T, U = T> extends CommonDiffOptions {
+  comparator?: (a: T, b: U) => boolean,
 }
-export interface DiffArraysOptionsNonabortable<T> extends DiffArraysOptions<T> {
+export interface DiffArraysOptionsNonabortable<T, U = T> extends DiffArraysOptions<T, U> {
   /**
    * If provided, the diff will be computed in async mode to avoid blocking the event loop while the diff is calculated.
    * The value of the `callback` option should be a function and will be passed the computed diff or patch as its first argument.
    */
-  callback?: DiffCallbackNonabortable<T[]>
+  callback?: DiffCallbackNonabortable<(T | U)[]>
 }
-export type DiffArraysOptionsAbortable<T> = DiffArraysOptions<T> & AbortableDiffOptions & Partial<CallbackOptionAbortable<T[]>>
+export type DiffArraysOptionsAbortable<T, U = T> = DiffArraysOptions<T, U> & AbortableDiffOptions & Partial<CallbackOptionAbortable<(T | U)[]>>
 
 
 interface DiffCharsOptions extends CommonDiffOptions {
