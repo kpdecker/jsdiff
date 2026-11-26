@@ -1,7 +1,17 @@
 // Iterator that traverses in the range of [min, max], stepping
-// by distance from a given start position. I.e. for [0, 4], with
-// start of 2, this will iterate 2, 3, 1, 4, 0.
+// by distance from a given start position, excluding the start itself.
+// For [0, 4], with start of 2, this will iterate 3, 1, 4, 0.
 export default function(start: number, minLine: number, maxLine: number): () => number | undefined {
+  // Use boundary cursors outside the range, avoiding large-coordinate subtraction.
+  if (start < minLine) {
+    let next = minLine;
+    return () => next <= maxLine ? next++ : undefined;
+  }
+  if (start > maxLine) {
+    let next = maxLine;
+    return () => next >= minLine ? next-- : undefined;
+  }
+
   let wantForward = true,
       backwardExhausted = false,
       forwardExhausted = false,
