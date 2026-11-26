@@ -669,10 +669,39 @@ describe('patch/apply', function() {
       expect(applyPatch(source, patch, {
         fuzzFactor: 2,
         compareLine(lineNumber, line, operation, patchContent) {
-          // TODO: Re-evaluate the `?` below in the course of https://github.com/kpdecker/jsdiff/issues/745
-          return line?.toLowerCase() === patchContent.toLowerCase();
+          return line.toLowerCase() === patchContent.toLowerCase();
         }
       })).to.equal('start\none\ntwo\nkeep\nreplacement\nend\n');
+    });
+
+    it('should not compare a missing deletion line during fuzzy matching', function() {
+      const patch = createPatch('test.txt', 'a', '');
+
+      expect(applyPatch('x', patch, {
+        fuzzFactor: 1,
+        compareLine(lineNumber, line, operation, patchContent) {
+          expect(line).to.be.a('string');
+          return line === patchContent;
+        }
+      })).to.equal(false);
+    });
+
+    it('should compare blank lines but not missing context during fuzzy matching', function() {
+      const patch = createPatch('test.txt', 'a\nb\n\nc\nd\n', 'a\nB\n\nc\nd\n');
+      const blankLineComparisons = [];
+
+      expect(applyPatch('a\nb\n\nc', patch, {
+        fuzzFactor: 1,
+        compareLine(lineNumber, line, operation, patchContent) {
+          expect(line).to.be.a('string');
+          if (line === '') {
+            blankLineComparisons.push([lineNumber, operation, patchContent]);
+          }
+          return line === patchContent;
+        }
+      })).to.equal('a\nB\n\nc');
+
+      expect(blankLineComparisons).to.deep.include([3, ' ', '']);
     });
 
     it('should not repeatedly search the same failing fuzzy matches', function() {
