@@ -5,6 +5,34 @@ import {expect} from 'chai';
 
 describe('diff/json', function() {
   describe('#diffJson', function() {
+    it('should serialize arrays with a custom toStringTag as arrays', function() {
+      const value = [1, 2];
+      value.length = 3;
+      Object.defineProperty(value, Symbol.toStringTag, {value: 'List'});
+      const serialized = JSON.stringify(value, null, 2);
+      expect(diffJson(value, serialized)).to.eql([
+        {count: 5, value: serialized, added: false, removed: false}
+      ]);
+    });
+
+    it('should serialize tagged Array subclasses as arrays', function() {
+      class List extends Array {}
+      Object.defineProperty(List.prototype, Symbol.toStringTag, {value: 'List'});
+      const value = new List(1, 2);
+      const serialized = JSON.stringify(value, null, 2);
+      expect(diffJson(value, serialized)).to.eql([
+        {count: 4, value: serialized, added: false, removed: false}
+      ]);
+    });
+
+    it('should not serialize objects tagged as Array as arrays', function() {
+      const value = {0: 'zero', length: 1, note: 'retained', [Symbol.toStringTag]: 'Array'};
+      const serialized = JSON.stringify(value, null, 2);
+      expect(diffJson(value, serialized)).to.eql([
+        {count: 5, value: serialized, added: false, removed: false}
+      ]);
+    });
+
     it('should accept objects', function() {
       expect(diffJson(
         {a: 123, b: 456, c: 789},

@@ -154,7 +154,7 @@ export function canonicalize(
 
   let canonicalizedObj: any;
 
-  if ('[object Array]' === Object.prototype.toString.call(obj)) {
+  if (Array.isArray(obj)) {
     stack.push(obj);
     canonicalizedObj = new Array(obj.length);
     replacementStack.push(canonicalizedObj);
