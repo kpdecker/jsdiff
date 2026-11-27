@@ -115,8 +115,11 @@ describe('diff/character', function() {
     it('does not starve timers while it runs', function(done) {
       // Confirm that we're actually yielding control back to the event loop in a way that allows
       // other stuff to run - that is after all the point of async mode!
-      const oldText = 'ax'.repeat(1000);
-      const newText = 'ay'.repeat(1000);
+      // (Inputs chosen to not trigger the discard-unique-tokens optimisation: 'a' and 'b' both
+      // occur on both sides, but the edit distance is still large - 2000 - so the diff takes many
+      // async iterations.)
+      const oldText = 'a'.repeat(1000) + 'b'.repeat(1000);
+      const newText = 'b'.repeat(1000) + 'a'.repeat(1000);
       let ticks = 0;
       const interval = setInterval(() => { ticks++; }, 1);
       diffChars(oldText, newText, {callback: () => {
