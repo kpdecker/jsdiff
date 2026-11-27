@@ -6,6 +6,10 @@ import type { StructuredPatch, DiffLinesOptionsAbortable, DiffLinesOptionsNonabo
  * quoting (as used by Git and GNU diffutils in diff output).
  */
 function needsQuoting(s: string): boolean {
+  // Preserve boundary spaces when file headers are parsed with whitespace trimming.
+  if (s.startsWith(' ') || s.endsWith(' ')) {
+    return true;
+  }
   for (let i = 0; i < s.length; i++) {
     if (s[i] < '\x20' || s[i] > '\x7e' || s[i] === '"' || s[i] === '\\') {
       return true;
