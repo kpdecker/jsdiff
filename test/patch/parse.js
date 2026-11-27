@@ -5,6 +5,10 @@ import {expect} from 'chai';
 
 describe('patch/parse', function() {
   describe('#parse', function() {
+    it('should parse an empty patch as an empty array', function() {
+      expect(parsePatch('')).to.eql([]);
+    });
+
     it('should parse basic patches', function() {
       expect(parsePatch(
 `@@ -1,3 +1,4 @@
