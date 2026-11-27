@@ -830,11 +830,10 @@ describe('diff/json', function() {
           return value;
         }
         const expected = JSON.stringify([1], replacer, '  ');
-        const changes = diffJson([1], expected, {stringifyReplacer: replacer});
-        expect(changes).to.have.length(1);
-        expect(changes[0].value).to.equal(expected);
-        expect(changes[0].added).to.equal(false);
-        expect(changes[0].removed).to.equal(false);
+        const changes = diffJson([1], [1], {stringifyReplacer: replacer});
+        expect(changes).to.eql([
+          { count: 3, value: expected, added: false, removed: false }
+        ]);
       });
 
       it('visits original array positions after a replacer shortens its holder', function() {
@@ -845,11 +844,10 @@ describe('diff/json', function() {
           return key !== '' && value === undefined ? 'missing' : value;
         }
         const expected = JSON.stringify([1, 2, 3], replacer, '  ');
-        const changes = diffJson([1, 2, 3], expected, {stringifyReplacer: replacer});
-        expect(changes).to.have.length(1);
-        expect(changes[0].value).to.equal(expected);
-        expect(changes[0].added).to.equal(false);
-        expect(changes[0].removed).to.equal(false);
+        const changes = diffJson([1, 2, 3], [1, 2, 3], {stringifyReplacer: replacer});
+        expect(changes).to.eql([
+          { count: 5, value: expected, added: false, removed: false }
+        ]);
       });
 
       it('should bind the replacer to the containing object', function() {
