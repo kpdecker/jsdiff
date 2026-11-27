@@ -91,6 +91,8 @@ function applyStructuredPatch(
         compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent),
         fuzzFactor = options.fuzzFactor || 0;
   let minLine = 0;
+  // split also leaves an empty placeholder when the source itself is empty.
+  let hasTrailingEmptySentinel = lines[lines.length - 1] === '';
 
   if (fuzzFactor < 0 || !Number.isInteger(fuzzFactor)) {
     throw new Error('fuzzFactor must be a non-negative integer');
@@ -130,12 +132,14 @@ function applyStructuredPatch(
       }
     } else if (lines[lines.length - 1] == '') {
       lines.pop();
+      hasTrailingEmptySentinel = false;
     } else if (!fuzzFactor) {
       return false;
     }
   } else if (addEOFNL) {
     if (lines[lines.length - 1] != '') {
       lines.push('');
+      hasTrailingEmptySentinel = true;
     } else if (!fuzzFactor) {
       return false;
     }
@@ -314,6 +318,15 @@ function applyStructuredPatch(
     let toPos: number | undefined;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
       toPos = hunk.oldStart + prevHunkOffset - 1;
+      if (hunk.oldLines === 0) {
+        // With no old lines to match, fit at the nearest available insertion point.
+        // The final split element represents the EOF newline, not another line.
+        const lastInsertionPos = lines.length - (hasTrailingEmptySentinel ? 1 : 0);
+        if (minLine > lastInsertionPos) {
+          return false;
+        }
+        toPos = Math.max(minLine, Math.min(toPos, lastInsertionPos));
+      }
       const iterator = distanceIterator(toPos, minLine, maxLine);
       for (; toPos !== undefined; toPos = iterator()) {
         hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
